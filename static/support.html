@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SuperCX | حالات الدعم</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="shell" style="grid-template-rows:auto auto 1fr">
+    <header class="top">
+      <div class="brand">حالات الدعم<small>الحالات المحالة من SuperCX</small></div>
+      <form id="auth" style="display:flex;gap:.5rem">
+        <input id="token" type="password" placeholder="رمز فريق الدعم" aria-label="رمز فريق الدعم" required>
+        <button class="primary" type="submit">عرض الحالات</button>
+      </form>
+    </header>
+    <p class="empty" id="state">أدخل رمز فريق الدعم لعرض الحالات.</p>
+    <div class="table-wrap">
+      <table id="table" hidden>
+        <thead><tr><th>التاريخ</th><th>السؤال</th><th>الملخص</th><th>اللغة</th><th>العضوية</th><th>التواصل</th><th>الحالة</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+  <script src="/static/support.js"></script>
+</body>
+</html>

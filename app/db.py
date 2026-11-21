@@ -50,7 +50,7 @@ class FaqCategory(SQLModel, table=True):
 
 
 class FaqItem(SQLModel, table=True):
-    """One FAQ entry. Seeded from data/faq_seed.json, then added to by staff."""
+    """One FAQ entry. Seeded from data/faq.json, then added to by staff."""
     __tablename__ = "faq_items"
 
     id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)

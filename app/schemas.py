@@ -1,8 +1,8 @@
 """API contract shared by the backend, the agent and the frontend."""
 from enum import Enum
-from typing import Literal, Optional
+from typing import Annotated, Literal, Optional
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, StringConstraints, model_validator
 
 Lang = Literal["ar", "en"]
 
@@ -42,7 +42,8 @@ class ChatTurn(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    message: str = Field(min_length=1, max_length=2000)
+    # Whitespace-only messages are rejected (422) like empty ones.
+    message: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=2000)]
     history: list[ChatTurn] = []
 
 

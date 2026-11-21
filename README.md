@@ -4,10 +4,31 @@ AI membership assistant for the Saudi CX Association (CX Hackathon, Track 1).
 
 ## Run
 
+Locally (SQLite is created automatically; the FAQ seed loads on first start):
+
 ```bash
 pip install -r requirements.txt
+export SUPPORT_TOKEN=demo-support-token   # any value; there is no default in code
 uvicorn main:app --reload --port 8000
+python -m app.seed_demo                   # optional: sample unanswered questions for the dashboard
 ```
+
+On Replit: add **Replit Postgres** (sets `DATABASE_URL`; `postgres://` URLs are
+converted to `postgresql://` automatically) and set `SUPPORT_TOKEN` in **Secrets**,
+then press Run. `psycopg2-binary` is in `requirements.txt`.
+
+### Staff access for testing
+
+There are no staff accounts. The dashboard at `/support` asks for the shared
+`SUPPORT_TOKEN`: enter the same value you set in the environment
+(`demo-support-token` in the example above). Every staff endpoint checks it on the
+server; if `SUPPORT_TOKEN` is not set, all staff requests get 401.
+
+### Demo data (simulated, no real people)
+
+- Phone verification: `500000001` (Ambassador, 365 days left) and `500000002`
+  (Affiliate, 21 days left: shows "Renew"). Any 4-digit code works. Any other
+  number shows "not registered". Numbers are not stored.
 
 - Chat: `http://localhost:8000/` (also `#verify` and `#status` for the membership lookup)
 - FAQ: `http://localhost:8000/faq`
@@ -20,9 +41,11 @@ uvicorn main:app --reload --port 8000
 | Variable | Default | Purpose |
 |---|---|---|
 | `DATABASE_URL` | `sqlite:///./supercx.db` | Set automatically by Replit Postgres |
-| `SUPPORT_TOKEN` | `dev-support-token` | Support dashboard access. **Change in production** |
+| `SUPPORT_TOKEN` | *(none)* | Staff dashboard token. **Required**; unset = staff endpoints return 401 |
 | `MEMBERSHIP_API_URL` | `https://cxa.sa/api/MemberShip/public` | Live tier data |
 | `MEMBERSHIP_CACHE_SECONDS` | `3600` | Tier cache lifetime |
+| `HIGH_FREQUENCY_THRESHOLD` | `10` | Times asked before a question counts as "high frequency" |
+| `FIXTURE_CHECKED_AT` | `2026-11-11` | "Last verified" date shown when the bundled tier copy is used |
 
 If the membership API is unreachable, the app falls back to the last good copy,
 then to `data/memberships_fixture.json`. `/api/health` reports which one is in use.
@@ -34,8 +57,8 @@ main.py              routes
 app/schemas.py       API contract (shared with the agent)
 app/agent.py         run_agent(): rule-based stub, replaced by the LLM agent
 app/memberships.py   fetch + normalize + cache tiers
-app/db.py            support_cases table
-app/faq.py           FAQ in the DB (faq_categories/faq_items), seeded once from data/faq_seed.json
+app/db.py            tables: support_cases, unanswered_questions, faq_categories, faq_items
+app/faq.py           FAQ in the DB (faq_categories/faq_items), seeded once from data/faq.json
 app/verify.py        SIMULATED phone verification + demo member lookup
 app/redact.py        strips emails/phone numbers from summaries
 app/seed_demo.py     loads the design's sample unanswered questions (dev only)
@@ -48,7 +71,7 @@ tests/               success, error and permission tests
 
 | Endpoint | Access | Purpose |
 |---|---|---|
-| `GET /api/faq` | public | FAQ sections. Read from the DB. Seed items (`data/faq_seed.json`) are `demo: true` |
+| `GET /api/faq` | public | FAQ sections. Read from the DB. Seed items (`data/faq.json`) are `demo: true` |
 | `GET /api/unanswered?sort=count\|recent` | support token | Escalated questions grouped by text, with count and last seen |
 | `GET /api/unanswered/stats` | support token | Pending, high-frequency (`HIGH_FREQUENCY_THRESHOLD`, default 10), approved |
 | `POST /api/unanswered/{id}/promote` | support token | Adds the (edited) question + answer + source to the FAQ |
@@ -79,8 +102,22 @@ signature and return a `ChatResponse`:
 Available helpers: `get_tiers()`, `get_tier(id)`. The UI creates the support case
 (`POST /api/support-cases`) after the user leaves contact details.
 
-## Integration limits (current)
+## Live vs. simulated
 
-- Tier data: **live** from `cxa.sa/api/MemberShip/public` (read only).
-- Support cases: stored in this app's database, not yet in the association's system.
-- Registration: links to `cxa.sa/membership`; enrollment stays in Track 2.
+| Part | Status | Notes |
+|---|---|---|
+| Membership tiers (names, prices, benefits) | **Live** | Public API `cxa.sa/api/MemberShip/public`, read only; falls back to the bundled copy |
+| Registration / renewal | **Link only** | Buttons open `cxa.sa/membership`; no enrollment or payment here (Track 2) |
+| Support cases | **Live in this app** | Stored in this app's database, not yet in the association's system |
+| Unanswered questions, FAQ | **Live in this app** | Database tables; FAQ content itself is demo (marked "تجريبي") until approved |
+| Phone verification (OTP) | **Simulated** | No SMS is sent; any 4-digit code is accepted |
+| Member records (type, expiry) | **Simulated** | `data/members_demo.json`, not the association's member registry |
+| AI answers | **Stub** | `app/agent.py` is rule-based until the LLM agent replaces it |
+
+## Still to do
+
+- Connect phone verification to a real OTP provider and the member registry (needs the association).
+- Approved FAQ content and sources from the association; replace the demo answers.
+- Send support cases to the association's system and confirm response times.
+- Staff accounts per person (currently one shared token).
+- Database migrations (tables are created with `create_all`; schema changes need a migration tool).

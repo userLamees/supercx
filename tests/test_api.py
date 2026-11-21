@@ -32,7 +32,7 @@ def test_unpublished_condition_is_not_invented(client):
 # Story 2 + 3: escalation creates a complete case for support
 def test_escalation_creates_case_visible_to_support(client):
     created = client.post("/api/support-cases", json={
-        "question": "هل فيه خصم للطلاب؟", "language": "ar", "contact": "a@b.com"})
+        "question": "هل فيه خصم للطلاب؟", "language": "ar", "contact": "test@example.com"})
     assert created.status_code == 201
     cases = client.get("/api/support-cases", headers=AUTH).json()
     assert len(cases) == 1 and cases[0]["status"] == "new"
@@ -45,20 +45,20 @@ def test_case_requires_contact(client):
 
 def test_case_rejects_unknown_tier(client):
     r = client.post("/api/support-cases", json={
-        "question": "q", "language": "en", "contact": "a@b.com", "tier_id": "not-a-tier"})
+        "question": "q", "language": "en", "contact": "test@example.com", "tier_id": "not-a-tier"})
     assert r.status_code == 422
 
 
 # Permission checks
 def test_visitor_cannot_read_or_update_cases(client):
     case_id = client.post("/api/support-cases", json={
-        "question": "q", "language": "en", "contact": "a@b.com"}).json()["id"]
+        "question": "q", "language": "en", "contact": "test@example.com"}).json()["id"]
     assert client.get("/api/support-cases").status_code == 401
     assert client.patch(f"/api/support-cases/{case_id}", json={"status": "closed"}).status_code == 401
 
 
 def test_support_can_update_status(client):
     case_id = client.post("/api/support-cases", json={
-        "question": "q", "language": "en", "contact": "a@b.com"}).json()["id"]
+        "question": "q", "language": "en", "contact": "test@example.com"}).json()["id"]
     r = client.patch(f"/api/support-cases/{case_id}", json={"status": "in_progress"}, headers=AUTH)
     assert r.status_code == 200 and r.json()["status"] == "in_progress"

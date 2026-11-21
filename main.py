@@ -25,7 +25,7 @@ from app.verify import lookup, normalize_phone, valid_code
 async def lifespan(_: FastAPI):
     init_db()
     with Session(engine) as session:
-        seed_faq(session)  # first start only: loads data/faq_seed.json into the DB
+        seed_faq(session)  # first start only: loads data/faq.json into the DB
     yield
 
 

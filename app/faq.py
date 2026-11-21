@@ -1,6 +1,6 @@
 """FAQ stored in the database (faq_categories, faq_items). No agent calls.
 
-data/faq_seed.json is only the initial content: it is loaded once, when the
+data/faq.json is only the initial content: it is loaded once, when the
 tables are empty. Staff-approved answers are added as new rows.
 """
 import json
@@ -13,7 +13,7 @@ from sqlmodel import Session, func, select
 from .db import FaqCategory as CategoryRow, FaqItem as ItemRow
 from .schemas import FaqCategory, FaqItem, Localized, Source
 
-SEED_FILE = Path(__file__).resolve().parent.parent / "data" / "faq_seed.json"
+SEED_FILE = Path(__file__).resolve().parent.parent / "data" / "faq.json"
 _ARABIC = re.compile(r"[\u0600-\u06FF]")
 
 

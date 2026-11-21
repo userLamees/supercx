@@ -100,6 +100,8 @@ I18N.add({
     "verify.codeHelp": "أدخل الرمز المكوّن من 4 أرقام المرسل إلى جوالك",
     "verify.codeSent": "أُرسل رمز تجريبي إلى \u2066+966 {phone}\u2069.",
     "verify.check": "تحقق",
+    "verify.sending": "جارٍ إرسال الرمز…",
+    "verify.checking": "جارٍ التحقق…",
     "verify.privacy": "لا نعرض أي بيانات شخصية قبل التحقق",
     "verify.badPhone": "أدخل رقم جوال سعوديًا صحيحًا يبدأ بـ 5 ويتكوّن من 9 أرقام.",
     "verify.badCode": "أدخل الرمز كاملًا (4 أرقام).",
@@ -220,6 +222,8 @@ I18N.add({
     "verify.codeHelp": "Enter the 4-digit code sent to your mobile",
     "verify.codeSent": "A demo code was sent to \u2066+966 {phone}\u2069.",
     "verify.check": "Verify",
+    "verify.sending": "Sending code…",
+    "verify.checking": "Verifying…",
     "verify.privacy": "We don't show any personal data before verification",
     "verify.badPhone": "Enter a valid Saudi mobile number: 9 digits starting with 5.",
     "verify.badCode": "Enter the full 4-digit code.",
@@ -643,9 +647,11 @@ phoneForm.addEventListener("submit", async (e) => {
   const phone = normalizePhone(phoneInput.value);
   if (!phone) { showError(phoneError, "verify.badPhone"); phoneInput.focus(); return; }
   sendCodeBtn.disabled = true;
+  const label = verifiedPhone ? "verify.resend" : "verify.send";
+  sendCodeBtn.textContent = t("verify.sending");
   try {
     const res = await fetch("/api/verify/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone }) });
-    if (res.status === 422) { showError(phoneError, "verify.badPhone"); return; }
+    if (res.status === 422) { showError(phoneError, "verify.badPhone"); sendCodeBtn.textContent = t(label); return; }
     if (!res.ok) throw new Error(String(res.status));
     verifiedPhone = phone;
     cells.forEach((c) => { c.disabled = false; c.value = ""; });
@@ -657,6 +663,7 @@ phoneForm.addEventListener("submit", async (e) => {
     cells[0].focus();
   } catch (err) {
     showError(phoneError, isOffline(err) ? "verify.offline" : "verify.failed");
+    sendCodeBtn.textContent = t(label);
   } finally {
     sendCodeBtn.disabled = false;
   }
@@ -667,6 +674,7 @@ codeForm.addEventListener("submit", async (e) => {
   showError(codeError, null);
   if (code().length !== 4) { showError(codeError, "verify.badCode"); return; }
   checkBtn.disabled = true;
+  checkBtn.textContent = t("verify.checking");
   try {
     const res = await fetch("/api/verify/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: verifiedPhone, code: code() }) });
     if (res.status === 422) { showError(codeError, "verify.badCode"); return; }
@@ -680,6 +688,7 @@ codeForm.addEventListener("submit", async (e) => {
   } catch (err) {
     showError(codeError, isOffline(err) ? "verify.offline" : "verify.failed");
   } finally {
+    checkBtn.textContent = t("verify.check");
     updateCheck();
   }
 });

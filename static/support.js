@@ -39,7 +39,13 @@ I18N.add({
     "dash.next": "التالي",
     "dash.note": "تُراجع الإجابات والمصادر قبل إضافتها إلى الأسئلة الشائعة.",
     "dash.empty": "لا توجد أسئلة غير مجابة حاليًا. ستظهر هنا الأسئلة التي حوّلها المساعد لعدم وجود إجابة معتمدة.",
-    "dash.loadError": "تعذّر تحميل البيانات. أعد المحاولة.",
+    "dash.loadError": "تعذّر تحميل البيانات من الخادم. أعد المحاولة.",
+    "dash.offline": "لا يوجد اتصال. تحقق من الإنترنت ثم أعد المحاولة.",
+    "dash.loading": "جارٍ تحميل البيانات…",
+    "dash.statusSaved": "تم حفظ الحالة.",
+    "dash.signingIn": "جارٍ الدخول…",
+    "modal.approving": "جارٍ الاعتماد…",
+    "modal.offline": "لا يوجد اتصال. لم يُحفظ شيء، أعد المحاولة.",
     "dash.today": "اليوم، {time}",
     "dash.yesterday": "أمس، {time}",
     "dash.casesSub": "الحالات المحالة من المساعد مع وسيلة التواصل إن وُجدت.",
@@ -108,7 +114,13 @@ I18N.add({
     "dash.next": "Next",
     "dash.note": "Answers and sources are reviewed before they are added to the FAQ.",
     "dash.empty": "No unanswered questions right now. Questions the assistant couldn't answer from approved content will appear here.",
-    "dash.loadError": "Couldn't load the data. Please try again.",
+    "dash.loadError": "Couldn't load the data from the server. Please try again.",
+    "dash.offline": "No connection. Check your internet and try again.",
+    "dash.loading": "Loading data…",
+    "dash.statusSaved": "Status saved.",
+    "dash.signingIn": "Signing in…",
+    "modal.approving": "Approving…",
+    "modal.offline": "No connection. Nothing was saved; please try again.",
     "dash.today": "Today, {time}",
     "dash.yesterday": "Yesterday, {time}",
     "dash.casesSub": "Cases passed on by the assistant, with contact details when provided.",
@@ -166,7 +178,10 @@ function h(tag, props = {}, ...kids) {
 function token() { try { return sessionStorage.getItem("supportToken") || ""; } catch { return ""; } }
 function setToken(v) { try { v ? sessionStorage.setItem("supportToken", v) : sessionStorage.removeItem("supportToken"); } catch { /* ignore */ } }
 
+const isOffline = (err) => !navigator.onLine || err instanceof TypeError;
+
 async function api(path, options = {}) {
+  if (!navigator.onLine) throw new TypeError("offline");
   const res = await fetch(path, {
     ...options,
     headers: { "Content-Type": "application/json", "X-Support-Token": token(), ...(options.headers || {}) },
@@ -214,12 +229,18 @@ async function route() {
   const view = currentView();
   show(view);
   if (!token()) { $("token").focus(); return; }
+  const state = $(view === "cases" ? "cases-state" : "unanswered-state");
+  const table = $(view === "cases" ? "cases-table" : "unanswered-table");
+  state.textContent = t("dash.loading"); state.hidden = false; table.hidden = true;
+  if (view === "unanswered") $("pager").hidden = true;
   try {
     if (view === "unanswered") await loadUnanswered(); else await loadCases();
   } catch (e) {
     if (e.message === "auth") { setToken(""); show(view); showAuthError(); return; }
-    const state = $(view === "cases" ? "cases-state" : "unanswered-state");
-    state.textContent = t("dash.loadError"); state.hidden = false;
+    state.textContent = t(isOffline(e) ? "dash.offline" : "dash.loadError"); state.hidden = false;
+  } finally {
+    const btn = $("auth").querySelector("button");
+    btn.disabled = false; btn.textContent = t("dash.signIn");
   }
 }
 
@@ -290,6 +311,7 @@ $("promote-form").addEventListener("submit", async (e) => {
   }
   const isUrl = /^https?:\/\/\S+$/i.test(source);
   $("m-approve").disabled = true;
+  $("m-approve").textContent = t("modal.approving");
   try {
     await api(`/api/unanswered/${current.id}/promote`, {
       method: "POST",
@@ -302,9 +324,10 @@ $("promote-form").addEventListener("submit", async (e) => {
     await loadUnanswered();
   } catch (err) {
     if (err.message === "auth") { closePromote(); setToken(""); show(currentView()); showAuthError(); return; }
-    $("m-error").textContent = t("modal.error"); $("m-error").hidden = false;
+    $("m-error").textContent = t(isOffline(err) ? "modal.offline" : "modal.error"); $("m-error").hidden = false;
   } finally {
     $("m-approve").disabled = false;
+    $("m-approve").textContent = t("modal.approve");
   }
 });
 
@@ -314,8 +337,8 @@ function statusSelect(c) {
   ["new", "in_progress", "closed"].forEach((v) => select.add(new Option(t(`status.${v}`), v, false, v === c.status)));
   select.addEventListener("change", async () => {
     select.disabled = true;
-    try { await api(`/api/support-cases/${c.id}`, { method: "PATCH", body: JSON.stringify({ status: select.value }) }); c.status = select.value; }
-    catch { select.value = c.status; toast(t("dash.statusSaveError")); }
+    try { await api(`/api/support-cases/${c.id}`, { method: "PATCH", body: JSON.stringify({ status: select.value }) }); c.status = select.value; toast(t("dash.statusSaved")); }
+    catch (err) { select.value = c.status; toast(t(isOffline(err) ? "dash.offline" : "dash.statusSaveError")); }
     finally { select.disabled = false; }
   });
   return select;
@@ -342,6 +365,8 @@ async function loadCases() {
 $("auth").addEventListener("submit", (e) => {
   e.preventDefault();
   $("auth-error").hidden = true;
+  const btn = $("auth").querySelector("button");
+  btn.disabled = true; btn.textContent = t("dash.signingIn");
   setToken($("token").value);
   $("token").value = "";
   route();

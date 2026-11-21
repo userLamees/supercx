@@ -12,14 +12,14 @@ def test_tiers_carry_last_checked_date(client):
 # Support cases: optional contact and short reference
 def test_anonymous_case_allowed_and_has_reference(client):
     r = client.post("/api/support-cases", json={
-        "question": "سؤال", "language": "ar", "anonymous": True, "summary": "راسلني a@b.com أو 0551234567"})
+        "question": "سؤال", "language": "ar", "anonymous": True, "summary": "راسلني test@example.com أو 0500000099"})
     assert r.status_code == 201 and r.json()["reference"].startswith("CX-")
     case = client.get("/api/support-cases", headers=AUTH).json()[0]
-    assert case["contact"] == "" and "a@b.com" not in case["summary"] and "0551234567" not in case["summary"]
+    assert case["contact"] == "" and "test@example.com" not in case["summary"] and "0500000099" not in case["summary"]
 
 
 def test_redact_removes_email_and_phone():
-    assert redact("بريدي x.y@mail.com وجوالي +966 55 123 4567") == "بريدي [email] وجوالي [phone]"
+    assert redact("بريدي x.y@example.com وجوالي +966 50 000 0099") == "بريدي [email] وجوالي [phone]"
 
 
 # FAQ
@@ -140,9 +140,64 @@ def test_phone_numbers_are_not_stored(client):
     from app.db import SupportCase, UnansweredQuestion, engine
     client.post("/api/verify/send", json={"phone": "0500000001"})
     client.post("/api/verify/check", json={"phone": "0500000001", "code": "1234"})
-    client.post("/api/chat", json={"message": "هل فيه خصم؟ جوالي 0551234567"})
-    client.post("/api/support-cases", json={"question": "خصم؟ جوالي 0551234567", "language": "ar", "anonymous": True})
+    client.post("/api/chat", json={"message": "هل فيه خصم؟ جوالي 0500000099"})
+    client.post("/api/support-cases", json={"question": "خصم؟ جوالي 0500000099", "language": "ar", "anonymous": True})
     with Session(engine) as s:
         stored = [r.question for r in s.exec(select(UnansweredQuestion))] + \
                  [c.question for c in s.exec(select(SupportCase))]
-    assert stored and not any("0551234567" in q or "500000001" in q for q in stored)
+    assert stored and not any("0500000099" in q or "500000001" in q for q in stored)
+
+
+# ---- Error paths ----
+@pytest.mark.parametrize("message", ["", "   "])
+def test_empty_chat_message_is_rejected(client, message):
+    assert client.post("/api/chat", json={"message": message}).status_code == 422
+
+
+def test_case_status_save_failures(client):
+    case_id = client.post("/api/support-cases", json={
+        "question": "q", "language": "en", "contact": "test@example.com"}).json()["id"]
+    assert client.patch(f"/api/support-cases/{case_id}", json={"status": "done"}, headers=AUTH).status_code == 422
+    assert client.patch("/api/support-cases/missing", json={"status": "closed"}, headers=AUTH).status_code == 404
+    assert client.get("/api/support-cases", headers=AUTH).json()[0]["status"] == "new"  # unchanged
+
+
+def test_promote_rejects_empty_answer(client):
+    client.post("/api/chat", json={"message": "refund?"})
+    qid = client.get("/api/unanswered", headers=AUTH).json()[0]["id"]
+    body = {"category_id": "support", "question": "q?q", "answer": "", "source_title": "src"}
+    assert client.post(f"/api/unanswered/{qid}/promote", json=body, headers=AUTH).status_code == 422
+
+
+# ---- Approved FAQ survives a restart ----
+def test_promoted_faq_survives_restart(client):
+    from fastapi.testclient import TestClient
+    from main import app
+    client.post("/api/chat", json={"message": "هل فيه استرداد؟"})
+    qid = client.get("/api/unanswered", headers=AUTH).json()[0]["id"]
+    client.post(f"/api/unanswered/{qid}/promote", headers=AUTH, json={
+        "category_id": "support", "question": "هل يوجد استرداد للرسوم؟", "answer": "إجابة اختبار.",
+        "source_title": "مرجع اختبار"})
+    with TestClient(app) as restarted:  # startup runs again; the seed must not wipe or duplicate rows
+        faq = {c["id"]: c for c in restarted.get("/api/faq").json()}
+        questions = [i["question"]["ar"] for i in faq["support"]["items"]]
+        assert questions.count("هل يوجد استرداد للرسوم؟") == 1
+        assert sum(len(c["items"]) for c in faq.values()) == 7
+
+
+# ---- Replit setup ----
+def test_postgres_url_scheme_is_converted(monkeypatch):
+    import importlib
+    from app import config
+    monkeypatch.setenv("DATABASE_URL", "postgres://user:pass@host:5432/db")
+    try:
+        assert importlib.reload(config).DATABASE_URL == "postgresql://user:pass@host:5432/db"
+    finally:
+        monkeypatch.setenv("DATABASE_URL", "sqlite:///./test_supercx.db")
+        importlib.reload(config)
+
+
+def test_no_support_token_default_in_code():
+    from pathlib import Path
+    src = (Path(__file__).resolve().parent.parent / "app" / "config.py").read_text()
+    assert 'os.getenv("SUPPORT_TOKEN", "")' in src

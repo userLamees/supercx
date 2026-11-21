@@ -2,29 +2,164 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SuperCX | حالات الدعم</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SuperCX | لوحة الموظف</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/tokens.css?v=2">
+  <link rel="stylesheet" href="/static/styles.css?v=2">
 </head>
 <body>
-  <div class="shell" style="grid-template-rows:auto auto 1fr">
-    <header class="top">
-      <div class="brand">حالات الدعم<small>الحالات المحالة من SuperCX</small></div>
-      <form id="auth" style="display:flex;gap:.5rem">
-        <input id="token" type="password" placeholder="رمز فريق الدعم" aria-label="رمز فريق الدعم" required>
-        <button class="primary" type="submit">عرض الحالات</button>
-      </form>
-    </header>
-    <p class="empty" id="state">أدخل رمز فريق الدعم لعرض الحالات.</p>
-    <div class="table-wrap">
-      <table id="table" hidden>
-        <thead><tr><th>التاريخ</th><th>السؤال</th><th>الملخص</th><th>اللغة</th><th>العضوية</th><th>التواصل</th><th>الحالة</th></tr></thead>
-        <tbody id="rows"></tbody>
-      </table>
+  <div class="dash">
+    <!-- Sidebar (laptop). No "sources" or "review log" items, per the design changes. -->
+    <aside class="side">
+      <div class="side-brand"><strong>SuperCX</strong><span data-i18n="dash.org">جمعية تجربة العميل</span></div>
+      <nav data-i18n-aria="dash.navAria">
+        <a class="tab" href="#unanswered" data-view="unanswered" data-i18n="dash.unanswered">الأسئلة غير المجابة</a>
+        <a class="tab" href="#cases" data-view="cases" data-i18n="dash.cases">حالات الدعم</a>
+        <a class="tab" href="/faq" target="_blank" rel="noopener" data-i18n="dash.faq">الأسئلة الشائعة</a>
+      </nav>
+      <div class="side-foot"><strong data-i18n="dash.team">فريق إدارة المعرفة</strong><span data-i18n="dash.role">صلاحية: محرر محتوى</span></div>
+    </aside>
+
+    <div class="dash-main">
+      <header class="dash-bar">
+        <h1 data-i18n="dash.workspace">مساحة عمل الجمعية</h1>
+        <div class="actions">
+          <button class="btn btn-sm btn-text" type="button" data-lang-toggle data-i18n="dash.langToggle">English</button>
+          <span class="tag" data-i18n="demoData">بيانات تجريبية</span>
+          <button class="btn btn-sm btn-text" type="button" id="logout" hidden data-i18n="dash.logout">خروج</button>
+        </div>
+      </header>
+      <!-- Tabs (mobile) -->
+      <nav class="tabs" data-i18n-aria="dash.navAria">
+        <a class="tab" href="#unanswered" data-view="unanswered" data-i18n="dash.unanswered">الأسئلة غير المجابة</a>
+        <a class="tab" href="#cases" data-view="cases" data-i18n="dash.cases">حالات الدعم</a>
+        <a class="tab" href="/faq" target="_blank" rel="noopener" data-i18n="dash.faq">الأسئلة الشائعة</a>
+      </nav>
+
+      <main class="dash-content">
+        <!-- Sign in -->
+        <section class="panel login" id="login" hidden>
+          <div class="panel-head"><h3 data-i18n="dash.loginTitle">دخول فريق الدعم</h3></div>
+          <form id="auth">
+            <div class="field">
+              <label class="label" for="token" data-i18n="dash.token">رمز فريق الدعم</label>
+              <input class="input" id="token" type="password" autocomplete="current-password" required>
+            </div>
+            <p class="form-error" id="auth-error" role="alert" hidden></p>
+            <button class="btn btn-primary btn-block" type="submit" data-i18n="dash.signIn">دخول</button>
+          </form>
+        </section>
+
+        <!-- 10 Unanswered questions -->
+        <div id="view-unanswered" class="dash-section" hidden>
+          <div class="dash-head">
+            <h2 data-i18n="dash.title">لوحة الموظف</h2>
+            <p data-i18n="dash.sub">راجع الأسئلة المتكررة وحدّث قاعدة المعرفة.</p>
+          </div>
+          <div class="stats">
+            <div class="stat"><strong id="stat-pending">—</strong><span data-i18n="dash.statPending">سؤالًا بانتظار الإجابة</span></div>
+            <div class="stat gold"><strong id="stat-high">—</strong><span id="stat-high-label" data-i18n="dash.statHigh">أسئلة عالية التكرار</span></div>
+            <div class="stat"><strong id="stat-approved">—</strong><span data-i18n="dash.statApproved">إجابة معتمدة</span></div>
+          </div>
+          <section class="panel">
+            <div class="panel-head">
+              <h3 data-i18n="dash.tableTitle">أسئلة لم يُجب عنها</h3>
+              <label class="sr-only" for="sort" data-i18n="dash.sortLabel">ترتيب الأسئلة</label>
+              <select class="select" id="sort">
+                <option value="count" data-i18n="dash.sortCount">الأكثر تكرارًا أولًا</option>
+                <option value="recent" data-i18n="dash.sortRecent">الأحدث أولًا</option>
+              </select>
+            </div>
+            <p class="muted" id="unanswered-state" role="status" hidden></p>
+            <table class="data-table" id="unanswered-table">
+              <thead><tr>
+                <th scope="col" data-i18n="dash.colQuestion">السؤال</th>
+                <th scope="col" data-i18n="dash.colCount">عدد مرات تكراره</th>
+                <th scope="col" data-i18n="dash.colLast">آخر ظهور</th>
+                <th scope="col" data-i18n="dash.colAction">الإجراء</th>
+              </tr></thead>
+              <tbody id="unanswered-rows"></tbody>
+            </table>
+            <div class="pager" id="pager">
+              <span id="pager-text"></span>
+              <!-- RTL: "previous" sits on the right, "next" on the left (DOM order handles it). -->
+              <div class="btns">
+                <button class="btn btn-sm btn-secondary" type="button" id="prev" data-i18n="dash.prev">السابق</button>
+                <button class="btn btn-sm btn-secondary" type="button" id="next" data-i18n="dash.next">التالي</button>
+              </div>
+            </div>
+          </section>
+          <p class="dash-note" data-i18n="dash.note">تُراجع الإجابات والمصادر قبل إضافتها إلى الأسئلة الشائعة.</p>
+        </div>
+
+        <!-- Support cases (existing feature) -->
+        <div id="view-cases" class="dash-section" hidden>
+          <div class="dash-head">
+            <h2 data-i18n="dash.cases">حالات الدعم</h2>
+            <p data-i18n="dash.casesSub">الحالات المحالة من المساعد مع وسيلة التواصل إن وُجدت.</p>
+          </div>
+          <section class="panel">
+            <p class="muted" id="cases-state" role="status" hidden></p>
+            <table class="data-table" id="cases-table">
+              <thead><tr>
+                <th scope="col" data-i18n="dash.colRef">رقم الحالة</th>
+                <th scope="col" data-i18n="dash.colDate">التاريخ</th>
+                <th scope="col" data-i18n="dash.colQuestion">السؤال</th>
+                <th scope="col" data-i18n="dash.colSummary">الملخص</th>
+                <th scope="col" data-i18n="dash.colTier">العضوية</th>
+                <th scope="col" data-i18n="dash.colContact">التواصل</th>
+                <th scope="col" data-i18n="dash.colStatus">الحالة</th>
+              </tr></thead>
+              <tbody id="cases-rows"></tbody>
+            </table>
+          </section>
+        </div>
+      </main>
     </div>
   </div>
-  <script src="/static/support.js"></script>
+
+  <!-- Convert to FAQ -->
+  <dialog class="modal" id="promote" aria-labelledby="promote-title">
+    <form id="promote-form" novalidate>
+      <div class="modal-head">
+        <div>
+          <h2 id="promote-title" data-i18n="modal.title">تحويل إلى سؤال شائع</h2>
+          <p data-i18n="modal.sub">أضف إجابة واضحة وأرفق مصدرها قبل الاعتماد.</p>
+        </div>
+        <button class="icon-btn" type="button" id="promote-close" data-i18n-aria="modal.close"><i data-lucide="x" class="icon"></i></button>
+      </div>
+      <div class="field">
+        <label class="label" for="m-question" data-i18n="modal.question">السؤال</label>
+        <textarea class="textarea" id="m-question" dir="auto" required minlength="3" maxlength="500" rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label class="label" for="m-category" data-i18n="modal.category">القسم</label>
+        <select class="select" id="m-category" required></select>
+      </div>
+      <div class="field">
+        <label class="label" for="m-answer" data-i18n="modal.answer">الإجابة</label>
+        <textarea class="textarea" id="m-answer" dir="auto" required minlength="3" maxlength="4000" data-i18n-ph="modal.answerPh"></textarea>
+      </div>
+      <div class="field">
+        <label class="label" for="m-source" data-i18n="modal.source">المصدر</label>
+        <input class="input" id="m-source" dir="auto" required minlength="2" maxlength="300" data-i18n-ph="modal.sourcePh">
+      </div>
+      <p class="caption" id="m-checked"></p>
+      <p class="form-error" id="m-error" role="alert" hidden></p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" type="submit" id="m-approve" data-i18n="modal.approve">اعتماد</button>
+        <button class="btn btn-secondary" type="button" id="m-cancel" data-i18n="modal.cancel">إلغاء</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script src="/static/i18n.js?v=2"></script>
+  <script src="/static/support.js?v=2"></script>
 </body>
 </html>

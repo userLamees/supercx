@@ -1,8 +1,8 @@
 """API contract shared by the backend, the agent and the frontend."""
 from enum import Enum
-from typing import Literal, Optional
+from typing import Annotated, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints, model_validator
 
 Lang = Literal["ar", "en"]
 
@@ -28,6 +28,7 @@ class Tier(BaseModel):
     is_most_common: bool
     display_order: int
     source_url: str
+    checked_at: Optional[str] = None  # ISO date the tier data was last fetched/verified
 
 
 class Source(BaseModel):
@@ -41,7 +42,8 @@ class ChatTurn(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    message: str = Field(min_length=1, max_length=2000)
+    # Whitespace-only messages are rejected (422) like empty ones.
+    message: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=2000)]
     history: list[ChatTurn] = []
 
 
@@ -70,10 +72,76 @@ class CaseStatus(str, Enum):
 class SupportCaseCreate(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
     language: Lang
-    contact: str = Field(min_length=3, max_length=200)
+    contact: Optional[str] = Field(default=None, min_length=3, max_length=200)
+    # The visitor consented to send the summary but chose not to leave contact details.
+    anonymous: bool = False
     tier_id: Optional[str] = None
     summary: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _contact_unless_anonymous(self):
+        if not self.anonymous and not self.contact:
+            raise ValueError("contact is required unless anonymous is true")
+        return self
 
 
 class SupportCaseUpdate(BaseModel):
     status: CaseStatus
+
+
+class FaqItem(BaseModel):
+    id: str
+    question: Localized
+    answer: Localized
+    source: Source
+    checked_at: str          # ISO date of last verification
+    demo: bool = True        # content not yet approved by the association
+
+
+class FaqCategory(BaseModel):
+    id: str
+    title: Localized
+    items: list[FaqItem]
+
+
+class FaqCreate(BaseModel):
+    category_id: str
+    question: str = Field(min_length=3, max_length=500)
+    answer: str = Field(min_length=3, max_length=4000)
+    source_title: str = Field(min_length=2, max_length=300)
+    source_url: Optional[str] = Field(default=None, max_length=500)
+
+
+class UnansweredOut(BaseModel):
+    id: str
+    question: str
+    count: int
+    last_seen: str
+
+
+class UnansweredStats(BaseModel):
+    pending: int
+    high_frequency: int
+    approved_answers: int
+    high_frequency_threshold: int
+
+
+class VerifySend(BaseModel):
+    phone: str = Field(min_length=9, max_length=16)
+
+
+class VerifyCheck(VerifySend):
+    code: str = Field(min_length=1, max_length=8)
+
+
+class MembershipStatus(BaseModel):
+    registered: bool
+    demo: bool = True
+    tier_id: Optional[str] = None
+    tier_name: Optional[Localized] = None
+    active: Optional[bool] = None
+    expires_at: Optional[str] = None
+    days_remaining: Optional[int] = None
+    period_days: Optional[int] = None
+    can_renew: Optional[bool] = None
+    source: Optional[str] = None

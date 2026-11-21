@@ -1,4 +1,5 @@
 """SuperCX API: chat, memberships, and support cases."""
+import secrets
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Optional
@@ -10,8 +11,8 @@ from sqlmodel import Session, select
 
 from app.agent import run_agent
 from app.config import HIGH_FREQUENCY_THRESHOLD, SUPPORT_TOKEN
-from app.db import FaqEntry, SupportCase, UnansweredQuestion, get_session, init_db
-from app.faq import approved_count, category_ids, get_faq
+from app.db import SupportCase, UnansweredQuestion, engine, get_session, init_db
+from app.faq import add_approved, approved_count, category_ids, get_faq, seed_faq
 from app.memberships import data_origin, get_tier, get_tiers
 from app.redact import normalize_key, redact
 from app.schemas import (CaseStatus, ChatAction, ChatRequest, ChatResponse, FaqCategory,
@@ -23,6 +24,8 @@ from app.verify import lookup, normalize_phone, valid_code
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()
+    with Session(engine) as session:
+        seed_faq(session)  # first start only: loads data/faq_seed.json into the DB
     yield
 
 
@@ -39,7 +42,8 @@ async def revalidate_pages(request, call_next):
 
 
 def require_support_token(x_support_token: str = Header(default="")) -> None:
-    if x_support_token != SUPPORT_TOKEN:
+    """Server-side check for every staff endpoint. An unset token rejects everyone."""
+    if not SUPPORT_TOKEN or not secrets.compare_digest(x_support_token.encode(), SUPPORT_TOKEN.encode()):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid support token")
 
 
@@ -92,6 +96,7 @@ def create_case(payload: SupportCaseCreate, session: Session = Depends(get_sessi
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Unknown tier_id")
     data = payload.model_dump(exclude={"anonymous"})
     data["contact"] = data["contact"] or ""  # anonymous: summary only, no reply channel
+    data["question"] = redact(data["question"])  # phone numbers/emails only in `contact`, with consent
     if data["summary"]:
         data["summary"] = redact(data["summary"])
     case = SupportCase(**data)
@@ -161,13 +166,12 @@ def promote_unanswered(question_id: str, payload: FaqCreate,
     row = session.get(UnansweredQuestion, question_id)
     if row is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Question not found")
-    if payload.category_id not in category_ids():
+    if payload.category_id not in category_ids(session):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Unknown category_id")
-    entry = FaqEntry(category_id=payload.category_id, question=payload.question.strip(),
-                     answer=payload.answer.strip(), source_title=payload.source_title.strip(),
-                     source_url=(payload.source_url or "").strip() or None, unanswered_id=row.id)
+    entry = add_approved(session, category_id=payload.category_id, question=payload.question.strip(),
+                         answer=payload.answer.strip(), source_title=payload.source_title.strip(),
+                         source_url=(payload.source_url or "").strip() or None, unanswered_id=row.id)
     row.resolved = True
-    session.add(entry)
     session.add(row)
     session.commit()
     return {"id": entry.id, "category_id": entry.category_id}

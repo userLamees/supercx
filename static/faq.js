@@ -1,4 +1,4 @@
-/* FAQ page: data comes from /api/faq (data/faq.json + staff-approved entries). No agent calls. */
+/* FAQ page: data comes from /api/faq (stored in the database). No agent calls. */
 const { t } = I18N;
 
 I18N.add({

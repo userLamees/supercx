@@ -83,3 +83,66 @@ def test_verify_check_unknown_number_and_bad_code(client):
         "registered": False, "demo": True, "tier_id": None, "tier_name": None, "active": None,
         "expires_at": None, "days_remaining": None, "period_days": None, "can_renew": None, "source": None}
     assert client.post("/api/verify/check", json={"phone": "0500000001", "code": "12"}).status_code == 422
+
+
+# ---- Workshop requirements: server-side token on every staff endpoint ----
+import pytest  # noqa: E402
+
+STAFF_ENDPOINTS = [
+    ("get", "/api/support-cases", None),
+    ("patch", "/api/support-cases/any-id", {"status": "closed"}),
+    ("get", "/api/unanswered", None),
+    ("get", "/api/unanswered/stats", None),
+    ("post", "/api/unanswered/any-id/promote",
+     {"category_id": "support", "question": "q?q", "answer": "aaa", "source_title": "src"}),
+]
+
+
+@pytest.mark.parametrize("method,path,body", STAFF_ENDPOINTS)
+@pytest.mark.parametrize("headers", [{}, {"X-Support-Token": "wrong"}, {"X-Support-Token": ""}],
+                         ids=["missing", "wrong", "empty"])
+def test_staff_endpoints_reject_without_valid_token(client, method, path, body, headers):
+    r = getattr(client, method)(path, headers=headers, **({"json": body} if body else {}))
+    assert r.status_code == 401
+
+
+def test_unset_server_token_rejects_everyone(client, monkeypatch):
+    import main
+    monkeypatch.setattr(main, "SUPPORT_TOKEN", "")
+    assert client.get("/api/unanswered", headers={"X-Support-Token": ""}).status_code == 401
+
+
+# ---- FAQ and unanswered questions live in the database ----
+def test_faq_is_read_from_database_not_json(client, monkeypatch):
+    from sqlmodel import Session, select
+    from app import faq
+    from app.db import FaqItem, engine
+    monkeypatch.setattr(faq, "SEED_FILE", faq.SEED_FILE.with_name("missing.json"))  # JSON gone
+    with Session(engine) as s:
+        item = s.exec(select(FaqItem).where(FaqItem.category_id == "about")).first()
+        item.answer_ar = "نص معدّل في قاعدة البيانات"
+        s.add(item); s.commit()
+    about = next(c for c in client.get("/api/faq").json() if c["id"] == "about")
+    assert about["items"][0]["answer"]["ar"] == "نص معدّل في قاعدة البيانات"
+
+
+def test_unanswered_questions_are_stored_in_database(client):
+    from sqlmodel import Session, select
+    from app.db import UnansweredQuestion, engine
+    client.post("/api/chat", json={"message": "هل فيه استرداد للرسوم؟"})
+    with Session(engine) as s:
+        assert [r.count for r in s.exec(select(UnansweredQuestion))] == [1]
+
+
+# ---- Phone numbers are not stored ----
+def test_phone_numbers_are_not_stored(client):
+    from sqlmodel import Session, select
+    from app.db import SupportCase, UnansweredQuestion, engine
+    client.post("/api/verify/send", json={"phone": "0500000001"})
+    client.post("/api/verify/check", json={"phone": "0500000001", "code": "1234"})
+    client.post("/api/chat", json={"message": "هل فيه خصم؟ جوالي 0551234567"})
+    client.post("/api/support-cases", json={"question": "خصم؟ جوالي 0551234567", "language": "ar", "anonymous": True})
+    with Session(engine) as s:
+        stored = [r.question for r in s.exec(select(UnansweredQuestion))] + \
+                 [c.question for c in s.exec(select(SupportCase))]
+    assert stored and not any("0551234567" in q or "500000001" in q for q in stored)

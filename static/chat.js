@@ -672,6 +672,10 @@ codeForm.addEventListener("submit", async (e) => {
     if (res.status === 422) { showError(codeError, "verify.badCode"); return; }
     if (!res.ok) throw new Error(String(res.status));
     lastStatus = await res.json();
+    // The number is not kept once verification is done.
+    verifiedPhone = null; phoneInput.value = ""; codeSent.hidden = true;
+    cells.forEach((c) => { c.value = ""; c.disabled = true; });
+    sendCodeBtn.textContent = t("verify.send"); sendCodeBtn.dataset.i18n = "verify.send";
     location.hash = "#status";
   } catch (err) {
     showError(codeError, isOffline(err) ? "verify.offline" : "verify.failed");

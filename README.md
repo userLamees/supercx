@@ -35,7 +35,7 @@ app/schemas.py       API contract (shared with the agent)
 app/agent.py         run_agent(): rule-based stub, replaced by the LLM agent
 app/memberships.py   fetch + normalize + cache tiers
 app/db.py            support_cases table
-app/faq.py           FAQ = data/faq.json + staff-approved entries (no agent calls)
+app/faq.py           FAQ in the DB (faq_categories/faq_items), seeded once from data/faq_seed.json
 app/verify.py        SIMULATED phone verification + demo member lookup
 app/redact.py        strips emails/phone numbers from summaries
 app/seed_demo.py     loads the design's sample unanswered questions (dev only)
@@ -48,7 +48,7 @@ tests/               success, error and permission tests
 
 | Endpoint | Access | Purpose |
 |---|---|---|
-| `GET /api/faq` | public | FAQ sections. Items from `data/faq.json` are marked `demo: true` |
+| `GET /api/faq` | public | FAQ sections. Read from the DB. Seed items (`data/faq_seed.json`) are `demo: true` |
 | `GET /api/unanswered?sort=count\|recent` | support token | Escalated questions grouped by text, with count and last seen |
 | `GET /api/unanswered/stats` | support token | Pending, high-frequency (`HIGH_FREQUENCY_THRESHOLD`, default 10), approved |
 | `POST /api/unanswered/{id}/promote` | support token | Adds the (edited) question + answer + source to the FAQ |

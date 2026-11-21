@@ -1,4 +1,5 @@
 """API contract shared by the backend, the agent and the frontend."""
+import re
 from enum import Enum
 from typing import Annotated, Literal, Optional
 
@@ -69,6 +70,19 @@ class CaseStatus(str, Enum):
     closed = "closed"
 
 
+_EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$")
+_SA_MOBILE = re.compile(r"^(?:\+966|00966|966|0)?5\d{8}$")
+_ARABIC_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
+
+
+def is_valid_contact(value: str) -> bool:
+    """An email address or a Saudi mobile number (05XXXXXXXX, +9665XXXXXXXX, 5XXXXXXXX)."""
+    value = value.strip()
+    if _EMAIL.match(value):
+        return True
+    return bool(_SA_MOBILE.match(re.sub(r"[\s-]", "", value.translate(_ARABIC_DIGITS))))
+
+
 class SupportCaseCreate(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
     language: Lang
@@ -82,6 +96,10 @@ class SupportCaseCreate(BaseModel):
     def _contact_unless_anonymous(self):
         if not self.anonymous and not self.contact:
             raise ValueError("contact is required unless anonymous is true")
+        if self.contact is not None:
+            self.contact = self.contact.strip()
+            if not is_valid_contact(self.contact):
+                raise ValueError("contact must be an email address or a Saudi mobile number")
         return self
 
 

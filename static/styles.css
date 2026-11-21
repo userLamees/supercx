@@ -557,3 +557,12 @@ dialog.modal::backdrop { background: var(--c-overlay); }
 /* Dashboard view sections (inside .dash-content) */
 .dash-section { display: grid; gap: var(--s-4); align-content: start; min-width: 0; }
 .data-table select { min-height: var(--s-8); padding-block: var(--s-1); font-size: var(--fs-footnote); }
+
+/* 04 Escalation card: notice + consents + send state in one place */
+.escalation { display: grid; gap: var(--s-3); }
+.escalation-head { display: grid; gap: var(--s-1); padding-inline-start: var(--s-3); border-inline-start: var(--bw-accent) solid var(--c-gold); }
+.escalation-head .state-kind { color: var(--c-gold); }
+.escalation .divider { margin: 0; }
+.consent-status:empty { display: none; }
+.input[aria-invalid="true"] { border-color: var(--c-danger); }
+.confirm-head h1 { font-size: var(--fs-title2); font-weight: 700; color: var(--c-text); line-height: var(--lh); }

@@ -201,3 +201,16 @@ def test_no_support_token_default_in_code():
     from pathlib import Path
     src = (Path(__file__).resolve().parent.parent / "app" / "config.py").read_text()
     assert 'os.getenv("SUPPORT_TOKEN", "")' in src
+
+
+# ---- Contact format (email or Saudi mobile) ----
+@pytest.mark.parametrize("contact", ["test@example.com", "0500000099", "+966 50 000 0099", "٠٥٠٠٠٠٠٠٩٩", "500000099"])
+def test_case_accepts_valid_contact(client, contact):
+    r = client.post("/api/support-cases", json={"question": "q", "language": "ar", "contact": contact})
+    assert r.status_code == 201
+
+
+@pytest.mark.parametrize("contact", ["abc", "test@", "0400000099", "05000000", "123456789012"])
+def test_case_rejects_invalid_contact(client, contact):
+    r = client.post("/api/support-cases", json={"question": "q", "language": "ar", "contact": contact})
+    assert r.status_code == 422

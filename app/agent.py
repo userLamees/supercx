@@ -56,9 +56,9 @@ def _recommend(tier: Tier, lang: Lang, reason: str) -> ChatResponse:
 
 def _escalate(message: str, lang: Lang) -> ChatResponse:
     answer = (
-        "هذه المعلومة غير منشورة في مصادر الجمعية، ولن أخمّن. اترك بريدك أو جوالك وأحوّل سؤالك لفريق الدعم."
+        "لا أجد هذه المعلومة في المحتوى المعتمد للجمعية، ولا أريد أن أخمّن. يمكنني تحويل سؤالك إلى فريق الدعم."
         if lang == "ar" else
-        "This isn't published in the association's sources, so I won't guess. Leave your email or phone and I'll pass your question to the support team."
+        "I can't find this in the association's approved content, and I won't guess. I can pass your question to the support team."
     )
     return ChatResponse(answer=answer, lang=lang, action=ChatAction.escalate,
                         needs_contact=True, summary=f"[{lang}] {message.strip()[:300]}")

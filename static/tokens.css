@@ -1,0 +1,96 @@
+/* SuperCX design tokens — from Figma "Screens v2" (design/tokens.css).
+   The block marked "Derived" adds tokens the code needs that the export
+   doesn't name; they reuse the same palette. Use variables only. */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap');
+
+:root {
+  /* Brand */
+  --c-navy: #1E1A78;        /* headings, staff UI */
+  --c-violet: #3B33C4;      /* primary buttons, links, send */
+  --c-violet-soft: #EEEDF9; /* secondary button / chip background */
+  --c-gold: #C9A24A;        /* highlights, CTA on tier card */
+  --c-gold-soft: #F0D9A0;
+  --c-gold-bg: #F7F0DF;
+  --c-card-dark: #252536;
+
+  /* Neutrals (Apple-style) */
+  --c-bg: #FFFFFF;
+  --c-surface: #F2F2F7;     /* cards, input, bubbles */
+  --c-surface-2: #FAFAFC;
+  --c-separator: #E5E5EA;
+  --c-border: #C7C7CC;
+  --c-text: #1C1C1E;
+  --c-text-2: #3A3A3C;
+  --c-muted: #8E8E93;
+
+  /* Status */
+  --c-success: #1F8A5B;
+  --c-danger: #C0392B;
+
+  /* Type */
+  --font: 'Noto Sans Arabic', system-ui, sans-serif;
+  --fs-caption: 12px;
+  --fs-footnote: 13px;
+  --fs-sub: 15px;
+  --fs-body: 17px;
+  --fs-title3: 20px;
+  --fs-title2: 24px;
+  --fs-title1: 28px;
+  --fs-large: 30px;
+  --lh: 1.5;
+  --lh-message: 1.65;
+
+  /* Radius */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-card: 16px;
+  --r-lg: 20px;
+  --r-input: 26px;
+  --r-pill: 999px;
+
+  /* Spacing */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+
+  /* Elevation */
+  --shadow-card: 0 8px 24px rgba(30, 26, 120, 0.16);
+
+  /* Layout */
+  --content-max: 720px;     /* chat column on laptop */
+  --gutter: 20px;           /* mobile side padding (from 390 frames) */
+
+  /* ---- Derived (not in the Figma export) ---- */
+  --c-on-primary: #FFFFFF;
+  --c-violet-hover: #2F28A8;
+  --c-success-soft: #E4F3EC;
+  --c-danger-soft: #FBEAE8;
+  --c-overlay: rgba(28, 28, 30, 0.45);
+  --c-focus: var(--c-gold);
+
+  --bw: 1px;                /* hairline borders */
+  --bw-accent: 3px;         /* status message accent bar */
+  --bw-focus: 3px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --tap: 44px;              /* minimum touch target */
+  --icon: 20px;
+  --icon-sm: 16px;
+  --icon-lg: 28px;
+  --logo: 56px;
+  --check-lg: 56px;
+  --otp-cell: 56px;
+  --progress-h: 6px;
+  --step-w: 20px;
+  --dot: 20px;
+  --sidebar-w: 240px;
+  --dash-max: 1200px;
+  --modal-max: 560px;
+  --bubble-max: 85%;
+  --bp-tablet: 768px;       /* reference only; media queries use the literal */
+  --dur: 0.18s;
+}

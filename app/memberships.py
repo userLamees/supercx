@@ -5,11 +5,13 @@ keeps working if cxa.sa is slow or unreachable.
 """
 import json
 import time
+from datetime import date
 from pathlib import Path
 
 import httpx
 
-from .config import MEMBERSHIP_API_URL, MEMBERSHIP_CACHE_SECONDS, MEMBERSHIP_PAGE_URL
+from .config import (FIXTURE_CHECKED_AT, MEMBERSHIP_API_URL, MEMBERSHIP_CACHE_SECONDS,
+                     MEMBERSHIP_PAGE_URL)
 from .schemas import Localized, LocalizedList, Tier
 
 FIXTURE = Path(__file__).resolve().parent.parent / "data" / "memberships_fixture.json"
@@ -17,7 +19,7 @@ FIXTURE = Path(__file__).resolve().parent.parent / "data" / "memberships_fixture
 _cache: dict = {"tiers": None, "fetched_at": 0.0, "origin": None}
 
 
-def normalize(payload: dict) -> list[Tier]:
+def normalize(payload: dict, checked_at: str | None = None) -> list[Tier]:
     if not payload.get("succeeded"):
         raise ValueError("Membership API returned succeeded=false")
     tiers = [
@@ -31,6 +33,7 @@ def normalize(payload: dict) -> list[Tier]:
             is_most_common=bool(item.get("isMostCommon")),
             display_order=int(item.get("displayOrder") or 0),
             source_url=MEMBERSHIP_PAGE_URL,
+            checked_at=checked_at,
         )
         for item in payload.get("data", [])
         if item.get("isActive")
@@ -41,11 +44,11 @@ def normalize(payload: dict) -> list[Tier]:
 def _fetch_live() -> list[Tier]:
     response = httpx.get(MEMBERSHIP_API_URL, timeout=8.0)
     response.raise_for_status()
-    return normalize(response.json())
+    return normalize(response.json(), checked_at=date.today().isoformat())
 
 
 def _load_fixture() -> list[Tier]:
-    return normalize(json.loads(FIXTURE.read_text(encoding="utf-8")))
+    return normalize(json.loads(FIXTURE.read_text(encoding="utf-8")), checked_at=FIXTURE_CHECKED_AT)
 
 
 def get_tiers(force_refresh: bool = False) -> list[Tier]:

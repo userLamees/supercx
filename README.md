@@ -9,8 +9,9 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-- Chat: `http://localhost:8000/`
-- Support dashboard: `http://localhost:8000/support`
+- Chat: `http://localhost:8000/` (also `#verify` and `#status` for the membership lookup)
+- FAQ: `http://localhost:8000/faq`
+- Staff dashboard: `http://localhost:8000/support`
 - API docs: `http://localhost:8000/docs`
 - Tests: `python -m pytest -q`
 
@@ -34,9 +35,31 @@ app/schemas.py       API contract (shared with the agent)
 app/agent.py         run_agent(): rule-based stub, replaced by the LLM agent
 app/memberships.py   fetch + normalize + cache tiers
 app/db.py            support_cases table
-static/              chat UI and support dashboard
+app/faq.py           FAQ = data/faq.json + staff-approved entries (no agent calls)
+app/verify.py        SIMULATED phone verification + demo member lookup
+app/redact.py        strips emails/phone numbers from summaries
+app/seed_demo.py     loads the design's sample unanswered questions (dev only)
+static/tokens.css    design tokens (Figma "Screens v2"); styles use variables only
+static/              chat, FAQ and staff dashboard (AR/RTL default, EN toggle)
 tests/               success, error and permission tests
 ```
+
+## v2 additions
+
+| Endpoint | Access | Purpose |
+|---|---|---|
+| `GET /api/faq` | public | FAQ sections. Items from `data/faq.json` are marked `demo: true` |
+| `GET /api/unanswered?sort=count\|recent` | support token | Escalated questions grouped by text, with count and last seen |
+| `GET /api/unanswered/stats` | support token | Pending, high-frequency (`HIGH_FREQUENCY_THRESHOLD`, default 10), approved |
+| `POST /api/unanswered/{id}/promote` | support token | Adds the (edited) question + answer + source to the FAQ |
+| `POST /api/verify/send`, `POST /api/verify/check` | public | **Simulation**: no SMS; any 4-digit code works. Demo numbers in `data/members_demo.json` |
+
+Other changes: `POST /api/support-cases` accepts `anonymous: true` without `contact`
+(visitor consented to the summary only) and returns a short `reference` (`CX-XXXXXX`).
+`Tier` has `checked_at` (last verified date). Every escalation from `/api/chat` is
+logged (redacted) in `unanswered_questions`.
+
+Demo data for the dashboard: `python -m app.seed_demo`.
 
 ## Agent contract (for the AI agent)
 

@@ -9,11 +9,15 @@ from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select
 
 from app.agent import run_agent
-from app.config import SUPPORT_TOKEN
-from app.db import SupportCase, get_session, init_db
+from app.config import HIGH_FREQUENCY_THRESHOLD, SUPPORT_TOKEN
+from app.db import FaqEntry, SupportCase, UnansweredQuestion, get_session, init_db
+from app.faq import approved_count, category_ids, get_faq
 from app.memberships import data_origin, get_tier, get_tiers
-from app.schemas import (CaseStatus, ChatRequest, ChatResponse, SupportCaseCreate,
-                         SupportCaseUpdate, Tier)
+from app.redact import normalize_key, redact
+from app.schemas import (CaseStatus, ChatAction, ChatRequest, ChatResponse, FaqCategory,
+                         FaqCreate, MembershipStatus, SupportCaseCreate, SupportCaseUpdate,
+                         Tier, UnansweredOut, UnansweredStats, VerifyCheck, VerifySend)
+from app.verify import lookup, normalize_phone, valid_code
 
 
 @asynccontextmanager
@@ -23,6 +27,15 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="SuperCX", version="0.1.0", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def revalidate_pages(request, call_next):
+    """Pages and static assets revalidate on each load so UI updates show up immediately."""
+    response = await call_next(request)
+    if not request.url.path.startswith("/api/"):
+        response.headers.setdefault("Cache-Control", "no-cache")
+    return response
 
 
 def require_support_token(x_support_token: str = Header(default="")) -> None:
@@ -40,20 +53,52 @@ def list_memberships() -> list[Tier]:
     return get_tiers()
 
 
+def case_reference(case_id: str) -> str:
+    """Short, human-friendly case number derived from the id (no schema change)."""
+    return "CX-" + case_id.replace("-", "")[:6].upper()
+
+
+def _now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def record_unanswered(session: Session, message: str) -> None:
+    question = redact(message)[:500]
+    key = normalize_key(question)
+    if not key:
+        return
+    row = session.exec(select(UnansweredQuestion).where(UnansweredQuestion.key == key)).first()
+    if row:
+        row.count += 1
+        row.last_seen = _now()
+        row.resolved = False
+    else:
+        row = UnansweredQuestion(key=key, question=question)
+    session.add(row)
+    session.commit()
+
+
 @app.post("/api/chat", response_model=ChatResponse)
-def chat(request: ChatRequest) -> ChatResponse:
-    return run_agent(request.message, request.history)
+def chat(request: ChatRequest, session: Session = Depends(get_session)) -> ChatResponse:
+    reply = run_agent(request.message, request.history)
+    if reply.action == ChatAction.escalate:
+        record_unanswered(session, request.message)
+    return reply
 
 
 @app.post("/api/support-cases", status_code=status.HTTP_201_CREATED)
 def create_case(payload: SupportCaseCreate, session: Session = Depends(get_session)) -> dict:
     if payload.tier_id and get_tier(payload.tier_id) is None:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Unknown tier_id")
-    case = SupportCase(**payload.model_dump())
+    data = payload.model_dump(exclude={"anonymous"})
+    data["contact"] = data["contact"] or ""  # anonymous: summary only, no reply channel
+    if data["summary"]:
+        data["summary"] = redact(data["summary"])
+    case = SupportCase(**data)
     session.add(case)
     session.commit()
     # Visitors only get a reference, never other cases or member data.
-    return {"id": case.id, "status": case.status}
+    return {"id": case.id, "status": case.status, "reference": case_reference(case.id)}
 
 
 @app.get("/api/support-cases", response_model=list[SupportCase],
@@ -81,6 +126,71 @@ def update_case(case_id: str, payload: SupportCaseUpdate,
     return case
 
 
+# FAQ: read-only for visitors, staff can approve new entries.
+@app.get("/api/faq", response_model=list[FaqCategory])
+def faq(session: Session = Depends(get_session)) -> list[FaqCategory]:
+    return get_faq(session)
+
+
+@app.get("/api/unanswered", response_model=list[UnansweredOut],
+         dependencies=[Depends(require_support_token)])
+def list_unanswered(sort: str = "count", session: Session = Depends(get_session)) -> list[UnansweredOut]:
+    order = (UnansweredQuestion.last_seen.desc(),) if sort == "recent" else \
+        (UnansweredQuestion.count.desc(), UnansweredQuestion.last_seen.desc())
+    rows = session.exec(select(UnansweredQuestion).where(UnansweredQuestion.resolved == False)  # noqa: E712
+                        .order_by(*order))
+    return [UnansweredOut(id=r.id, question=r.question, count=r.count,
+                          last_seen=r.last_seen.isoformat()) for r in rows]
+
+
+@app.get("/api/unanswered/stats", response_model=UnansweredStats,
+         dependencies=[Depends(require_support_token)])
+def unanswered_stats(session: Session = Depends(get_session)) -> UnansweredStats:
+    counts = session.exec(select(UnansweredQuestion.count)
+                          .where(UnansweredQuestion.resolved == False)).all()  # noqa: E712
+    return UnansweredStats(pending=len(counts),
+                           high_frequency=sum(c >= HIGH_FREQUENCY_THRESHOLD for c in counts),
+                           approved_answers=approved_count(session),
+                           high_frequency_threshold=HIGH_FREQUENCY_THRESHOLD)
+
+
+@app.post("/api/unanswered/{question_id}/promote", status_code=status.HTTP_201_CREATED,
+          dependencies=[Depends(require_support_token)])
+def promote_unanswered(question_id: str, payload: FaqCreate,
+                       session: Session = Depends(get_session)) -> dict:
+    row = session.get(UnansweredQuestion, question_id)
+    if row is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Question not found")
+    if payload.category_id not in category_ids():
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Unknown category_id")
+    entry = FaqEntry(category_id=payload.category_id, question=payload.question.strip(),
+                     answer=payload.answer.strip(), source_title=payload.source_title.strip(),
+                     source_url=(payload.source_url or "").strip() or None, unanswered_id=row.id)
+    row.resolved = True
+    session.add(entry)
+    session.add(row)
+    session.commit()
+    return {"id": entry.id, "category_id": entry.category_id}
+
+
+# Phone verification: SIMULATED. No SMS is sent; any 4-digit code is accepted.
+@app.post("/api/verify/send")
+def verify_send(payload: VerifySend) -> dict:
+    if normalize_phone(payload.phone) is None:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Invalid Saudi mobile number")
+    return {"sent": True, "demo": True, "code_length": 4}
+
+
+@app.post("/api/verify/check", response_model=MembershipStatus)
+def verify_check(payload: VerifyCheck) -> MembershipStatus:
+    phone = normalize_phone(payload.phone)
+    if phone is None:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Invalid Saudi mobile number")
+    if not valid_code(payload.code):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Code must be 4 digits")
+    return lookup(phone)
+
+
 @app.get("/", include_in_schema=False)
 def chat_page() -> FileResponse:
     return FileResponse("static/index.html")
@@ -89,6 +199,11 @@ def chat_page() -> FileResponse:
 @app.get("/support", include_in_schema=False)
 def support_page() -> FileResponse:
     return FileResponse("static/support.html")
+
+
+@app.get("/faq", include_in_schema=False)
+def faq_page() -> FileResponse:
+    return FileResponse("static/faq.html")
 
 
 app.mount("/static", StaticFiles(directory="static"), name="static")

@@ -1,0 +1,7 @@
+{
+  "_note": "Simulated member registry for the phone verification demo. Not real people. Expiry is relative to today so the demo does not go stale.",
+  "members": [
+    {"phone": "500000001", "tier_id": "5c54d2bc-2d3c-41e7-949c-62d45c22093b", "expires_in_days": 365},
+    {"phone": "500000002", "tier_id": "f1aecbd7-45e8-4438-919d-45a41b5d54f5", "expires_in_days": 21}
+  ]
+}

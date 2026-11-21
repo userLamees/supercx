@@ -3,6 +3,7 @@ from datetime import date, datetime, timezone
 from typing import Optional
 from uuid import uuid4
 
+from sqlalchemy import inspect, text
 from sqlmodel import Field, Session, SQLModel, create_engine
 
 from .config import DATABASE_URL
@@ -61,6 +62,7 @@ class FaqItem(SQLModel, table=True):
     answer_ar: Optional[str] = None
     answer_en: Optional[str] = None
     source_title: str
+    source_title_en: Optional[str] = None
     source_url: Optional[str] = None
     checked_at: date
     demo: bool = True                          # not yet approved by the association
@@ -71,8 +73,26 @@ _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite"
 engine = create_engine(DATABASE_URL, connect_args=_connect_args)
 
 
+# Columns added after a table first shipped. create_all() does not alter existing
+# tables, so these are added here (SQLite and Postgres both support ADD COLUMN).
+_ADDED_COLUMNS = {"faq_items": {"source_title_en": "VARCHAR"}}
+
+
+def _add_missing_columns() -> None:
+    inspector = inspect(engine)
+    with engine.begin() as conn:
+        for table, columns in _ADDED_COLUMNS.items():
+            if not inspector.has_table(table):
+                continue
+            existing = {c["name"] for c in inspector.get_columns(table)}
+            for name, sql_type in columns.items():
+                if name not in existing:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {sql_type}"))
+
+
 def init_db() -> None:
     SQLModel.metadata.create_all(engine)
+    _add_missing_columns()
 
 
 def get_session():

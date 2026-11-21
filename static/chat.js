@@ -17,7 +17,7 @@ I18N.add({
     "composer.send": "إرسال",
     "sugg.fit": "أي عضوية تناسبني؟",
     "sugg.diff": "ما الفرق بين العضويات؟",
-    "sugg.vote": "Which membership lets me vote?",
+    "sugg.vote": "أي عضوية تمنحني حق التصويت؟",
     "sugg.student": "هل يوجد خصم للطلاب؟",
 
     "quiz.intro": "سؤالان سريعان، ثم أقدّم لك توصية واحدة.",
@@ -73,7 +73,9 @@ I18N.add({
     "consent.no": "لا، شكرًا",
     "consent.alt": "أو راسلهم مباشرة:",
     "consent.needSummary": "يلزم الموافقة على إرسال الملخص قبل الإرسال.",
-    "consent.needContact": "أدخل بريدًا إلكترونيًا أو رقم جوال صحيحًا، أو ألغِ الموافقة على التواصل.",
+    "consent.needContact": "أدخل بريدًا إلكترونيًا صحيحًا أو رقم جوال سعوديًا (05XXXXXXXX)، أو ألغِ الموافقة على التواصل.",
+    "consent.sending": "جارٍ الإرسال…",
+    "state.viewCase": "عرض تفاصيل الطلب",
     "consent.declined": "لن نرسل شيئًا. يمكنك متابعة أسئلتك هنا.",
 
     "confirm.title": "تم استلام طلبك",
@@ -139,7 +141,7 @@ I18N.add({
     "composer.send": "Send",
     "sugg.fit": "Which membership suits me?",
     "sugg.diff": "What's the difference between the memberships?",
-    "sugg.vote": "أي عضوية تمنحني حق التصويت؟",
+    "sugg.vote": "Which membership lets me vote?",
     "sugg.student": "Is there a student discount?",
 
     "quiz.intro": "Two quick questions, then I'll recommend one membership.",
@@ -195,7 +197,9 @@ I18N.add({
     "consent.no": "No, thanks",
     "consent.alt": "Or email them directly:",
     "consent.needSummary": "Please agree to send the summary first.",
-    "consent.needContact": "Enter a valid email or mobile number, or untick the contact consent.",
+    "consent.needContact": "Enter a valid email or a Saudi mobile number (05XXXXXXXX), or untick the contact consent.",
+    "consent.sending": "Sending…",
+    "state.viewCase": "View request details",
     "consent.declined": "Nothing was sent. You can keep asking here.",
 
     "confirm.title": "We received your request",
@@ -262,6 +266,7 @@ let tiersById = {};
 let busy = false;
 let quizActive = false;
 let lastStatus = null;
+let lastCase = null;
 
 /* ---------- DOM helpers ---------- */
 function h(tag, props = {}, ...kids) {
@@ -324,8 +329,10 @@ function botText(text, lang) { return add(h("div", { class: "msg msg-bot", dir: 
 
 function sourcesLine(sources, lang, checkedAt) {
   const row = h("div", { class: "sources", dir: dirOf(lang) }, ic("link", "icon-sm"), t("src.label", null, lang));
+  const membershipUrls = new Set(Object.values(tiersById).map((tier) => tier.source_url));
   sources.forEach((s, i) => {
-    row.append(h("a", { href: s.url, target: "_blank", rel: "noopener" }, s.title));
+    const title = membershipUrls.has(s.url) ? t("src.memberships", null, lang) : s.title;
+    row.append(h("a", { href: s.url, target: "_blank", rel: "noopener", dir: "auto" }, title));
     if (i < sources.length - 1) row.append(lang === "ar" ? "، " : ", ");
   });
   if (checkedAt) row.append(" · ", t("src.checked", { date: I18N.formatDate(checkedAt, lang) }, lang));
@@ -333,13 +340,14 @@ function sourcesLine(sources, lang, checkedAt) {
 }
 
 /* 09 Status messages. kind: info | warn | success | error */
-function stateCard(kind, title, body, action) {
+function stateCard(kind, title, body, action, lang = I18N.lang) {
   const kindKey = { info: "progress", warn: "warn", success: "success", error: "error" }[kind];
+  const act = typeof action === "function" ? { label: t("state.retry", null, lang), onClick: action } : action;
   const el = h("div", { class: "state", "data-kind": kind, role: kind === "error" ? "alert" : "status" },
-    h("span", { class: "state-kind" }, t(`state.kind.${kindKey}`)),
+    h("span", { class: "state-kind" }, t(`state.kind.${kindKey}`, null, lang)),
     h("span", { class: "state-title" }, title),
     body ? h("p", { class: "state-body", dir: "auto" }, body) : null,
-    action ? h("button", { class: "btn btn-sm btn-secondary", type: "button", onclick: action }, t("state.retry")) : null);
+    act ? h("button", { class: "btn btn-sm btn-secondary", type: "button", onclick: act.onClick }, act.label) : null);
   return el;
 }
 
@@ -381,31 +389,32 @@ async function askAgentRetry(text) {
 }
 
 function renderReply(question, reply) {
-  const lang = reply.lang;
+  const lang = reply.lang;  // language of the agent's own text
+  const ui = I18N.lang;     // language of everything the interface adds around it
   const tier = reply.action === "recommend" && reply.tier_id ? tiersById[reply.tier_id] : null;
 
   if (reply.action === "escalate") {
-    add(stateCard("warn", t("state.noInfo", null, lang), reply.answer));
-    if (reply.needs_contact) consentCard(question, reply);
+    if (reply.needs_contact) consentCard(question, reply, reply.answer);
+    else add(stateCard("warn", t("state.noInfo"), reply.answer));
     return;
   }
 
   if (tier) {
     // The card shows price and benefits, so only the recommendation sentence is kept as text.
     botText(reply.answer.split(/\n\s*\n/)[0], lang);
-    const block = h("div", { class: "chat-block", dir: dirOf(lang) }, tierCard(tier, lang));
-    const sources = reply.sources?.length ? reply.sources : [{ title: t("src.memberships", null, lang), url: tier.source_url }];
-    block.append(sourcesLine(sources, lang, tier.checked_at));
+    const block = h("div", { class: "chat-block", dir: dirOf(ui) }, tierCard(tier, ui));
+    const sources = reply.sources?.length ? reply.sources : [{ title: t("src.memberships"), url: tier.source_url }];
+    block.append(sourcesLine(sources, ui, tier.checked_at));
     const count = Object.keys(tiersById).length;
-    const compareText = t("sugg.diff", null, lang);
+    const compareText = t("sugg.diff");
     block.append(h("button", { class: "chip", type: "button", onclick: () => send(compareText) },
-      t(count === 3 ? "tier.compareThree" : "tier.compare", null, lang)));
+      t(count === 3 ? "tier.compareThree" : "tier.compare")));
     add(block);
     return;
   }
 
   const msg = botText(reply.answer, lang);
-  if (reply.sources?.length) msg.append(sourcesLine(reply.sources, lang));
+  if (reply.sources?.length) msg.append(sourcesLine(reply.sources, ui));
 }
 
 /* 03 Recommendation card (matched by tier_id, never by name) */
@@ -421,50 +430,70 @@ function tierCard(tier, lang) {
     h("a", { class: "btn btn-gold", href: tier.source_url, target: "_blank", rel: "noopener" }, t("tier.register", null, lang)));
 }
 
-/* 04 Unpublished question: two separate consents + redacted summary preview */
-function consentCard(question, reply) {
-  const lang = reply.lang;
-  const tl = (k, v) => t(k, v, lang);
+/* Same rules as the server: an email address or a Saudi mobile number. */
+function validContact(value) {
+  const v = value.trim();
+  if (/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v)) return true;
+  return /^(?:\+966|00966|966|0)?5\d{8}$/.test(toLatin(v).replace(/[\s-]/g, ""));
+}
+
+/* 04 Unpublished question. One card holds the notice, both consents and the send
+   state; on success it collapses to a "sent" line and the confirmation opens as its own page. */
+function consentCard(question, reply, notice) {
+  const lang = reply.lang;  // sent to support as the question's language
+  const ui = I18N.lang;
+  const tl = (k, v) => t(k, v, ui);
   const summary = redact((reply.summary || question).replace(/^\[(ar|en)\]\s*/, ""));
   const uid = Math.random().toString(36).slice(2, 8);
 
   const consentSummary = h("input", { type: "checkbox", id: `cs-${uid}` });
   const consentContact = h("input", { type: "checkbox", id: `cc-${uid}` });
-  const contactInput = h("input", { class: "input", id: `ci-${uid}`, type: "text", autocomplete: "email", maxlength: "200", dir: "auto", placeholder: tl("consent.contactPh") });
+  const contactInput = h("input", { class: "input", id: `ci-${uid}`, type: "text", inputmode: "email", autocomplete: "email", maxlength: "200", dir: "auto", placeholder: tl("consent.contactPh"), "aria-describedby": `ce-${uid}` });
   const contactField = h("div", { class: "field", hidden: true },
     h("label", { class: "label", for: `ci-${uid}` }, tl("consent.contactLabel")), contactInput);
-  const error = h("p", { class: "form-error", role: "alert", hidden: true });
+  const error = h("p", { class: "form-error", id: `ce-${uid}`, role: "alert", hidden: true });
+  const status = h("div", { class: "consent-status" });
   const sendButton = h("button", { class: "btn btn-primary btn-block", type: "submit" }, tl("consent.send"));
   const noButton = h("button", { class: "btn btn-text btn-block", type: "button" }, tl("consent.no"));
 
   consentContact.addEventListener("change", () => {
     contactField.hidden = !consentContact.checked;
     if (consentContact.checked) contactInput.focus();
+    else { error.hidden = true; contactInput.removeAttribute("aria-invalid"); }
   });
+  contactInput.addEventListener("input", () => { if (!error.hidden && validContact(contactInput.value)) { error.hidden = true; contactInput.removeAttribute("aria-invalid"); } });
 
-  const wrap = h("form", { class: "consent", dir: dirOf(lang), novalidate: true },
+  const wrap = h("form", { class: "escalation", dir: dirOf(ui), novalidate: true },
     h("div", { class: "card consent" },
+      h("div", { class: "escalation-head" },
+        h("span", { class: "state-kind" }, tl("state.kind.warn")),
+        h("span", { class: "state-title" }, tl("state.noInfo")),
+        notice ? h("p", { class: "state-body", dir: "auto" }, notice) : null),
+      h("hr", { class: "divider" }),
       h("label", { class: "check", for: `cs-${uid}` }, consentSummary, h("span", {}, tl("consent.summary"))),
       h("div", { class: "preview" }, h("span", { class: "caption" }, tl("consent.preview")), h("p", { dir: "auto" }, summary)),
       h("label", { class: "check", for: `cc-${uid}` }, consentContact, h("span", {}, tl("consent.contact"))),
       contactField),
-    error, sendButton, noButton,
+    error, status, sendButton, noButton,
     h("p", { class: "alt-channel" }, ic("mail", "icon-sm"), tl("consent.alt"), " ",
       h("a", { href: `mailto:${CARE_EMAIL}`, dir: "ltr" }, CARE_EMAIL)));
 
-  noButton.addEventListener("click", () => { wrap.remove(); botText(tl("consent.declined"), lang); });
+  noButton.addEventListener("click", () => { wrap.replaceWith(botText(tl("consent.declined"), ui)); });
 
-  let status = null;
+  const fail = (msg, focusEl) => { error.textContent = msg; error.hidden = false; focusEl.focus(); };
   wrap.addEventListener("submit", async (e) => {
     e.preventDefault();
-    error.hidden = true;
-    if (!consentSummary.checked) { error.textContent = tl("consent.needSummary"); error.hidden = false; consentSummary.focus(); return; }
+    error.hidden = true; contactInput.removeAttribute("aria-invalid");
+    if (!consentSummary.checked) return fail(tl("consent.needSummary"), consentSummary);
     const contact = consentContact.checked ? contactInput.value.trim() : "";
-    if (consentContact.checked && contact.length < 3) { error.textContent = tl("consent.needContact"); error.hidden = false; contactInput.focus(); return; }
+    if (consentContact.checked && !validContact(contact)) {
+      contactInput.setAttribute("aria-invalid", "true");
+      return fail(tl("consent.needContact"), contactInput);
+    }
 
     sendButton.disabled = true; noButton.disabled = true;
-    status?.remove();
-    status = add(stateCard("info", tl("state.sending"), tl("state.sendingBody")));
+    sendButton.textContent = tl("consent.sending");
+    status.replaceChildren(stateCard("info", tl("state.sending"), tl("state.sendingBody"), null, ui));
     try {
       if (!navigator.onLine) throw new TypeError("offline");
       const body = { question: redact(question), language: lang, summary, tier_id: reply.tier_id || null };
@@ -472,38 +501,52 @@ function consentCard(question, reply) {
       const res = await fetch("/api/support-cases", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
       });
+      if (res.status === 422 && contact) {
+        status.replaceChildren();
+        contactInput.setAttribute("aria-invalid", "true");
+        fail(tl("consent.needContact"), contactInput);
+        return;
+      }
       if (!res.ok) throw new Error(String(res.status));
       const data = await res.json(); // success is shown only after the server confirms
-      wrap.remove();
-      status.replaceWith(status = stateCard("success", tl("state.sent"), tl("state.sentBody", { ref: data.reference })));
-      add(confirmation(data.reference, Boolean(contact), lang));
+      lastCase = { reference: data.reference, hasContact: Boolean(contact) };
+      wrap.replaceWith(stateCard("success", tl("state.sent"), tl("state.sentBody", { ref: data.reference }),
+        { label: tl("state.viewCase"), onClick: () => { location.hash = "#case"; } }, ui));
+      location.hash = "#case";
     } catch (err) {
       const offline = isOffline(err);
-      status.replaceWith(status = stateCard("error", tl(offline ? "state.offline" : "state.failed"),
-        tl(offline ? "state.offlineBody" : "state.failedBody"), () => wrap.requestSubmit()));
-      sendButton.disabled = false; noButton.disabled = false;
+      status.replaceChildren(stateCard("error", tl(offline ? "state.offline" : "state.failed"),
+        tl(offline ? "state.offlineBody" : "state.failedBody"), () => wrap.requestSubmit(), ui));
+    } finally {
+      if (wrap.isConnected) {
+        sendButton.disabled = false; noButton.disabled = false;
+        sendButton.textContent = tl("consent.send");
+      }
     }
   });
   add(wrap);
 }
 
-/* 05 Confirmation */
-function confirmation(reference, hasContact, lang) {
-  const tl = (k, v) => t(k, v, lang);
+/* 05 Confirmation (its own page, #case) */
+function renderCase() {
+  const c = lastCase;
+  if (!c) return;
+  const tl = (k, v) => t(k, v);
   const step = (cls, text, glyph) => h("li", { class: cls }, h("span", { class: "dot" }, glyph ? ic(glyph) : null), h("span", {}, text));
-  return h("section", { class: "confirm", dir: dirOf(lang) },
+  document.getElementById("case-body").replaceChildren(h("section", { class: "card card-white confirm" },
     h("div", { class: "confirm-head" },
       h("div", { class: "check-circle" }, ic("check")),
-      h("h2", {}, tl("confirm.title")),
+      h("h1", {}, tl("confirm.title")),
       h("span", { class: "caption" }, tl("confirm.caseNo")),
-      h("strong", { class: "case-number" }, reference)),
+      h("strong", { class: "case-number" }, c.reference)),
     h("ol", { class: "timeline" },
       step("done", tl("confirm.received"), "check"),
       step("current", tl("confirm.review")),
-      step("", tl(hasContact ? "confirm.reply" : "confirm.update"))),
+      step("", tl(c.hasContact ? "confirm.reply" : "confirm.update"))),
     h("div", { class: "next-step" }, h("span", { class: "caption" }, tl("confirm.next")),
-      h("p", {}, tl(hasContact ? "confirm.nextContact" : "confirm.nextAnon"))),
-    h("button", { class: "btn btn-text", type: "button", onclick: () => { input.focus(); form.scrollIntoView({ block: "end" }); } }, tl("confirm.back")));
+      h("p", {}, tl(c.hasContact ? "confirm.nextContact" : "confirm.nextAnon"))),
+    h("a", { class: "btn btn-primary btn-block", href: "#chat" }, tl("confirm.back"))));
+  I18N.icons();
 }
 
 /* ---------- 02 Recommendation questions ---------- */
@@ -562,8 +605,8 @@ function quizQ2() {
 function orgEscalation() {
   quizActive = false; setPlaceholder();
   const lang = I18N.lang;
-  add(stateCard("warn", t("state.noInfo"), t("quiz.orgNoInfo")));
-  consentCard(t("quiz.orgQuestion"), { lang, action: "escalate", needs_contact: true, summary: t("quiz.orgSummary"), tier_id: null });
+  consentCard(t("quiz.orgQuestion"), { lang, action: "escalate", needs_contact: true, summary: t("quiz.orgSummary"), tier_id: null },
+              t("quiz.orgNoInfo"));
 }
 
 function statusPrompt(text) {
@@ -725,15 +768,19 @@ function renderStatus() {
 }
 
 /* ---------- Views (hash routing) ---------- */
-const views = { chat: "view-chat", verify: "view-verify", status: "view-status" };
+const views = { chat: "view-chat", verify: "view-verify", status: "view-status", case: "view-case" };
 function route() {
   let name = location.hash.slice(1) || "chat";
   if (!views[name]) name = "chat";
   if (name === "status" && !lastStatus) { location.replace("#verify"); return; }
+  if (name === "case" && !lastCase) { location.replace("#chat"); return; }
   for (const [key, id] of Object.entries(views)) document.getElementById(id).hidden = key !== name;
   if (name === "status") renderStatus();
-  window.scrollTo(0, 0);
-  if (name === "chat") input.focus({ preventScroll: true });
+  if (name === "case") renderCase();
+  if (name === "chat") { // back to the conversation where it left off
+    window.scrollTo(0, document.body.scrollHeight);
+    input.focus({ preventScroll: true });
+  } else window.scrollTo(0, 0);
 }
 window.addEventListener("hashchange", route);
 
@@ -742,6 +789,7 @@ document.addEventListener("langchange", () => {
   cells.forEach((c, i) => c.setAttribute("aria-label", t("verify.cell", { n: i + 1 })));
   if (verifiedPhone) codeSent.textContent = t("verify.codeSent", { phone: verifiedPhone });
   renderStatus();
+  renderCase();
 });
 
 I18N.apply();

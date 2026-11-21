@@ -201,3 +201,38 @@ def test_no_support_token_default_in_code():
     from pathlib import Path
     src = (Path(__file__).resolve().parent.parent / "app" / "config.py").read_text()
     assert 'os.getenv("SUPPORT_TOKEN", "")' in src
+
+
+# ---- Contact format (email or Saudi mobile) ----
+@pytest.mark.parametrize("contact", ["test@example.com", "0500000099", "+966 50 000 0099", "٠٥٠٠٠٠٠٠٩٩", "500000099"])
+def test_case_accepts_valid_contact(client, contact):
+    r = client.post("/api/support-cases", json={"question": "q", "language": "ar", "contact": contact})
+    assert r.status_code == 201
+
+
+@pytest.mark.parametrize("contact", ["abc", "test@", "0400000099", "05000000", "123456789012"])
+def test_case_rejects_invalid_contact(client, contact):
+    r = client.post("/api/support-cases", json={"question": "q", "language": "ar", "contact": contact})
+    assert r.status_code == 422
+
+
+# ---- Language consistency ----
+def test_faq_text_is_in_the_right_language(client):
+    import re
+    arabic = re.compile(r"[؀-ۿ]")
+    for cat in client.get("/api/faq").json():
+        assert arabic.search(cat["title"]["ar"]) and not arabic.search(cat["title"]["en"])
+        for item in cat["items"]:
+            assert item["langs"] == ["ar", "en"]
+            for field in (item["question"], item["answer"], item["source"]["title"]):
+                assert arabic.search(field["ar"]) and not arabic.search(field["en"])
+
+
+def test_staff_answer_is_marked_with_its_language(client):
+    client.post("/api/chat", json={"message": "هل فيه استرداد؟"})
+    qid = client.get("/api/unanswered", headers=AUTH).json()[0]["id"]
+    client.post(f"/api/unanswered/{qid}/promote", headers=AUTH, json={
+        "category_id": "support", "question": "هل يوجد استرداد؟", "answer": "إجابة اختبار.",
+        "source_title": "مرجع"})
+    added = next(c for c in client.get("/api/faq").json() if c["id"] == "support")["items"][-1]
+    assert added["langs"] == ["ar"]

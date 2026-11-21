@@ -13,6 +13,8 @@ I18N.add({
     "faq.source": "المصدر:",
     "faq.checked": "آخر تحقق: {date}",
     "faq.approved": "معتمد",
+    "faq.onlyIn.ar": "متاح بالعربية فقط",
+    "faq.onlyIn.en": "متاح بالإنجليزية فقط",
     "faq.noResults": "لا توجد نتائج مطابقة. جرّب كلمات أخرى أو اسأل المساعد.",
     "faq.loading": "جارٍ تحميل الأسئلة…",
     "faq.error": "تعذّر تحميل الأسئلة الشائعة. تحقق من الاتصال ثم أعد تحميل الصفحة.",
@@ -28,6 +30,8 @@ I18N.add({
     "faq.source": "Source:",
     "faq.checked": "Last verified: {date}",
     "faq.approved": "Approved",
+    "faq.onlyIn.ar": "Available in Arabic only",
+    "faq.onlyIn.en": "Available in English only",
     "faq.noResults": "No matching results. Try other words or ask the assistant.",
     "faq.loading": "Loading questions…",
     "faq.error": "Couldn't load the FAQ. Check your connection and reload the page.",
@@ -74,12 +78,13 @@ function render() {
       }, h("span", {}, cat.title[lang]), ic("chevron-down"))),
       h("div", { class: "faq-body", id: bodyId, hidden: !expanded },
         ...items.map((it) => h("article", { class: "faq-item" },
+          !it.langs.includes(lang) ? h("span", { class: "tag faq-only" }, t(`faq.onlyIn.${it.langs[0]}`)) : null,
           h("h3", { dir: "auto" }, it.question[lang]),
           h("p", { dir: "auto" }, it.answer[lang]),
           h("p", { class: "faq-meta" },
             h("span", {}, t("faq.source"), " ",
-              it.source.url ? h("a", { href: it.source.url, target: "_blank", rel: "noopener", dir: "auto" }, it.source.title)
-                            : h("span", { dir: "auto" }, it.source.title),
+              it.source.url ? h("a", { href: it.source.url, target: "_blank", rel: "noopener", dir: "auto" }, it.source.title[lang])
+                            : h("span", { dir: "auto" }, it.source.title[lang]),
               " · ", it.demo ? t("demo") : t("faq.approved")),
             h("span", {}, t("faq.checked", { date: I18N.formatDate(it.checked_at) })))))));
   }).filter(Boolean);

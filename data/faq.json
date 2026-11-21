@@ -19,7 +19,10 @@
             "en": "The association promotes a culture of customer experience and develops professional practice in the Kingdom."
           },
           "source": {
-            "title": "صفحة عن الجمعية",
+            "title": {
+              "ar": "صفحة عن الجمعية",
+              "en": "About the association page"
+            },
             "url": "https://cxa.sa"
           },
           "checked_at": "2026-11-17",
@@ -45,7 +48,10 @@
             "en": "Fees and benefits for each tier are listed on the memberships page. Please review them before registering."
           },
           "source": {
-            "title": "صفحة العضويات",
+            "title": {
+              "ar": "صفحة العضويات",
+              "en": "Memberships page"
+            },
             "url": "https://cxa.sa/membership"
           },
           "checked_at": "2026-11-17",
@@ -71,7 +77,10 @@
             "en": "Choose the membership that suits you, then complete the registration form and attach the required information."
           },
           "source": {
-            "title": "صفحة العضويات",
+            "title": {
+              "ar": "صفحة العضويات",
+              "en": "Memberships page"
+            },
             "url": "https://cxa.sa/membership"
           },
           "checked_at": "2026-11-17",
@@ -97,7 +106,10 @@
             "en": "Event dates, registration links and the latest updates are published on the events and news page."
           },
           "source": {
-            "title": "صفحة الفعاليات والأخبار",
+            "title": {
+              "ar": "صفحة الفعاليات والأخبار",
+              "en": "Events and news page"
+            },
             "url": "https://cxa.sa"
           },
           "checked_at": "2026-11-17",
@@ -123,7 +135,10 @@
             "en": "You can view the available opportunities and the requirements of each one on the volunteering page."
           },
           "source": {
-            "title": "صفحة التطوع",
+            "title": {
+              "ar": "صفحة التطوع",
+              "en": "Volunteering page"
+            },
             "url": "https://cxa.sa"
           },
           "checked_at": "2026-11-17",
@@ -149,7 +164,10 @@
             "en": "Use the contact form on the website so the team can review your request and direct you to the right department."
           },
           "source": {
-            "title": "صفحة التواصل",
+            "title": {
+              "ar": "صفحة التواصل",
+              "en": "Contact page"
+            },
             "url": "https://cxa.sa"
           },
           "checked_at": "2026-11-17",

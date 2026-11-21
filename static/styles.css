@@ -566,3 +566,4 @@ dialog.modal::backdrop { background: var(--c-overlay); }
 .consent-status:empty { display: none; }
 .input[aria-invalid="true"] { border-color: var(--c-danger); }
 .confirm-head h1 { font-size: var(--fs-title2); font-weight: 700; color: var(--c-text); line-height: var(--lh); }
+.faq-item .faq-only { justify-self: start; }

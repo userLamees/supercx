@@ -11,16 +11,29 @@ from pathlib import Path
 from sqlmodel import Session, func, select
 
 from .db import FaqCategory as CategoryRow, FaqItem as ItemRow
-from .schemas import FaqCategory, FaqItem, Localized, Source
+from .schemas import FaqCategory, FaqItem, FaqSource, Localized
 
 SEED_FILE = Path(__file__).resolve().parent.parent / "data" / "faq.json"
 _ARABIC = re.compile(r"[\u0600-\u06FF]")
 
 
+def _backfill_source_titles(session: Session, data: dict) -> None:
+    """Rows seeded before source titles were bilingual get their English title from the seed."""
+    english = {item["source"]["title"]["ar"]: item["source"]["title"]["en"]
+               for cat in data["categories"] for item in cat["items"]}
+    rows = session.exec(select(ItemRow).where(ItemRow.source_title_en == None)).all()  # noqa: E711
+    for row in rows:
+        if row.source_title in english:
+            row.source_title_en = english[row.source_title]
+            session.add(row)
+    session.commit()
+
+
 def seed_faq(session: Session) -> None:
-    if session.exec(select(CategoryRow.id)).first():
-        return
     data = json.loads(SEED_FILE.read_text(encoding="utf-8"))
+    if session.exec(select(CategoryRow.id)).first():
+        _backfill_source_titles(session, data)
+        return
     for position, cat in enumerate(data["categories"]):
         session.add(CategoryRow(id=cat["id"], title_ar=cat["title"]["ar"],
                                 title_en=cat["title"]["en"], position=position))
@@ -29,7 +42,8 @@ def seed_faq(session: Session) -> None:
                 category_id=cat["id"],
                 question_ar=item["question"]["ar"], question_en=item["question"]["en"],
                 answer_ar=item["answer"]["ar"], answer_en=item["answer"]["en"],
-                source_title=item["source"]["title"], source_url=item["source"]["url"] or None,
+                source_title=item["source"]["title"]["ar"], source_title_en=item["source"]["title"]["en"],
+                source_url=item["source"]["url"] or None,
                 checked_at=date.fromisoformat(item["checked_at"]), demo=item.get("demo", True)))
     session.commit()
 
@@ -50,7 +64,8 @@ def get_faq(session: Session) -> list[FaqCategory]:
         id=c.id, title=Localized(ar=c.title_ar, en=c.title_en),
         items=[FaqItem(id=i.id, question=_localized(i.question_ar, i.question_en),
                        answer=_localized(i.answer_ar, i.answer_en),
-                       source=Source(title=i.source_title, url=i.source_url or ""),
+                       source=FaqSource(title=_localized(i.source_title, i.source_title_en), url=i.source_url or ""),
+                       langs=[lang for lang in ("ar", "en") if getattr(i, f"question_{lang}")],
                        checked_at=i.checked_at.isoformat(), demo=i.demo)
                for i in items if i.category_id == c.id],
     ) for c in cats]

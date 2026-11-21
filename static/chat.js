@@ -17,7 +17,7 @@ I18N.add({
     "composer.send": "إرسال",
     "sugg.fit": "أي عضوية تناسبني؟",
     "sugg.diff": "ما الفرق بين العضويات؟",
-    "sugg.vote": "Which membership lets me vote?",
+    "sugg.vote": "أي عضوية تمنحني حق التصويت؟",
     "sugg.student": "هل يوجد خصم للطلاب؟",
 
     "quiz.intro": "سؤالان سريعان، ثم أقدّم لك توصية واحدة.",
@@ -141,7 +141,7 @@ I18N.add({
     "composer.send": "Send",
     "sugg.fit": "Which membership suits me?",
     "sugg.diff": "What's the difference between the memberships?",
-    "sugg.vote": "أي عضوية تمنحني حق التصويت؟",
+    "sugg.vote": "Which membership lets me vote?",
     "sugg.student": "Is there a student discount?",
 
     "quiz.intro": "Two quick questions, then I'll recommend one membership.",
@@ -329,8 +329,10 @@ function botText(text, lang) { return add(h("div", { class: "msg msg-bot", dir: 
 
 function sourcesLine(sources, lang, checkedAt) {
   const row = h("div", { class: "sources", dir: dirOf(lang) }, ic("link", "icon-sm"), t("src.label", null, lang));
+  const membershipUrls = new Set(Object.values(tiersById).map((tier) => tier.source_url));
   sources.forEach((s, i) => {
-    row.append(h("a", { href: s.url, target: "_blank", rel: "noopener" }, s.title));
+    const title = membershipUrls.has(s.url) ? t("src.memberships", null, lang) : s.title;
+    row.append(h("a", { href: s.url, target: "_blank", rel: "noopener", dir: "auto" }, title));
     if (i < sources.length - 1) row.append(lang === "ar" ? "، " : ", ");
   });
   if (checkedAt) row.append(" · ", t("src.checked", { date: I18N.formatDate(checkedAt, lang) }, lang));
@@ -387,31 +389,32 @@ async function askAgentRetry(text) {
 }
 
 function renderReply(question, reply) {
-  const lang = reply.lang;
+  const lang = reply.lang;  // language of the agent's own text
+  const ui = I18N.lang;     // language of everything the interface adds around it
   const tier = reply.action === "recommend" && reply.tier_id ? tiersById[reply.tier_id] : null;
 
   if (reply.action === "escalate") {
     if (reply.needs_contact) consentCard(question, reply, reply.answer);
-    else add(stateCard("warn", t("state.noInfo", null, lang), reply.answer, null, lang));
+    else add(stateCard("warn", t("state.noInfo"), reply.answer));
     return;
   }
 
   if (tier) {
     // The card shows price and benefits, so only the recommendation sentence is kept as text.
     botText(reply.answer.split(/\n\s*\n/)[0], lang);
-    const block = h("div", { class: "chat-block", dir: dirOf(lang) }, tierCard(tier, lang));
-    const sources = reply.sources?.length ? reply.sources : [{ title: t("src.memberships", null, lang), url: tier.source_url }];
-    block.append(sourcesLine(sources, lang, tier.checked_at));
+    const block = h("div", { class: "chat-block", dir: dirOf(ui) }, tierCard(tier, ui));
+    const sources = reply.sources?.length ? reply.sources : [{ title: t("src.memberships"), url: tier.source_url }];
+    block.append(sourcesLine(sources, ui, tier.checked_at));
     const count = Object.keys(tiersById).length;
-    const compareText = t("sugg.diff", null, lang);
+    const compareText = t("sugg.diff");
     block.append(h("button", { class: "chip", type: "button", onclick: () => send(compareText) },
-      t(count === 3 ? "tier.compareThree" : "tier.compare", null, lang)));
+      t(count === 3 ? "tier.compareThree" : "tier.compare")));
     add(block);
     return;
   }
 
   const msg = botText(reply.answer, lang);
-  if (reply.sources?.length) msg.append(sourcesLine(reply.sources, lang));
+  if (reply.sources?.length) msg.append(sourcesLine(reply.sources, ui));
 }
 
 /* 03 Recommendation card (matched by tier_id, never by name) */
@@ -437,8 +440,9 @@ function validContact(value) {
 /* 04 Unpublished question. One card holds the notice, both consents and the send
    state; on success it collapses to a "sent" line and the confirmation opens as its own page. */
 function consentCard(question, reply, notice) {
-  const lang = reply.lang;
-  const tl = (k, v) => t(k, v, lang);
+  const lang = reply.lang;  // sent to support as the question's language
+  const ui = I18N.lang;
+  const tl = (k, v) => t(k, v, ui);
   const summary = redact((reply.summary || question).replace(/^\[(ar|en)\]\s*/, ""));
   const uid = Math.random().toString(36).slice(2, 8);
 
@@ -459,7 +463,7 @@ function consentCard(question, reply, notice) {
   });
   contactInput.addEventListener("input", () => { if (!error.hidden && validContact(contactInput.value)) { error.hidden = true; contactInput.removeAttribute("aria-invalid"); } });
 
-  const wrap = h("form", { class: "escalation", dir: dirOf(lang), novalidate: true },
+  const wrap = h("form", { class: "escalation", dir: dirOf(ui), novalidate: true },
     h("div", { class: "card consent" },
       h("div", { class: "escalation-head" },
         h("span", { class: "state-kind" }, tl("state.kind.warn")),
@@ -474,7 +478,7 @@ function consentCard(question, reply, notice) {
     h("p", { class: "alt-channel" }, ic("mail", "icon-sm"), tl("consent.alt"), " ",
       h("a", { href: `mailto:${CARE_EMAIL}`, dir: "ltr" }, CARE_EMAIL)));
 
-  noButton.addEventListener("click", () => { wrap.replaceWith(botText(tl("consent.declined"), lang)); });
+  noButton.addEventListener("click", () => { wrap.replaceWith(botText(tl("consent.declined"), ui)); });
 
   const fail = (msg, focusEl) => { error.textContent = msg; error.hidden = false; focusEl.focus(); };
   wrap.addEventListener("submit", async (e) => {
@@ -489,7 +493,7 @@ function consentCard(question, reply, notice) {
 
     sendButton.disabled = true; noButton.disabled = true;
     sendButton.textContent = tl("consent.sending");
-    status.replaceChildren(stateCard("info", tl("state.sending"), tl("state.sendingBody"), null, lang));
+    status.replaceChildren(stateCard("info", tl("state.sending"), tl("state.sendingBody"), null, ui));
     try {
       if (!navigator.onLine) throw new TypeError("offline");
       const body = { question: redact(question), language: lang, summary, tier_id: reply.tier_id || null };
@@ -505,14 +509,14 @@ function consentCard(question, reply, notice) {
       }
       if (!res.ok) throw new Error(String(res.status));
       const data = await res.json(); // success is shown only after the server confirms
-      lastCase = { reference: data.reference, hasContact: Boolean(contact), lang };
+      lastCase = { reference: data.reference, hasContact: Boolean(contact) };
       wrap.replaceWith(stateCard("success", tl("state.sent"), tl("state.sentBody", { ref: data.reference }),
-        { label: tl("state.viewCase"), onClick: () => { location.hash = "#case"; } }, lang));
+        { label: tl("state.viewCase"), onClick: () => { location.hash = "#case"; } }, ui));
       location.hash = "#case";
     } catch (err) {
       const offline = isOffline(err);
       status.replaceChildren(stateCard("error", tl(offline ? "state.offline" : "state.failed"),
-        tl(offline ? "state.offlineBody" : "state.failedBody"), () => wrap.requestSubmit(), lang));
+        tl(offline ? "state.offlineBody" : "state.failedBody"), () => wrap.requestSubmit(), ui));
     } finally {
       if (wrap.isConnected) {
         sendButton.disabled = false; noButton.disabled = false;
@@ -527,9 +531,9 @@ function consentCard(question, reply, notice) {
 function renderCase() {
   const c = lastCase;
   if (!c) return;
-  const tl = (k, v) => t(k, v, c.lang);
+  const tl = (k, v) => t(k, v);
   const step = (cls, text, glyph) => h("li", { class: cls }, h("span", { class: "dot" }, glyph ? ic(glyph) : null), h("span", {}, text));
-  document.getElementById("case-body").replaceChildren(h("section", { class: "card card-white confirm", dir: dirOf(c.lang) },
+  document.getElementById("case-body").replaceChildren(h("section", { class: "card card-white confirm" },
     h("div", { class: "confirm-head" },
       h("div", { class: "check-circle" }, ic("check")),
       h("h1", {}, tl("confirm.title")),
@@ -785,6 +789,7 @@ document.addEventListener("langchange", () => {
   cells.forEach((c, i) => c.setAttribute("aria-label", t("verify.cell", { n: i + 1 })));
   if (verifiedPhone) codeSent.textContent = t("verify.codeSent", { phone: verifiedPhone });
   renderStatus();
+  renderCase();
 });
 
 I18N.apply();

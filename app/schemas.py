@@ -107,11 +107,17 @@ class SupportCaseUpdate(BaseModel):
     status: CaseStatus
 
 
+class FaqSource(BaseModel):
+    title: Localized
+    url: str
+
+
 class FaqItem(BaseModel):
     id: str
     question: Localized
     answer: Localized
-    source: Source
+    source: FaqSource
+    langs: list[Lang] = ["ar", "en"]  # languages the question/answer were written in
     checked_at: str          # ISO date of last verification
     demo: bool = True        # content not yet approved by the association
 

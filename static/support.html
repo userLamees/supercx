@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/tokens.css?v=3">
-  <link rel="stylesheet" href="/static/styles.css?v=3">
+  <link rel="stylesheet" href="/static/tokens.css?v=4">
+  <link rel="stylesheet" href="/static/styles.css?v=4">
 </head>
 <body>
   <div class="dash">
@@ -18,9 +18,9 @@
       <nav data-i18n-aria="dash.navAria">
         <a class="tab" href="#unanswered" data-view="unanswered" data-i18n="dash.unanswered">الأسئلة غير المجابة</a>
         <a class="tab" href="#cases" data-view="cases" data-i18n="dash.cases">حالات الدعم</a>
-        <a class="tab" href="/faq" target="_blank" rel="noopener" data-i18n="dash.faq">الأسئلة الشائعة</a>
+        <a class="tab" href="#faq" data-view="faq" data-i18n="dash.faq">الأسئلة الشائعة</a>
       </nav>
-      <div class="side-foot"><strong data-i18n="dash.team">فريق إدارة المعرفة</strong><span data-i18n="dash.role">صلاحية: محرر محتوى</span></div>
+      <div class="side-foot"><strong id="side-name" data-i18n="dash.team">فريق إدارة المعرفة</strong><span data-i18n="dash.role">صلاحية: محرر محتوى</span></div>
     </aside>
 
     <div class="dash-main">
@@ -36,7 +36,7 @@
       <nav class="tabs" data-i18n-aria="dash.navAria">
         <a class="tab" href="#unanswered" data-view="unanswered" data-i18n="dash.unanswered">الأسئلة غير المجابة</a>
         <a class="tab" href="#cases" data-view="cases" data-i18n="dash.cases">حالات الدعم</a>
-        <a class="tab" href="/faq" target="_blank" rel="noopener" data-i18n="dash.faq">الأسئلة الشائعة</a>
+        <a class="tab" href="#faq" data-view="faq" data-i18n="dash.faq">الأسئلة الشائعة</a>
       </nav>
 
       <main class="dash-content">
@@ -45,6 +45,11 @@
           <div class="panel-head"><h3 data-i18n="dash.loginTitle">دخول فريق الدعم</h3></div>
           <form id="auth">
             <div class="field">
+              <label class="label" for="staff-name" data-i18n="dash.name">اسمك</label>
+              <input class="input" id="staff-name" autocomplete="name" maxlength="80" dir="auto">
+              <span class="help" data-i18n="dash.nameHelp">يظهر في سجل الإجراءات بجانب ما تعتمده أو تعدّله.</span>
+            </div>
+            <div class="field">
               <label class="label" for="token" data-i18n="dash.token">رمز فريق الدعم</label>
               <input class="input" id="token" type="password" autocomplete="current-password" required>
             </div>
@@ -52,6 +57,9 @@
             <button class="btn btn-primary btn-block" type="submit" data-i18n="dash.signIn">دخول</button>
           </form>
         </section>
+
+        <!-- Smart alerts (idea 62) -->
+        <section class="alerts" id="alerts" aria-live="polite" hidden></section>
 
         <!-- 10 Unanswered questions -->
         <div id="view-unanswered" class="dash-section" hidden>
@@ -67,11 +75,14 @@
           <section class="panel">
             <div class="panel-head">
               <h3 data-i18n="dash.tableTitle">أسئلة لم يُجب عنها</h3>
-              <label class="sr-only" for="sort" data-i18n="dash.sortLabel">ترتيب الأسئلة</label>
-              <select class="select" id="sort">
-                <option value="count" data-i18n="dash.sortCount">الأكثر تكرارًا أولًا</option>
-                <option value="recent" data-i18n="dash.sortRecent">الأحدث أولًا</option>
-              </select>
+              <div class="panel-tools">
+                <label class="sr-only" for="sort" data-i18n="dash.sortLabel">ترتيب الأسئلة</label>
+                <select class="select" id="sort">
+                  <option value="count" data-i18n="dash.sortCount">الأكثر تكرارًا أولًا</option>
+                  <option value="recent" data-i18n="dash.sortRecent">الأحدث أولًا</option>
+                </select>
+                <button class="btn btn-sm btn-secondary" type="button" data-export="unanswered"><i data-lucide="download" class="icon icon-sm"></i><span data-i18n="dash.exportCsv">تصدير ملف CSV</span></button>
+              </div>
             </div>
             <p class="muted" id="unanswered-state" role="status" hidden></p>
             <table class="data-table" id="unanswered-table">
@@ -95,25 +106,76 @@
           <p class="dash-note" data-i18n="dash.note">تُراجع الإجابات والمصادر قبل إضافتها إلى الأسئلة الشائعة.</p>
         </div>
 
-        <!-- Support cases (existing feature) -->
+        <!-- Support cases -->
         <div id="view-cases" class="dash-section" hidden>
           <div class="dash-head">
             <h2 data-i18n="dash.cases">حالات الدعم</h2>
             <p data-i18n="dash.casesSub">الحالات المحالة من المساعد مع وسيلة التواصل إن وُجدت.</p>
           </div>
           <section class="panel">
+            <div class="panel-head">
+              <div class="panel-tools">
+                <label class="sr-only" for="filter-category" data-i18n="dash.filterCategory">نوع الطلب</label>
+                <select class="select" id="filter-category">
+                  <option value="" data-i18n="dash.allTypes">كل الأنواع</option>
+                  <option value="inquiry" data-i18n="cat.inquiry">استفسار</option>
+                  <option value="complaint" data-i18n="cat.complaint">شكوى</option>
+                  <option value="suggestion" data-i18n="cat.suggestion">مقترح</option>
+                  <option value="service" data-i18n="cat.service">طلب خدمة</option>
+                </select>
+                <label class="sr-only" for="filter-status" data-i18n="dash.filterStatus">حالة الطلب</label>
+                <select class="select" id="filter-status">
+                  <option value="" data-i18n="dash.allStatuses">كل الحالات</option>
+                  <option value="new" data-i18n="status.new">جديدة</option>
+                  <option value="in_progress" data-i18n="status.in_progress">قيد المعالجة</option>
+                  <option value="closed" data-i18n="status.closed">مغلقة</option>
+                </select>
+              </div>
+              <button class="btn btn-sm btn-secondary" type="button" data-export="cases"><i data-lucide="download" class="icon icon-sm"></i><span data-i18n="dash.exportCsv">تصدير ملف CSV</span></button>
+            </div>
             <p class="muted" id="cases-state" role="status" hidden></p>
             <table class="data-table" id="cases-table">
               <thead><tr>
                 <th scope="col" data-i18n="dash.colRef">رقم الحالة</th>
                 <th scope="col" data-i18n="dash.colDate">التاريخ</th>
+                <th scope="col" data-i18n="dash.colType">النوع</th>
                 <th scope="col" data-i18n="dash.colQuestion">السؤال</th>
-                <th scope="col" data-i18n="dash.colSummary">الملخص</th>
                 <th scope="col" data-i18n="dash.colTier">العضوية</th>
                 <th scope="col" data-i18n="dash.colContact">التواصل</th>
                 <th scope="col" data-i18n="dash.colStatus">الحالة</th>
               </tr></thead>
               <tbody id="cases-rows"></tbody>
+            </table>
+          </section>
+        </div>
+
+        <!-- FAQ management (idea 68) -->
+        <div id="view-faq" class="dash-section" hidden>
+          <div class="dash-head">
+            <h2 data-i18n="dash.faqTitle">إدارة الأسئلة الشائعة</h2>
+            <p data-i18n="dash.faqSub">التعديلات تظهر فورًا في صفحة الأسئلة الشائعة للزوار.</p>
+          </div>
+          <section class="panel">
+            <div class="panel-head">
+              <div class="panel-tools">
+                <label class="sr-only" for="faq-filter" data-i18n="modal.category">القسم</label>
+                <select class="select" id="faq-filter"><option value="" data-i18n="dash.allSections">كل الأقسام</option></select>
+              </div>
+              <div class="panel-tools">
+                <a class="btn btn-sm btn-text" href="/faq" target="_blank" rel="noopener"><span data-i18n="dash.viewPublic">عرض الصفحة العامة</span><i data-lucide="external-link" class="icon icon-sm"></i></a>
+                <button class="btn btn-sm btn-primary" type="button" id="faq-add"><i data-lucide="plus" class="icon icon-sm"></i><span data-i18n="dash.addFaq">إضافة سؤال</span></button>
+              </div>
+            </div>
+            <p class="muted" id="faq-state" role="status" hidden></p>
+            <table class="data-table" id="faq-table">
+              <thead><tr>
+                <th scope="col" data-i18n="dash.colQuestion">السؤال</th>
+                <th scope="col" data-i18n="modal.category">القسم</th>
+                <th scope="col" data-i18n="dash.colFaqStatus">الحالة</th>
+                <th scope="col" data-i18n="dash.colLastChange">آخر تعديل</th>
+                <th scope="col" data-i18n="dash.colAction">الإجراء</th>
+              </tr></thead>
+              <tbody id="faq-rows"></tbody>
             </table>
           </section>
         </div>
@@ -129,7 +191,7 @@
           <h2 id="promote-title" data-i18n="modal.title">تحويل إلى سؤال شائع</h2>
           <p data-i18n="modal.sub">أضف إجابة واضحة وأرفق مصدرها قبل الاعتماد.</p>
         </div>
-        <button class="icon-btn" type="button" id="promote-close" data-i18n-aria="modal.close"><i data-lucide="x" class="icon"></i></button>
+        <button class="icon-btn" type="button" data-close data-i18n-aria="modal.close"><i data-lucide="x" class="icon"></i></button>
       </div>
       <div class="field">
         <label class="label" for="m-question" data-i18n="modal.question">السؤال</label>
@@ -147,11 +209,101 @@
         <label class="label" for="m-source" data-i18n="modal.source">المصدر</label>
         <input class="input" id="m-source" dir="auto" required minlength="2" maxlength="300" data-i18n-ph="modal.sourcePh">
       </div>
+      <details class="translation">
+        <summary data-i18n="modal.addEnglish">إضافة الترجمة الإنجليزية (اختياري)</summary>
+        <div class="field">
+          <label class="label" for="m-question-en" data-i18n="modal.questionEn">السؤال بالإنجليزية</label>
+          <textarea class="textarea" id="m-question-en" dir="ltr" maxlength="500" rows="2"></textarea>
+        </div>
+        <div class="field">
+          <label class="label" for="m-answer-en" data-i18n="modal.answerEn">الإجابة بالإنجليزية</label>
+          <textarea class="textarea" id="m-answer-en" dir="ltr" maxlength="4000"></textarea>
+        </div>
+        <div class="field">
+          <label class="label" for="m-source-en" data-i18n="modal.sourceEn">اسم المصدر بالإنجليزية</label>
+          <input class="input" id="m-source-en" dir="ltr" maxlength="300">
+        </div>
+      </details>
       <p class="caption" id="m-checked"></p>
       <p class="form-error" id="m-error" role="alert" hidden></p>
       <div class="modal-actions">
         <button class="btn btn-primary" type="submit" id="m-approve" data-i18n="modal.approve">اعتماد</button>
-        <button class="btn btn-secondary" type="button" id="m-cancel" data-i18n="modal.cancel">إلغاء</button>
+        <button class="btn btn-secondary" type="button" data-close data-i18n="modal.cancel">إلغاء</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Add / edit FAQ entry -->
+  <dialog class="modal" id="faq-edit" aria-labelledby="faq-edit-title">
+    <form id="faq-form" novalidate>
+      <div class="modal-head">
+        <div>
+          <h2 id="faq-edit-title"></h2>
+          <p data-i18n="faqEdit.sub">اكتب السؤال والإجابة بلغة واحدة على الأقل، وأرفق المصدر.</p>
+        </div>
+        <button class="icon-btn" type="button" data-close data-i18n-aria="modal.close"><i data-lucide="x" class="icon"></i></button>
+      </div>
+      <div class="field">
+        <label class="label" for="f-category" data-i18n="modal.category">القسم</label>
+        <select class="select" id="f-category" required></select>
+      </div>
+      <fieldset class="lang-group">
+        <legend data-i18n="faqEdit.arabic">العربية</legend>
+        <div class="field">
+          <label class="label" for="f-question-ar" data-i18n="faqEdit.questionAr">السؤال</label>
+          <textarea class="textarea" id="f-question-ar" dir="rtl" maxlength="500" rows="2"></textarea>
+        </div>
+        <div class="field">
+          <label class="label" for="f-answer-ar" data-i18n="faqEdit.answerAr">الإجابة</label>
+          <textarea class="textarea" id="f-answer-ar" dir="rtl" maxlength="4000"></textarea>
+        </div>
+        <div class="field">
+          <label class="label" for="f-source" data-i18n="faqEdit.sourceTitle">اسم المصدر</label>
+          <input class="input" id="f-source" dir="auto" maxlength="300" required>
+        </div>
+      </fieldset>
+      <fieldset class="lang-group">
+        <legend data-i18n="faqEdit.english">الإنجليزية</legend>
+        <div class="field">
+          <label class="label" for="f-question-en" data-i18n="faqEdit.questionEn">السؤال (بالإنجليزية)</label>
+          <textarea class="textarea" id="f-question-en" dir="ltr" maxlength="500" rows="2"></textarea>
+        </div>
+        <div class="field">
+          <label class="label" for="f-answer-en" data-i18n="faqEdit.answerEn">الإجابة (بالإنجليزية)</label>
+          <textarea class="textarea" id="f-answer-en" dir="ltr" maxlength="4000"></textarea>
+        </div>
+        <div class="field">
+          <label class="label" for="f-source-en" data-i18n="faqEdit.sourceTitleEn">اسم المصدر (بالإنجليزية)</label>
+          <input class="input" id="f-source-en" dir="ltr" maxlength="300">
+        </div>
+      </fieldset>
+      <div class="field">
+        <label class="label" for="f-url" data-i18n="faqEdit.url">رابط المصدر (اختياري)</label>
+        <input class="input" id="f-url" type="url" dir="ltr" maxlength="500" placeholder="https://cxa.sa/...">
+      </div>
+      <label class="check"><input type="checkbox" id="f-demo"><span data-i18n="faqEdit.demo">محتوى تجريبي (لم تعتمده الجمعية بعد)</span></label>
+      <p class="form-error" id="f-error" role="alert" hidden></p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" type="submit" id="f-save" data-i18n="faqEdit.save">حفظ</button>
+        <button class="btn btn-secondary" type="button" data-close data-i18n="modal.cancel">إلغاء</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Delete confirmation -->
+  <dialog class="modal" id="faq-delete" aria-labelledby="faq-delete-title">
+    <form id="faq-delete-form" novalidate>
+      <div class="modal-head">
+        <div>
+          <h2 id="faq-delete-title" data-i18n="faqDelete.title">حذف السؤال؟</h2>
+          <p data-i18n="faqDelete.body">سيُحذف السؤال نهائيًا من الأسئلة الشائعة ولا يمكن التراجع. يبقى أثر الحذف في سجل الإجراءات.</p>
+        </div>
+      </div>
+      <p class="delete-target" id="faq-delete-q" dir="auto"></p>
+      <p class="form-error" id="d-error" role="alert" hidden></p>
+      <div class="modal-actions">
+        <button class="btn btn-danger" type="submit" id="d-confirm" data-i18n="faqDelete.confirm">حذف نهائيًا</button>
+        <button class="btn btn-secondary" type="button" data-close data-i18n="modal.cancel">إلغاء</button>
       </div>
     </form>
   </dialog>
@@ -159,7 +311,7 @@
   <div class="toast" id="toast" role="status" hidden></div>
 
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-  <script src="/static/i18n.js?v=3"></script>
-  <script src="/static/support.js?v=3"></script>
+  <script src="/static/i18n.js?v=4"></script>
+  <script src="/static/support.js?v=4"></script>
 </body>
 </html>

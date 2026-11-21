@@ -77,6 +77,75 @@ I18N.add({
     "modal.required": "أكمل السؤال والإجابة والمصدر قبل الاعتماد.",
     "modal.error": "تعذّر الاعتماد. أعد المحاولة.",
     "modal.done": "أُضيف السؤال إلى الأسئلة الشائعة.",
+    "dash.name": "اسمك",
+    "dash.nameHelp": "يظهر في سجل الإجراءات بجانب ما تعتمده أو تعدّله.",
+    "dash.exportCsv": "تصدير ملف CSV",
+    "dash.exporting": "جارٍ التصدير…",
+    "dash.exported": "تم تنزيل الملف.",
+    "dash.exportError": "تعذّر التصدير. أعد المحاولة.",
+    "dash.colType": "النوع",
+    "dash.filterCategory": "نوع الطلب",
+    "dash.filterStatus": "حالة الطلب",
+    "dash.allTypes": "كل الأنواع",
+    "dash.allStatuses": "كل الحالات",
+    "dash.casesFilteredEmpty": "لا توجد حالات تطابق التصفية.",
+    "cat.inquiry": "استفسار",
+    "cat.complaint": "شكوى",
+    "cat.suggestion": "مقترح",
+    "cat.service": "طلب خدمة",
+    "alert.high_frequency_unanswered": "{count} من الأسئلة تكررت {threshold} مرات أو أكثر بلا إجابة معتمدة.",
+    "alert.stale_cases": "{count} من الطلبات الجديدة تنتظر المراجعة منذ أكثر من {threshold} ساعة.",
+    "alert.complaints_spike": "وصلت {count} شكاوى خلال آخر 7 أيام. راجع ما إذا كانت عن موضوع واحد.",
+    "alert.action.unanswered": "عرض الأسئلة",
+    "alert.action.cases": "عرض الطلبات",
+    "alert.action.complaints": "عرض الشكاوى",
+    "dash.faqTitle": "إدارة الأسئلة الشائعة",
+    "dash.faqSub": "التعديلات تظهر فورًا في صفحة الأسئلة الشائعة للزوار.",
+    "dash.allSections": "كل الأقسام",
+    "dash.viewPublic": "عرض الصفحة العامة",
+    "dash.addFaq": "إضافة سؤال",
+    "dash.colFaqStatus": "الحالة",
+    "dash.colLastChange": "آخر تعديل",
+    "dash.faqEmpty": "لا توجد أسئلة في هذا القسم.",
+    "dash.edit": "تعديل",
+    "dash.delete": "حذف",
+    "faq.demo": "تجريبي",
+    "faq.approved": "معتمد",
+    "faq.onlyAr": "عربي فقط",
+    "faq.onlyEn": "إنجليزي فقط",
+    "faq.seed": "المحتوى الأولي",
+    "audit.by": "{actor} · {when}",
+    "audit.unknown": "بدون اسم",
+    "action.faq.promote": "اعتمده",
+    "action.faq.create": "أضافه",
+    "action.faq.update": "عدّله",
+    "faqEdit.addTitle": "إضافة سؤال شائع",
+    "faqEdit.editTitle": "تعديل سؤال شائع",
+    "faqEdit.sub": "اكتب السؤال والإجابة بلغة واحدة على الأقل، وأرفق المصدر.",
+    "faqEdit.arabic": "العربية",
+    "faqEdit.english": "الإنجليزية",
+    "faqEdit.questionAr": "السؤال",
+    "faqEdit.answerAr": "الإجابة",
+    "faqEdit.questionEn": "السؤال (بالإنجليزية)",
+    "faqEdit.answerEn": "الإجابة (بالإنجليزية)",
+    "faqEdit.sourceTitleEn": "اسم المصدر (بالإنجليزية)",
+    "faqEdit.sourceTitle": "اسم المصدر",
+    "faqEdit.url": "رابط المصدر (اختياري)",
+    "faqEdit.demo": "محتوى تجريبي (لم تعتمده الجمعية بعد)",
+    "faqEdit.save": "حفظ",
+    "faqEdit.saving": "جارٍ الحفظ…",
+    "faqEdit.saved": "تم حفظ السؤال.",
+    "faqEdit.required": "اكتب السؤال والإجابة بلغة واحدة على الأقل، واسم المصدر.",
+    "faqEdit.badUrl": "رابط المصدر يجب أن يبدأ بـ https://",
+    "faqDelete.title": "حذف السؤال؟",
+    "faqDelete.body": "سيُحذف السؤال نهائيًا من الأسئلة الشائعة ولا يمكن التراجع. يبقى أثر الحذف في سجل الإجراءات.",
+    "faqDelete.confirm": "حذف نهائيًا",
+    "faqDelete.deleting": "جارٍ الحذف…",
+    "faqDelete.done": "حُذف السؤال.",
+    "modal.addEnglish": "إضافة الترجمة الإنجليزية (اختياري)",
+    "modal.questionEn": "السؤال بالإنجليزية",
+    "modal.answerEn": "الإجابة بالإنجليزية",
+    "modal.sourceEn": "اسم المصدر بالإنجليزية",
   },
   en: {
     "page.title": "SuperCX | Staff dashboard",
@@ -152,6 +221,75 @@ I18N.add({
     "modal.required": "Complete the question, answer and source before approving.",
     "modal.error": "Couldn't approve. Please try again.",
     "modal.done": "The question was added to the FAQ.",
+    "dash.name": "Your name",
+    "dash.nameHelp": "Shown in the action log next to what you approve or edit.",
+    "dash.exportCsv": "Export CSV",
+    "dash.exporting": "Exporting…",
+    "dash.exported": "File downloaded.",
+    "dash.exportError": "Couldn't export. Please try again.",
+    "dash.colType": "Type",
+    "dash.filterCategory": "Request type",
+    "dash.filterStatus": "Request status",
+    "dash.allTypes": "All types",
+    "dash.allStatuses": "All statuses",
+    "dash.casesFilteredEmpty": "No cases match the filter.",
+    "cat.inquiry": "Inquiry",
+    "cat.complaint": "Complaint",
+    "cat.suggestion": "Suggestion",
+    "cat.service": "Service request",
+    "alert.high_frequency_unanswered": "{count} question(s) asked {threshold}+ times still have no approved answer.",
+    "alert.stale_cases": "{count} new request(s) have waited more than {threshold} hours for review.",
+    "alert.complaints_spike": "{count} complaints arrived in the last 7 days. Check whether they share a topic.",
+    "alert.action.unanswered": "View questions",
+    "alert.action.cases": "View requests",
+    "alert.action.complaints": "View complaints",
+    "dash.faqTitle": "Manage FAQ",
+    "dash.faqSub": "Changes appear immediately on the public FAQ page.",
+    "dash.allSections": "All sections",
+    "dash.viewPublic": "View public page",
+    "dash.addFaq": "Add question",
+    "dash.colFaqStatus": "Status",
+    "dash.colLastChange": "Last change",
+    "dash.faqEmpty": "No questions in this section.",
+    "dash.edit": "Edit",
+    "dash.delete": "Delete",
+    "faq.demo": "Demo",
+    "faq.approved": "Approved",
+    "faq.onlyAr": "Arabic only",
+    "faq.onlyEn": "English only",
+    "faq.seed": "Initial content",
+    "audit.by": "{actor} · {when}",
+    "audit.unknown": "No name",
+    "action.faq.promote": "Approved by",
+    "action.faq.create": "Added by",
+    "action.faq.update": "Edited by",
+    "faqEdit.addTitle": "Add FAQ entry",
+    "faqEdit.editTitle": "Edit FAQ entry",
+    "faqEdit.sub": "Write the question and answer in at least one language, and add the source.",
+    "faqEdit.arabic": "Arabic",
+    "faqEdit.english": "English",
+    "faqEdit.questionAr": "Question (Arabic)",
+    "faqEdit.answerAr": "Answer (Arabic)",
+    "faqEdit.questionEn": "Question",
+    "faqEdit.answerEn": "Answer",
+    "faqEdit.sourceTitleEn": "Source name",
+    "faqEdit.sourceTitle": "Source name (Arabic)",
+    "faqEdit.url": "Source link (optional)",
+    "faqEdit.demo": "Demo content (not yet approved by the association)",
+    "faqEdit.save": "Save",
+    "faqEdit.saving": "Saving…",
+    "faqEdit.saved": "Question saved.",
+    "faqEdit.required": "Write the question and answer in at least one language, plus the source name.",
+    "faqEdit.badUrl": "The source link must start with https://",
+    "faqDelete.title": "Delete this question?",
+    "faqDelete.body": "It will be permanently removed from the FAQ and can't be undone. The deletion stays in the action log.",
+    "faqDelete.confirm": "Delete permanently",
+    "faqDelete.deleting": "Deleting…",
+    "faqDelete.done": "Question deleted.",
+    "modal.addEnglish": "Add English translation (optional)",
+    "modal.questionEn": "Question in English",
+    "modal.answerEn": "Answer in English",
+    "modal.sourceEn": "Source name in English",
   },
 });
 
@@ -160,8 +298,10 @@ let unanswered = [];
 let page = 0;
 let tierNames = {};
 let categories = [];
-let current = null; // question being converted
-let threshold = 10;
+let faqItems = [];
+let current = null;   // unanswered question being converted
+let editing = null;   // FAQ item being edited (null = new)
+let deleting = null;  // FAQ item pending deletion
 
 function h(tag, props = {}, ...kids) {
   const el = document.createElement(tag);
@@ -174,21 +314,25 @@ function h(tag, props = {}, ...kids) {
   for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid instanceof Node ? kid : String(kid));
   return el;
 }
+const ic = (name, cls = "") => h("i", { "data-lucide": name, class: `icon ${cls}` });
 
-function token() { try { return sessionStorage.getItem("supportToken") || ""; } catch { return ""; } }
-function setToken(v) { try { v ? sessionStorage.setItem("supportToken", v) : sessionStorage.removeItem("supportToken"); } catch { /* ignore */ } }
+const store = {
+  get: (k) => { try { return sessionStorage.getItem(k) || ""; } catch { return ""; } },
+  set: (k, v) => { try { v ? sessionStorage.setItem(k, v) : sessionStorage.removeItem(k); } catch { /* ignore */ } },
+};
+const token = () => store.get("supportToken");
+const setToken = (v) => store.set("supportToken", v);
+const staffName = () => store.get("staffName");
 
 const isOffline = (err) => !navigator.onLine || err instanceof TypeError;
+const staffHeaders = () => ({ "X-Support-Token": token(), "X-Staff-Name": encodeURIComponent(staffName()) });
 
 async function api(path, options = {}) {
   if (!navigator.onLine) throw new TypeError("offline");
-  const res = await fetch(path, {
-    ...options,
-    headers: { "Content-Type": "application/json", "X-Support-Token": token(), ...(options.headers || {}) },
-  });
+  const res = await fetch(path, { ...options, headers: { "Content-Type": "application/json", ...staffHeaders(), ...(options.headers || {}) } });
   if (res.status === 401) throw new Error("auth");
   if (!res.ok) throw new Error(String(res.status));
-  return res.json();
+  return res.status === 204 ? null : res.json();
 }
 
 function toast(text) {
@@ -197,6 +341,8 @@ function toast(text) {
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => { el.hidden = true; }, 3500);
 }
+
+function authFailed() { setToken(""); document.querySelectorAll("dialog[open]").forEach((d) => d.close()); show(currentView()); showAuthError(); }
 
 const asUtc = (iso) => new Date(/[zZ]|[+-]\d\d:\d\d$/.test(iso) ? iso : `${iso}Z`);
 const locale = () => (I18N.lang === "ar" ? "ar-u-nu-latn" : "en-GB");
@@ -210,34 +356,37 @@ function relative(iso) {
   if (day(d) === day(new Date(now - 864e5))) return t("dash.yesterday", { time });
   return `${d.toLocaleDateString(locale(), { ...opts, day: "numeric", month: "long" })}${I18N.lang === "ar" ? "،" : ","} ${time}`;
 }
+const ref = (id) => `CX-${id.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
 
 /* ---------- Views ---------- */
+const VIEWS = ["unanswered", "cases", "faq"];
+function currentView() { const v = location.hash.slice(1).split("?")[0]; return VIEWS.includes(v) ? v : "unanswered"; }
+
 function show(view) {
   const authed = Boolean(token());
   $("login").hidden = authed;
   $("logout").hidden = !authed;
-  $("view-unanswered").hidden = !authed || view !== "unanswered";
-  $("view-cases").hidden = !authed || view !== "cases";
+  if (!authed) $("alerts").hidden = true;
+  VIEWS.forEach((v) => { $(`view-${v}`).hidden = !authed || v !== view; });
   document.querySelectorAll("[data-view]").forEach((a) => {
-    a.toggleAttribute("aria-current", a.dataset.view === view);
-    if (a.dataset.view === view) a.setAttribute("aria-current", "page");
+    if (a.dataset.view === view) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
   });
+  $("side-name").textContent = authed && staffName() ? staffName() : t("dash.team");
 }
-function currentView() { return location.hash === "#cases" ? "cases" : "unanswered"; }
 
+const STATE = { unanswered: ["unanswered-state", "unanswered-table"], cases: ["cases-state", "cases-table"], faq: ["faq-state", "faq-table"] };
 async function route() {
   const view = currentView();
   show(view);
-  if (!token()) { $("token").focus(); return; }
-  const state = $(view === "cases" ? "cases-state" : "unanswered-state");
-  const table = $(view === "cases" ? "cases-table" : "unanswered-table");
-  state.textContent = t("dash.loading"); state.hidden = false; table.hidden = true;
+  if (!token()) { (staffName() ? $("token") : $("staff-name")).focus(); return; }
+  const [stateId, tableId] = STATE[view];
+  $(stateId).textContent = t("dash.loading"); $(stateId).hidden = false; $(tableId).hidden = true;
   if (view === "unanswered") $("pager").hidden = true;
   try {
-    if (view === "unanswered") await loadUnanswered(); else await loadCases();
+    await Promise.all([loadAlerts(), view === "unanswered" ? loadUnanswered() : view === "cases" ? loadCases() : loadFaq()]);
   } catch (e) {
-    if (e.message === "auth") { setToken(""); show(view); showAuthError(); return; }
-    state.textContent = t(isOffline(e) ? "dash.offline" : "dash.loadError"); state.hidden = false;
+    if (e.message === "auth") return authFailed();
+    $(stateId).textContent = t(isOffline(e) ? "dash.offline" : "dash.loadError"); $(stateId).hidden = false;
   } finally {
     const btn = $("auth").querySelector("button");
     btn.disabled = false; btn.textContent = t("dash.signIn");
@@ -246,6 +395,47 @@ async function route() {
 
 function showAuthError() { $("auth-error").textContent = t("dash.badToken"); $("auth-error").hidden = false; }
 
+/* ---------- Smart alerts (idea 62) ---------- */
+const ALERT_ACTION = {
+  high_frequency_unanswered: ["alert.action.unanswered", () => { $("sort").value = "count"; location.hash = "#unanswered"; route(); }],
+  stale_cases: ["alert.action.cases", () => { $("filter-status").value = "new"; $("filter-category").value = ""; location.hash = "#cases"; route(); }],
+  complaints_spike: ["alert.action.complaints", () => { $("filter-category").value = "complaint"; $("filter-status").value = ""; location.hash = "#cases"; route(); }],
+};
+async function loadAlerts() {
+  const list = await api("/api/alerts");
+  const box = $("alerts");
+  box.replaceChildren(...list.map((a) => h("div", { class: "alert", role: "status" },
+    ic("triangle-alert"),
+    h("p", {}, t(`alert.${a.kind}`, { count: I18N.formatNumber(a.count), threshold: I18N.formatNumber(a.threshold) })),
+    h("button", { class: "btn btn-sm btn-text", type: "button", onclick: ALERT_ACTION[a.kind][1] }, t(ALERT_ACTION[a.kind][0])))));
+  box.hidden = list.length === 0;
+  I18N.icons();
+}
+
+/* ---------- CSV export ---------- */
+document.querySelectorAll("[data-export]").forEach((btn) => btn.addEventListener("click", async () => {
+  const kind = btn.dataset.export;
+  const label = btn.querySelector("span");
+  btn.disabled = true; label.textContent = t("dash.exporting");
+  try {
+    if (!navigator.onLine) throw new TypeError("offline");
+    const path = kind === "cases" ? "/api/support-cases/export.csv" : "/api/unanswered/export.csv";
+    const res = await fetch(`${path}?lang=${I18N.lang}`, { headers: staffHeaders() });
+    if (res.status === 401) return authFailed();
+    if (!res.ok) throw new Error(String(res.status));
+    const name = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") || "")?.[1] || `supercx-${kind}.csv`;
+    const url = URL.createObjectURL(await res.blob());
+    const a = h("a", { href: url, download: name });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast(t("dash.exported"));
+  } catch (err) {
+    toast(t(isOffline(err) ? "dash.offline" : "dash.exportError"));
+  } finally {
+    btn.disabled = false; label.textContent = t("dash.exportCsv");
+  }
+}));
+
 /* ---------- Unanswered questions ---------- */
 async function loadUnanswered() {
   const [rows, stats, faq] = await Promise.all([
@@ -253,10 +443,9 @@ async function loadUnanswered() {
   ]);
   unanswered = rows;
   categories = faq;
-  threshold = stats.high_frequency_threshold;
   $("stat-pending").textContent = I18N.formatNumber(stats.pending);
   $("stat-high").textContent = I18N.formatNumber(stats.high_frequency);
-  $("stat-high-label").title = t("dash.statHighHint", { n: threshold });
+  $("stat-high-label").title = t("dash.statHighHint", { n: stats.high_frequency_threshold });
   $("stat-approved").textContent = I18N.formatNumber(stats.approved_answers);
   page = Math.min(page, Math.max(0, Math.ceil(rows.length / PAGE_SIZE) - 1));
   renderUnanswered();
@@ -284,89 +473,204 @@ $("prev").addEventListener("click", () => { page = Math.max(0, page - 1); render
 $("next").addEventListener("click", () => { page += 1; renderUnanswered(); });
 $("sort").addEventListener("change", () => { page = 0; route(); });
 
+/* Dialog close buttons */
+document.querySelectorAll("dialog [data-close]").forEach((b) => b.addEventListener("click", () => b.closest("dialog").close()));
+const categoryOptions = (selected) => categories.map((c) => new Option(c.title[I18N.lang], c.id, false, c.id === selected));
+const val = (id) => $(id).value.trim();
+function formError(id, key) { $(id).textContent = t(key); $(id).hidden = false; }
+
 /* ---------- Convert to FAQ ---------- */
-const dialog = $("promote");
 function openPromote(q) {
   current = q;
   $("m-question").value = q.question; // the same question, editable
-  $("m-answer").value = "";
-  $("m-source").value = "";
+  ["m-answer", "m-source", "m-question-en", "m-answer-en", "m-source-en"].forEach((id) => { $(id).value = ""; });
+  $("promote-form").querySelector("details").open = false;
   $("m-error").hidden = true;
-  $("m-category").replaceChildren(...categories.map((c) => new Option(c.title[I18N.lang], c.id)));
+  $("m-category").replaceChildren(...categoryOptions());
   $("m-checked").textContent = t("modal.checked", { date: I18N.formatDate(new Date().toISOString().slice(0, 10)) });
-  dialog.showModal();
+  $("promote").showModal();
   $("m-answer").focus();
 }
-const closePromote = () => { dialog.close(); current = null; };
-$("promote-close").addEventListener("click", closePromote);
-$("m-cancel").addEventListener("click", closePromote);
 
 $("promote-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const question = $("m-question").value.trim();
-  const answer = $("m-answer").value.trim();
-  const source = $("m-source").value.trim();
-  if (question.length < 3 || answer.length < 3 || source.length < 2) {
-    $("m-error").textContent = t("modal.required"); $("m-error").hidden = false; return;
-  }
+  const question = val("m-question"), answer = val("m-answer"), source = val("m-source");
+  if (question.length < 3 || answer.length < 3 || source.length < 2) return formError("m-error", "modal.required");
   const isUrl = /^https?:\/\/\S+$/i.test(source);
-  $("m-approve").disabled = true;
-  $("m-approve").textContent = t("modal.approving");
+  const btn = $("m-approve");
+  btn.disabled = true; btn.textContent = t("modal.approving");
   try {
     await api(`/api/unanswered/${current.id}/promote`, {
       method: "POST",
       body: JSON.stringify({ category_id: $("m-category").value, question, answer,
                              source_title: isUrl ? new URL(source).hostname + new URL(source).pathname.replace(/\/$/, "") : source,
-                             source_url: isUrl ? source : null }),
+                             source_url: isUrl ? source : null,
+                             question_en: val("m-question-en") || null, answer_en: val("m-answer-en") || null,
+                             source_title_en: val("m-source-en") || null }),
     });
-    closePromote();
+    $("promote").close();
     toast(t("modal.done"));
-    await loadUnanswered();
+    await Promise.all([loadUnanswered(), loadAlerts()]);
   } catch (err) {
-    if (err.message === "auth") { closePromote(); setToken(""); show(currentView()); showAuthError(); return; }
-    $("m-error").textContent = t(isOffline(err) ? "modal.offline" : "modal.error"); $("m-error").hidden = false;
+    if (err.message === "auth") return authFailed();
+    formError("m-error", isOffline(err) ? "modal.offline" : "modal.error");
   } finally {
-    $("m-approve").disabled = false;
-    $("m-approve").textContent = t("modal.approve");
+    btn.disabled = false; btn.textContent = t("modal.approve");
   }
 });
 
-/* ---------- Support cases (existing) ---------- */
+/* ---------- Support cases ---------- */
 function statusSelect(c) {
   const select = h("select", { class: "select", "aria-label": t("dash.statusAria") });
   ["new", "in_progress", "closed"].forEach((v) => select.add(new Option(t(`status.${v}`), v, false, v === c.status)));
   select.addEventListener("change", async () => {
     select.disabled = true;
-    try { await api(`/api/support-cases/${c.id}`, { method: "PATCH", body: JSON.stringify({ status: select.value }) }); c.status = select.value; toast(t("dash.statusSaved")); }
-    catch (err) { select.value = c.status; toast(t(isOffline(err) ? "dash.offline" : "dash.statusSaveError")); }
-    finally { select.disabled = false; }
+    try {
+      await api(`/api/support-cases/${c.id}`, { method: "PATCH", body: JSON.stringify({ status: select.value }) });
+      c.status = select.value; toast(t("dash.statusSaved")); loadAlerts().catch(() => {});
+    } catch (err) {
+      if (err.message === "auth") return authFailed();
+      select.value = c.status; toast(t(isOffline(err) ? "dash.offline" : "dash.statusSaveError"));
+    } finally { select.disabled = false; }
   });
   return select;
 }
 
 async function loadCases() {
-  const [cases, tiers] = await Promise.all([api("/api/support-cases"), fetch("/api/memberships").then((r) => r.json())]);
+  const params = new URLSearchParams();
+  if ($("filter-category").value) params.set("category", $("filter-category").value);
+  if ($("filter-status").value) params.set("case_status", $("filter-status").value);
+  const [cases, tiers] = await Promise.all([api(`/api/support-cases?${params}`), fetch("/api/memberships").then((r) => r.json())]);
   tierNames = Object.fromEntries(tiers.map((tier) => [tier.id, tier.name]));
-  const ref = (id) => `CX-${id.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
+  const filtered = params.toString() !== "";
   $("cases-rows").replaceChildren(...cases.map((c) => h("tr", {},
     h("td", { class: "q", dir: "ltr" }, ref(c.id)),
     h("td", { "data-label": t("dash.colDate"), class: "muted" }, relative(c.created_at)),
-    h("td", { "data-label": t("dash.colQuestion"), dir: "auto" }, c.question),
-    h("td", { "data-label": t("dash.colSummary"), dir: "auto" }, c.summary || "—"),
+    h("td", { "data-label": t("dash.colType") }, h("span", { class: `tag cat-${c.category || "inquiry"}` }, t(`cat.${c.category || "inquiry"}`))),
+    h("td", { "data-label": t("dash.colQuestion"), dir: "auto" }, c.question,
+      c.summary && c.summary !== c.question ? h("span", { class: "case-summary", dir: "auto" }, c.summary) : null),
     h("td", { "data-label": t("dash.colTier") }, tierNames[c.tier_id]?.[I18N.lang] || "—"),
     h("td", { "data-label": t("dash.colContact"), dir: "auto" }, c.contact || t("dash.noContact")),
     h("td", { "data-label": t("dash.colStatus") }, statusSelect(c)))));
   $("cases-table").hidden = cases.length === 0;
   $("cases-state").hidden = cases.length > 0;
-  $("cases-state").textContent = t("dash.casesEmpty");
+  $("cases-state").textContent = t(filtered ? "dash.casesFilteredEmpty" : "dash.casesEmpty");
+}
+$("filter-category").addEventListener("change", route);
+$("filter-status").addEventListener("change", route);
+
+/* ---------- FAQ management (idea 68) ---------- */
+async function loadFaq() {
+  const [items, faq] = await Promise.all([api("/api/staff/faq-items"), fetch("/api/faq").then((r) => r.json())]);
+  faqItems = items;
+  categories = faq;
+  const chosen = $("faq-filter").value;
+  $("faq-filter").replaceChildren(new Option(t("dash.allSections"), ""), ...categoryOptions(chosen));
+  renderFaq();
 }
 
+function lastChange(it) {
+  if (!it.last_action) return h("span", { class: "muted" }, it.demo ? t("faq.seed") : "—");
+  const verb = t(`action.${it.last_action}`);
+  return h("span", { class: "muted" }, `${verb} ${it.last_actor || t("audit.unknown")} · ${relative(it.last_at)}`);
+}
+
+function renderFaq() {
+  const section = $("faq-filter").value;
+  const titles = Object.fromEntries(categories.map((c) => [c.id, c.title[I18N.lang]]));
+  const order = Object.fromEntries(categories.map((c, i) => [c.id, i]));
+  const rows = faqItems.filter((it) => !section || it.category_id === section)
+    .sort((a, b) => order[a.category_id] - order[b.category_id]);
+  $("faq-rows").replaceChildren(...rows.map((it) => {
+    const q = I18N.lang === "en" ? (it.question_en || it.question_ar) : (it.question_ar || it.question_en);
+    const only = !it.question_en ? "faq.onlyAr" : !it.question_ar ? "faq.onlyEn" : null;
+    return h("tr", {},
+      h("td", { class: "q", dir: "auto" }, q),
+      h("td", { "data-label": t("modal.category") }, titles[it.category_id] || it.category_id),
+      h("td", { "data-label": t("dash.colFaqStatus") }, h("span", { class: "tag-row" },
+        h("span", { class: `tag ${it.demo ? "" : "badge-success"}` }, t(it.demo ? "faq.demo" : "faq.approved")),
+        only ? h("span", { class: "tag" }, t(only)) : null)),
+      h("td", { "data-label": t("dash.colLastChange") }, lastChange(it)),
+      h("td", { class: "act" }, h("span", { class: "row-actions" },
+        h("button", { class: "btn btn-sm btn-secondary", type: "button", onclick: () => openFaqEdit(it) }, ic("pencil", "icon-sm"), t("dash.edit")),
+        h("button", { class: "btn btn-sm btn-danger-text", type: "button", onclick: () => openFaqDelete(it) }, ic("trash-2", "icon-sm"), t("dash.delete")))));
+  }));
+  $("faq-table").hidden = rows.length === 0;
+  $("faq-state").hidden = rows.length > 0;
+  $("faq-state").textContent = t("dash.faqEmpty");
+  I18N.icons();
+}
+$("faq-filter").addEventListener("change", renderFaq);
+
+const FIELDS = { "f-question-ar": "question_ar", "f-answer-ar": "answer_ar", "f-question-en": "question_en",
+                 "f-answer-en": "answer_en", "f-source": "source_title", "f-source-en": "source_title_en", "f-url": "source_url" };
+function openFaqEdit(item) {
+  editing = item;
+  $("faq-edit-title").textContent = t(item ? "faqEdit.editTitle" : "faqEdit.addTitle");
+  $("f-category").replaceChildren(...categoryOptions(item?.category_id || $("faq-filter").value));
+  for (const [id, key] of Object.entries(FIELDS)) $(id).value = item?.[key] || "";
+  $("f-demo").checked = item ? item.demo : false;
+  $("f-error").hidden = true;
+  $("faq-edit").showModal();
+  $(I18N.lang === "en" ? "f-question-en" : "f-question-ar").focus();
+}
+$("faq-add").addEventListener("click", () => openFaqEdit(null));
+
+$("faq-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const body = { category_id: $("f-category").value, demo: $("f-demo").checked };
+  for (const [id, key] of Object.entries(FIELDS)) body[key] = val(id) || null;
+  if (!(body.question_ar || body.question_en) || !(body.answer_ar || body.answer_en) || !body.source_title || body.source_title.length < 2)
+    return formError("f-error", "faqEdit.required");
+  if (body.source_url && !/^https?:\/\/\S+$/i.test(body.source_url)) return formError("f-error", "faqEdit.badUrl");
+  const btn = $("f-save");
+  btn.disabled = true; btn.textContent = t("faqEdit.saving");
+  try {
+    await api(editing ? `/api/staff/faq-items/${editing.id}` : "/api/staff/faq-items",
+              { method: editing ? "PUT" : "POST", body: JSON.stringify(body) });
+    $("faq-edit").close();
+    toast(t("faqEdit.saved"));
+    await loadFaq();
+  } catch (err) {
+    if (err.message === "auth") return authFailed();
+    formError("f-error", isOffline(err) ? "modal.offline" : "modal.error");
+  } finally {
+    btn.disabled = false; btn.textContent = t("faqEdit.save");
+  }
+});
+
+function openFaqDelete(item) {
+  deleting = item;
+  $("faq-delete-q").textContent = item.question_ar || item.question_en;
+  $("d-error").hidden = true;
+  $("faq-delete").showModal();
+  $("faq-delete").querySelector("[data-close]").focus(); // safe default: Cancel
+}
+$("faq-delete-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("d-confirm");
+  btn.disabled = true; btn.textContent = t("faqDelete.deleting");
+  try {
+    await api(`/api/staff/faq-items/${deleting.id}`, { method: "DELETE" });
+    $("faq-delete").close();
+    toast(t("faqDelete.done"));
+    await loadFaq();
+  } catch (err) {
+    if (err.message === "auth") return authFailed();
+    formError("d-error", isOffline(err) ? "modal.offline" : "modal.error");
+  } finally {
+    btn.disabled = false; btn.textContent = t("faqDelete.confirm");
+  }
+});
+
 /* ---------- Auth ---------- */
+$("staff-name").value = staffName();
 $("auth").addEventListener("submit", (e) => {
   e.preventDefault();
   $("auth-error").hidden = true;
   const btn = $("auth").querySelector("button");
   btn.disabled = true; btn.textContent = t("dash.signingIn");
+  store.set("staffName", val("staff-name"));
   setToken($("token").value);
   $("token").value = "";
   route();
@@ -374,6 +678,6 @@ $("auth").addEventListener("submit", (e) => {
 $("logout").addEventListener("click", () => { setToken(""); route(); });
 
 window.addEventListener("hashchange", route);
-document.addEventListener("langchange", () => { if (token()) route(); });
+document.addEventListener("langchange", () => { if (token()) route(); else show(currentView()); });
 I18N.apply();
 route();

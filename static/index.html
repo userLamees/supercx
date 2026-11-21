@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/tokens.css?v=3">
-  <link rel="stylesheet" href="/static/styles.css?v=3">
+  <link rel="stylesheet" href="/static/tokens.css?v=4">
+  <link rel="stylesheet" href="/static/styles.css?v=4">
 </head>
 <body>
   <div class="chat-page">
@@ -35,6 +35,7 @@
           <div class="quick-links">
             <a class="chip" href="#verify"><i data-lucide="badge-check" class="icon icon-sm"></i><span data-i18n="hero.status">حالة عضويتي</span></a>
             <a class="chip" href="/faq"><i data-lucide="circle-help" class="icon icon-sm"></i><span data-i18n="hero.faq">الأسئلة الشائعة</span></a>
+            <a class="chip" href="#contact"><i data-lucide="message-square" class="icon icon-sm"></i><span data-i18n="hero.contact">تواصل مع الفريق</span></a>
           </div>
         </section>
         <ul class="suggestions" id="suggestions"></ul>
@@ -55,16 +56,27 @@
       <div class="container page">
         <a class="back-btn" href="#chat"><i data-lucide="arrow-left" class="icon flip"></i><span data-i18n="nav.back">العودة للمحادثة</span></a>
         <div class="page-head">
-          <h1 data-i18n="verify.title">التحقق من الجوال</h1>
-          <p data-i18n="verify.sub">لعرض بيانات عضويتك نحتاج التحقق من رقم جوالك</p>
+          <h1 id="verify-title">التحقق من الجوال</h1>
+          <p id="verify-sub">لعرض بيانات عضويتك نحتاج التحقق من رقم جوالك</p>
         </div>
-        <p class="demo-note"><span class="tag" data-i18n="demoData">بيانات تجريبية</span><span data-i18n="verify.demoHint"></span></p>
+        <p class="demo-note" id="verify-demo" hidden><span class="tag" data-i18n="demoData">بيانات تجريبية</span><span data-i18n="verify.demoHint"></span></p>
         <div class="card card-white verify-card">
+          <fieldset class="segmented" id="channel-switch" hidden>
+            <legend class="label" data-i18n="verify.channel">استلام الرمز عبر</legend>
+            <label><input type="radio" name="channel" value="whatsapp" checked><i data-lucide="message-circle" class="icon icon-sm"></i><span data-i18n="verify.viaWhatsapp">واتساب</span></label>
+            <label><input type="radio" name="channel" value="email"><i data-lucide="mail" class="icon icon-sm"></i><span data-i18n="verify.viaEmail">البريد الإلكتروني</span></label>
+          </fieldset>
           <form id="phone-form" class="verify-card" novalidate>
-            <label class="label" for="phone" data-i18n="verify.phone">رقم الجوال</label>
-            <div class="phone-field">
-              <span class="cc">+966</span><span class="sep" aria-hidden="true"></span>
-              <input id="phone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="12" placeholder="5X XXX XXXX" dir="ltr">
+            <div class="field" id="phone-group">
+              <label class="label" for="phone" data-i18n="verify.phone">رقم الجوال</label>
+              <div class="phone-field">
+                <span class="cc">+966</span><span class="sep" aria-hidden="true"></span>
+                <input id="phone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="12" placeholder="5X XXX XXXX" dir="ltr">
+              </div>
+            </div>
+            <div class="field" id="email-group" hidden>
+              <label class="label" for="verify-email" data-i18n="verify.email">البريد الإلكتروني</label>
+              <input class="input" id="verify-email" type="email" inputmode="email" autocomplete="email" maxlength="200" dir="ltr" placeholder="name@example.com">
             </div>
             <p class="form-error" id="phone-error" role="alert" hidden></p>
             <button class="btn btn-primary btn-block" type="submit" id="send-code" data-i18n="verify.send">إرسال رمز التحقق</button>
@@ -73,7 +85,7 @@
           <form id="code-form" class="verify-card" novalidate>
             <div class="field">
               <span class="label" id="code-label" data-i18n="verify.code">رمز التحقق</span>
-              <span class="help" data-i18n="verify.codeHelp">أدخل الرمز المكوّن من 4 أرقام المرسل إلى جوالك</span>
+              <span class="help" id="code-help">أدخل الرمز المكوّن من 4 أرقام المرسل إلى جوالك</span>
             </div>
             <div class="otp" role="group" aria-labelledby="code-label" id="otp">
               <input inputmode="numeric" maxlength="1" autocomplete="one-time-code" placeholder="—" disabled>
@@ -87,6 +99,42 @@
           </form>
         </div>
         <p class="page-foot"><i data-lucide="lock" class="icon icon-sm"></i><span data-i18n="verify.privacy">لا نعرض أي بيانات شخصية قبل التحقق</span></p>
+      </div>
+    </main>
+
+    <!-- Contact the team (idea 79): for people who don't use the assistant -->
+    <main class="view page-tint" id="view-contact" hidden>
+      <div class="container page">
+        <a class="back-btn" href="#chat"><i data-lucide="arrow-left" class="icon flip"></i><span data-i18n="nav.back">العودة للمحادثة</span></a>
+        <div class="page-head">
+          <h1 data-i18n="contact.title">تواصل مع فريق الجمعية</h1>
+          <p data-i18n="contact.sub">اكتب استفسارك أو شكواك أو مقترحك، ويصل مباشرة إلى فريق الجمعية.</p>
+        </div>
+        <form class="card card-white contact-form" id="contact-form" novalidate>
+          <div class="field">
+            <label class="label" for="contact-category" data-i18n="contact.type">نوع الطلب</label>
+            <select class="select" id="contact-category">
+              <option value="inquiry" data-i18n="cat.inquiry">استفسار</option>
+              <option value="complaint" data-i18n="cat.complaint">شكوى</option>
+              <option value="suggestion" data-i18n="cat.suggestion">مقترح</option>
+              <option value="service" data-i18n="cat.service">طلب خدمة</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="label" for="contact-message" data-i18n="contact.message">رسالتك</label>
+            <textarea class="textarea" id="contact-message" dir="auto" maxlength="2000" rows="5" data-i18n-ph="contact.messagePh"></textarea>
+            <span class="help" data-i18n="contact.messageHelp">لا تكتب بيانات شخصية في الرسالة؛ نحذف أي رقم أو بريد قبل حفظها.</span>
+          </div>
+          <label class="check"><input type="checkbox" id="contact-consent"><span data-i18n="contact.consent">أوافق على إرسال رسالتي إلى فريق الجمعية</span></label>
+          <label class="check"><input type="checkbox" id="contact-reply"><span data-i18n="consent.contact">أوافق على أن يتواصل معي فريق الدعم (اختياري)</span></label>
+          <div class="field" id="contact-reply-field" hidden>
+            <label class="label" for="contact-channel" data-i18n="consent.contactLabel">وسيلة التواصل</label>
+            <input class="input" id="contact-channel" inputmode="email" autocomplete="email" maxlength="200" dir="auto" data-i18n-ph="consent.contactPh">
+          </div>
+          <p class="form-error" id="contact-error" role="alert" hidden></p>
+          <div class="consent-status" id="contact-status"></div>
+          <button class="btn btn-primary btn-block" type="submit" id="contact-send" data-i18n="consent.send">إرسال إلى فريق الدعم</button>
+        </form>
       </div>
     </main>
 
@@ -112,7 +160,7 @@
   </div>
 
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-  <script src="/static/i18n.js?v=3"></script>
-  <script src="/static/chat.js?v=3"></script>
+  <script src="/static/i18n.js?v=4"></script>
+  <script src="/static/chat.js?v=4"></script>
 </body>
 </html>

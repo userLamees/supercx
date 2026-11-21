@@ -11,7 +11,7 @@ from pathlib import Path
 from sqlmodel import Session, func, select
 
 from .db import FaqCategory as CategoryRow, FaqItem as ItemRow
-from .schemas import FaqCategory, FaqItem, FaqSource, Localized
+from .schemas import FaqCategory, FaqItem, FaqItemAdmin, FaqItemWrite, FaqSource, Localized
 
 SEED_FILE = Path(__file__).resolve().parent.parent / "data" / "faq.json"
 _ARABIC = re.compile(r"[\u0600-\u06FF]")
@@ -72,13 +72,48 @@ def get_faq(session: Session) -> list[FaqCategory]:
 
 
 def add_approved(session: Session, *, category_id: str, question: str, answer: str,
-                 source_title: str, source_url: str | None, unanswered_id: str) -> ItemRow:
+                 source_title: str, source_url: str | None, unanswered_id: str,
+                 question_en: str | None = None, answer_en: str | None = None,
+                 source_title_en: str | None = None) -> ItemRow:
     lang = "ar" if _ARABIC.search(question + answer) else "en"
+    fields = {f"question_{lang}": question, f"answer_{lang}": answer}
+    if lang == "ar":  # optional English translation alongside Arabic text
+        fields.update(question_en=(question_en or "").strip() or None, answer_en=(answer_en or "").strip() or None,
+                      source_title_en=(source_title_en or "").strip() or None)
     item = ItemRow(category_id=category_id, source_title=source_title, source_url=source_url,
-                   checked_at=date.today(), demo=False, unanswered_id=unanswered_id,
-                   **{f"question_{lang}": question, f"answer_{lang}": answer})
+                   checked_at=date.today(), demo=False, unanswered_id=unanswered_id, **fields)
     session.add(item)
     return item
+
+
+# ---------- staff editor ----------
+def admin_items(session: Session, last_actions: dict) -> list[FaqItemAdmin]:
+    rows = session.exec(select(ItemRow).order_by(ItemRow.created_at)).all()
+    out = []
+    for r in rows:
+        last = last_actions.get(r.id)
+        out.append(FaqItemAdmin(
+            id=r.id, category_id=r.category_id, question_ar=r.question_ar, question_en=r.question_en,
+            answer_ar=r.answer_ar, answer_en=r.answer_en, source_title=r.source_title,
+            source_title_en=r.source_title_en, source_url=r.source_url, checked_at=r.checked_at.isoformat(),
+            demo=r.demo, last_action=last.action if last else None, last_actor=last.actor if last else None,
+            last_at=last.at.isoformat() if last else None))
+    return out
+
+
+def write_item(session: Session, payload: FaqItemWrite, item: ItemRow | None = None) -> ItemRow:
+    """Creates a new entry or overwrites an existing one; marks it verified today."""
+    item = item or ItemRow(category_id=payload.category_id, source_title=payload.source_title,
+                           checked_at=date.today())
+    for name, value in payload.model_dump().items():
+        setattr(item, name, value)
+    item.checked_at = date.today()
+    session.add(item)
+    return item
+
+
+def question_text(item: ItemRow) -> str:
+    return item.question_ar or item.question_en or ""
 
 
 def approved_count(session: Session) -> int:

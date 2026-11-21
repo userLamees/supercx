@@ -11,6 +11,21 @@ I18N.add({
     "hero.privacy": "لا نطلب بياناتك الشخصية إلا عند تحويل سؤالك للدعم، وبموافقتك.",
     "hero.status": "حالة عضويتي",
     "hero.faq": "الأسئلة الشائعة",
+    "hero.contact": "تواصل مع الفريق",
+    "cat.inquiry": "استفسار",
+    "cat.complaint": "شكوى",
+    "cat.suggestion": "مقترح",
+    "cat.service": "طلب خدمة",
+    "consent.type": "نوع الطلب",
+    "contact.title": "تواصل مع فريق الجمعية",
+    "contact.sub": "اكتب استفسارك أو شكواك أو مقترحك، ويصل مباشرة إلى فريق الجمعية.",
+    "contact.type": "نوع الطلب",
+    "contact.message": "رسالتك",
+    "contact.messagePh": "اكتب رسالتك هنا…",
+    "contact.messageHelp": "لا تكتب بيانات شخصية في الرسالة؛ نحذف أي رقم أو بريد قبل حفظها.",
+    "contact.consent": "أوافق على إرسال رسالتي إلى فريق الجمعية",
+    "contact.needMessage": "اكتب رسالتك (10 أحرف على الأقل).",
+    "contact.needConsent": "يلزم الموافقة على إرسال الرسالة.",
     "composer.ph": "اكتب سؤالك…",
     "composer.phQuiz": "أو اكتب احتياجك بأسلوبك…",
     "composer.aria": "رسالتك",
@@ -94,7 +109,7 @@ I18N.add({
 
     "verify.title": "التحقق من الجوال",
     "verify.sub": "لعرض بيانات عضويتك نحتاج التحقق من رقم جوالك",
-    "verify.demoHint": "محاكاة: لا تُرسل رسالة فعلية. جرّب 500000001 أو 500000002، وأي رمز من 4 أرقام.",
+    "verify.demoHint": "محاكاة: لا تُرسل رسائل فعلية. جرّب الجوال 500000001 أو 500000002، أو البريد ambassador@example.com، وأي رمز من 4 أرقام.",
     "verify.phone": "رقم الجوال",
     "verify.send": "إرسال رمز التحقق",
     "verify.resend": "إعادة إرسال الرمز",
@@ -110,6 +125,26 @@ I18N.add({
     "verify.failed": "تعذّر التحقق. أعد المحاولة.",
     "verify.offline": "لا يوجد اتصال. تحقق من الإنترنت ثم أعد المحاولة.",
     "verify.cell": "الخانة {n}",
+    "verify.subEmail": "لعرض بيانات عضويتك نحتاج التحقق من بريدك الإلكتروني",
+    "verify.titleEmail": "التحقق من البريد الإلكتروني",
+    "verify.channel": "استلام الرمز عبر",
+    "verify.viaWhatsapp": "واتساب",
+    "verify.viaEmail": "البريد الإلكتروني",
+    "verify.email": "البريد الإلكتروني",
+    "verify.codeHelpEmail": "أدخل الرمز المكوّن من 4 أرقام المرسل إلى بريدك",
+    "verify.badEmail": "أدخل بريدًا إلكترونيًا صحيحًا.",
+    "verify.codeSentDemo": "محاكاة: لم تُرسل رسالة فعلية إلى \u2066{to}\u2069. أدخل أي 4 أرقام.",
+    "verify.codeSentEmail": "أرسلنا رمزًا إلى \u2066{to}\u2069. صالح لمدة 5 دقائق. تحقق من مجلد الرسائل غير المرغوب فيها إن لم يصلك.",
+    "verify.codeSentWhatsapp": "أرسلنا رمزًا عبر واتساب إلى \u2066{to}\u2069. صالح لمدة 5 دقائق.",
+    "verify.resendIn": "إعادة الإرسال بعد {s} ث",
+    "verify.cooldown": "انتظر {s} قبل طلب رمز جديد.",
+    "verify.rateLimited": "طلبت رموزًا كثيرة. حاول مرة أخرى بعد {m}.",
+    "verify.deliveryEmail": "تعذّر إرسال البريد الآن. تحقق من العنوان أو حاول لاحقًا.",
+    "verify.deliveryWhatsapp": "تعذّر إرسال رسالة واتساب الآن. حاول لاحقًا أو استخدم البريد الإلكتروني.",
+    "verify.wrongCode": "الرمز غير صحيح. بقي لك {n}.",
+    "verify.expired": "انتهت صلاحية الرمز. اطلب رمزًا جديدًا.",
+    "verify.tooMany": "تجاوزت عدد المحاولات. اطلب رمزًا جديدًا.",
+    "verify.noCode": "لا يوجد رمز نشط. اطلب رمزًا جديدًا.",
 
     "status.title": "حالة العضوية",
     "status.sub": "تم التحقق من جوالك. إليك بيانات عضويتك.",
@@ -135,6 +170,21 @@ I18N.add({
     "hero.privacy": "We only ask for personal details when you choose to send your question to support.",
     "hero.status": "My membership status",
     "hero.faq": "FAQ",
+    "hero.contact": "Contact the team",
+    "cat.inquiry": "Inquiry",
+    "cat.complaint": "Complaint",
+    "cat.suggestion": "Suggestion",
+    "cat.service": "Service request",
+    "consent.type": "Request type",
+    "contact.title": "Contact the association team",
+    "contact.sub": "Write your inquiry, complaint or suggestion and it goes straight to the association team.",
+    "contact.type": "Request type",
+    "contact.message": "Your message",
+    "contact.messagePh": "Write your message here…",
+    "contact.messageHelp": "Don't include personal details in the message; any number or email is removed before saving.",
+    "contact.consent": "I agree to send my message to the association team",
+    "contact.needMessage": "Write your message (at least 10 characters).",
+    "contact.needConsent": "Please agree to send the message.",
     "composer.ph": "Type your question…",
     "composer.phQuiz": "Or describe what you need…",
     "composer.aria": "Your message",
@@ -218,7 +268,7 @@ I18N.add({
 
     "verify.title": "Mobile verification",
     "verify.sub": "To show your membership details we need to verify your mobile number",
-    "verify.demoHint": "Simulation: no real SMS is sent. Try 500000001 or 500000002 with any 4-digit code.",
+    "verify.demoHint": "Simulation: no real messages are sent. Try mobile 500000001 or 500000002, or ambassador@example.com, with any 4-digit code.",
     "verify.phone": "Mobile number",
     "verify.send": "Send verification code",
     "verify.resend": "Resend code",
@@ -234,6 +284,26 @@ I18N.add({
     "verify.failed": "Verification failed. Please try again.",
     "verify.offline": "No connection. Check your internet and try again.",
     "verify.cell": "Digit {n}",
+    "verify.subEmail": "To show your membership details we need to verify your email",
+    "verify.titleEmail": "Email verification",
+    "verify.channel": "Receive the code by",
+    "verify.viaWhatsapp": "WhatsApp",
+    "verify.viaEmail": "Email",
+    "verify.email": "Email",
+    "verify.codeHelpEmail": "Enter the 4-digit code sent to your email",
+    "verify.badEmail": "Enter a valid email address.",
+    "verify.codeSentDemo": "Simulation: no message was sent to \u2066{to}\u2069. Enter any 4 digits.",
+    "verify.codeSentEmail": "We sent a code to \u2066{to}\u2069. It is valid for 5 minutes. Check your spam folder if it doesn't arrive.",
+    "verify.codeSentWhatsapp": "We sent a code on WhatsApp to \u2066{to}\u2069. It is valid for 5 minutes.",
+    "verify.resendIn": "Resend in {s}s",
+    "verify.cooldown": "Wait {s} before requesting a new code.",
+    "verify.rateLimited": "Too many codes requested. Try again in {m}.",
+    "verify.deliveryEmail": "Couldn't send the email right now. Check the address or try later.",
+    "verify.deliveryWhatsapp": "Couldn't send the WhatsApp message right now. Try later or use email.",
+    "verify.wrongCode": "Incorrect code. {n} left.",
+    "verify.expired": "The code has expired. Request a new one.",
+    "verify.tooMany": "Too many attempts. Request a new code.",
+    "verify.noCode": "No active code. Request a new one.",
 
     "status.title": "Membership status",
     "status.sub": "Your mobile is verified. Here are your membership details.",
@@ -451,6 +521,8 @@ function consentCard(question, reply, notice) {
   const contactInput = h("input", { class: "input", id: `ci-${uid}`, type: "text", inputmode: "email", autocomplete: "email", maxlength: "200", dir: "auto", placeholder: tl("consent.contactPh"), "aria-describedby": `ce-${uid}` });
   const contactField = h("div", { class: "field", hidden: true },
     h("label", { class: "label", for: `ci-${uid}` }, tl("consent.contactLabel")), contactInput);
+  const categorySelect = h("select", { class: "select", id: `ct-${uid}` },
+    ...["inquiry", "complaint", "suggestion", "service"].map((c) => new Option(tl(`cat.${c}`), c)));
   const error = h("p", { class: "form-error", id: `ce-${uid}`, role: "alert", hidden: true });
   const status = h("div", { class: "consent-status" });
   const sendButton = h("button", { class: "btn btn-primary btn-block", type: "submit" }, tl("consent.send"));
@@ -470,6 +542,7 @@ function consentCard(question, reply, notice) {
         h("span", { class: "state-title" }, tl("state.noInfo")),
         notice ? h("p", { class: "state-body", dir: "auto" }, notice) : null),
       h("hr", { class: "divider" }),
+      h("div", { class: "field" }, h("label", { class: "label", for: `ct-${uid}` }, tl("consent.type")), categorySelect),
       h("label", { class: "check", for: `cs-${uid}` }, consentSummary, h("span", {}, tl("consent.summary"))),
       h("div", { class: "preview" }, h("span", { class: "caption" }, tl("consent.preview")), h("p", { dir: "auto" }, summary)),
       h("label", { class: "check", for: `cc-${uid}` }, consentContact, h("span", {}, tl("consent.contact"))),
@@ -496,7 +569,8 @@ function consentCard(question, reply, notice) {
     status.replaceChildren(stateCard("info", tl("state.sending"), tl("state.sendingBody"), null, ui));
     try {
       if (!navigator.onLine) throw new TypeError("offline");
-      const body = { question: redact(question), language: lang, summary, tier_id: reply.tier_id || null };
+      const body = { question: redact(question), language: lang, summary, tier_id: reply.tier_id || null,
+                     category: categorySelect.value };
       if (contact) body.contact = contact; else body.anonymous = true;
       const res = await fetch("/api/support-cases", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
@@ -647,6 +721,7 @@ async function loadTiers() {
    ===================================================================== */
 const phoneForm = document.getElementById("phone-form");
 const phoneInput = document.getElementById("phone");
+const emailInput = document.getElementById("verify-email");
 const phoneError = document.getElementById("phone-error");
 const sendCodeBtn = document.getElementById("send-code");
 const codeForm = document.getElementById("code-form");
@@ -654,7 +729,9 @@ const codeError = document.getElementById("code-error");
 const codeSent = document.getElementById("code-sent");
 const checkBtn = document.getElementById("check-code");
 const cells = [...document.querySelectorAll("#otp input")];
-let verifiedPhone = null;
+let channels = { email: false, whatsapp: false, demo: true };
+let pending = null;     // { channel, phone?, email?, display } while a code is outstanding
+let cooldownTimer = null;
 
 const toLatin = (s) => s.replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
 function normalizePhone(raw) {
@@ -662,9 +739,52 @@ function normalizePhone(raw) {
   for (const p of ["00966", "966", "0"]) if (d.startsWith(p) && d.length - p.length === 9) { d = d.slice(p.length); break; }
   return /^5\d{8}$/.test(d) ? d : null;
 }
-function showError(el, key) { el.textContent = key ? t(key) : ""; el.hidden = !key; }
+const normalizeEmail = (raw) => { const e = raw.trim().toLowerCase(); return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(e) ? e : null; };
+function showError(el, key, vars) { el.textContent = key ? t(key, vars) : ""; el.hidden = !key; }
 function code() { return cells.map((c) => c.value).join(""); }
-function updateCheck() { checkBtn.disabled = code().length !== 4; }
+function updateCheck() { checkBtn.disabled = !pending || code().length !== 4; }
+const selectedChannel = () => document.querySelector("input[name=channel]:checked")?.value || "whatsapp";
+
+/* Which channels exist decides what the page offers. With no provider configured,
+   the page says plainly that it is a simulation. */
+async function loadChannels() {
+  try { channels = await (await fetch("/api/verify/channels")).json(); } catch { /* keep the simulation default */ }
+  const both = channels.demo || (channels.email && channels.whatsapp);
+  document.getElementById("channel-switch").hidden = !both;
+  if (!both) document.querySelector(`input[name=channel][value=${channels.email ? "email" : "whatsapp"}]`).checked = true;
+  document.getElementById("verify-demo").hidden = !channels.demo;
+  applyChannel();
+}
+
+function applyChannel() {
+  const email = selectedChannel() === "email";
+  document.getElementById("phone-group").hidden = email;
+  document.getElementById("email-group").hidden = !email;
+  document.getElementById("verify-title").textContent = t(email ? "verify.titleEmail" : "verify.title");
+  document.getElementById("verify-sub").textContent = t(email ? "verify.subEmail" : "verify.sub");
+  document.getElementById("code-help").textContent = t(email ? "verify.codeHelpEmail" : "verify.codeHelp");
+}
+document.querySelectorAll("input[name=channel]").forEach((r) => r.addEventListener("change", () => {
+  resetCode(); showError(phoneError, null); applyChannel();
+}));
+
+function resetCode() {
+  pending = null; clearInterval(cooldownTimer);
+  cells.forEach((c) => { c.value = ""; c.disabled = true; });
+  codeSent.hidden = true; showError(codeError, null);
+  sendCodeBtn.disabled = false; sendCodeBtn.textContent = t("verify.send");
+  updateCheck();
+}
+
+function startCooldown(seconds) {
+  clearInterval(cooldownTimer);
+  let left = seconds;
+  const tick = () => {
+    if (left <= 0) { clearInterval(cooldownTimer); sendCodeBtn.disabled = false; sendCodeBtn.textContent = t(pending ? "verify.resend" : "verify.send"); return; }
+    sendCodeBtn.disabled = true; sendCodeBtn.textContent = t("verify.resendIn", { s: left }); left -= 1;
+  };
+  tick(); cooldownTimer = setInterval(tick, 1000);
+}
 
 cells.forEach((cell, i) => {
   cell.setAttribute("aria-label", t("verify.cell", { n: i + 1 }));
@@ -684,55 +804,124 @@ cells.forEach((cell, i) => {
   });
 });
 
+async function readError(res) { try { return (await res.json()).detail || {}; } catch { return {}; } }
+
 phoneForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   showError(phoneError, null);
-  const phone = normalizePhone(phoneInput.value);
-  if (!phone) { showError(phoneError, "verify.badPhone"); phoneInput.focus(); return; }
-  sendCodeBtn.disabled = true;
-  const label = verifiedPhone ? "verify.resend" : "verify.send";
-  sendCodeBtn.textContent = t("verify.sending");
+  const channel = selectedChannel();
+  const target = channel === "email" ? normalizeEmail(emailInput.value) : normalizePhone(phoneInput.value);
+  if (!target) {
+    showError(phoneError, channel === "email" ? "verify.badEmail" : "verify.badPhone");
+    (channel === "email" ? emailInput : phoneInput).focus();
+    return;
+  }
+  const label = pending ? "verify.resend" : "verify.send";
+  sendCodeBtn.disabled = true; sendCodeBtn.textContent = t("verify.sending");
+  const body = channel === "email" ? { channel, email: target, lang: I18N.lang } : { channel, phone: target, lang: I18N.lang };
   try {
-    const res = await fetch("/api/verify/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone }) });
-    if (res.status === 422) { showError(phoneError, "verify.badPhone"); sendCodeBtn.textContent = t(label); return; }
+    if (!navigator.onLine) throw new TypeError("offline");
+    const res = await fetch("/api/verify/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (res.status === 422) { showError(phoneError, channel === "email" ? "verify.badEmail" : "verify.badPhone"); sendCodeBtn.disabled = false; sendCodeBtn.textContent = t(label); return; }
+    if (res.status === 429) {
+      const d = await readError(res);
+      showError(phoneError, d.code === "cooldown" ? "verify.cooldown" : "verify.rateLimited",
+                { s: I18N.count(d.retry_after || 30, "second"), m: I18N.count(Math.ceil((d.retry_after || 60) / 60), "minute") });
+      startCooldown(d.retry_after || 30);
+      return;
+    }
+    if (res.status === 502) { showError(phoneError, channel === "email" ? "verify.deliveryEmail" : "verify.deliveryWhatsapp"); sendCodeBtn.disabled = false; sendCodeBtn.textContent = t(label); return; }
     if (!res.ok) throw new Error(String(res.status));
-    verifiedPhone = phone;
+    const data = await res.json();
+    pending = { ...body, display: channel === "email" ? target : `+966 ${target}`, demo: data.demo };
     cells.forEach((c) => { c.disabled = false; c.value = ""; });
-    codeSent.textContent = t("verify.codeSent", { phone });
+    codeSent.textContent = t(data.demo ? "verify.codeSentDemo" : channel === "email" ? "verify.codeSentEmail" : "verify.codeSentWhatsapp", { to: pending.display });
     codeSent.hidden = false;
-    sendCodeBtn.textContent = t("verify.resend");
-    sendCodeBtn.dataset.i18n = "verify.resend";
+    showError(codeError, null);
     updateCheck();
     cells[0].focus();
+    if (data.demo) { sendCodeBtn.disabled = false; sendCodeBtn.textContent = t("verify.resend"); } else startCooldown(30);
   } catch (err) {
     showError(phoneError, isOffline(err) ? "verify.offline" : "verify.failed");
-    sendCodeBtn.textContent = t(label);
-  } finally {
-    sendCodeBtn.disabled = false;
+    sendCodeBtn.disabled = false; sendCodeBtn.textContent = t(label);
   }
 });
 
+const CHECK_ERRORS = { invalid_code: "verify.wrongCode", expired: "verify.expired", too_many_attempts: "verify.tooMany", no_code: "verify.noCode" };
 codeForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   showError(codeError, null);
-  if (code().length !== 4) { showError(codeError, "verify.badCode"); return; }
+  if (!pending || code().length !== 4) { showError(codeError, "verify.badCode"); return; }
   checkBtn.disabled = true;
   checkBtn.textContent = t("verify.checking");
+  const { display, demo, ...body } = pending;
   try {
-    const res = await fetch("/api/verify/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: verifiedPhone, code: code() }) });
-    if (res.status === 422) { showError(codeError, "verify.badCode"); return; }
+    if (!navigator.onLine) throw new TypeError("offline");
+    const res = await fetch("/api/verify/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, code: code() }) });
+    if (res.status === 422 || res.status === 429) {
+      const d = await readError(res);
+      const key = CHECK_ERRORS[d.code] || "verify.badCode";
+      showError(codeError, key, { n: I18N.count(d.attempts_left ?? 0, "attempt") });
+      cells.forEach((c) => { c.value = ""; });
+      if (d.code === "expired" || d.code === "too_many_attempts" || d.code === "no_code") { cells.forEach((c) => { c.disabled = true; }); pending = null; }
+      else cells[0].focus();
+      return;
+    }
     if (!res.ok) throw new Error(String(res.status));
     lastStatus = await res.json();
-    // The number is not kept once verification is done.
-    verifiedPhone = null; phoneInput.value = ""; codeSent.hidden = true;
-    cells.forEach((c) => { c.value = ""; c.disabled = true; });
-    sendCodeBtn.textContent = t("verify.send"); sendCodeBtn.dataset.i18n = "verify.send";
+    // The number or email is not kept once verification is done.
+    phoneInput.value = ""; emailInput.value = "";
+    resetCode();
     location.hash = "#status";
   } catch (err) {
     showError(codeError, isOffline(err) ? "verify.offline" : "verify.failed");
   } finally {
     checkBtn.textContent = t("verify.check");
     updateCheck();
+  }
+});
+
+/* ---------- Contact the team (idea 79) ---------- */
+const contactForm = document.getElementById("contact-form");
+const contactReply = document.getElementById("contact-reply");
+const contactChannel = document.getElementById("contact-channel");
+const contactError = document.getElementById("contact-error");
+const contactStatus = document.getElementById("contact-status");
+const contactSend = document.getElementById("contact-send");
+contactReply.addEventListener("change", () => {
+  document.getElementById("contact-reply-field").hidden = !contactReply.checked;
+  if (contactReply.checked) contactChannel.focus();
+});
+contactForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  showError(contactError, null);
+  const message = document.getElementById("contact-message").value.trim();
+  const consent = document.getElementById("contact-consent");
+  if (message.length < 10) { showError(contactError, "contact.needMessage"); document.getElementById("contact-message").focus(); return; }
+  if (!consent.checked) { showError(contactError, "contact.needConsent"); consent.focus(); return; }
+  const contact = contactReply.checked ? contactChannel.value.trim() : "";
+  if (contactReply.checked && !validContact(contact)) { showError(contactError, "consent.needContact"); contactChannel.focus(); return; }
+  contactSend.disabled = true; contactSend.textContent = t("consent.sending");
+  contactStatus.replaceChildren(stateCard("info", t("state.sending"), t("state.sendingBody")));
+  try {
+    if (!navigator.onLine) throw new TypeError("offline");
+    const clean = redact(message);
+    const body = { question: clean, summary: clean, language: detectLang(message), category: document.getElementById("contact-category").value };
+    if (contact) body.contact = contact; else body.anonymous = true;
+    const res = await fetch("/api/support-cases", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (res.status === 422 && contact) { contactStatus.replaceChildren(); showError(contactError, "consent.needContact"); return; }
+    if (!res.ok) throw new Error(String(res.status));
+    const data = await res.json();
+    lastCase = { reference: data.reference, hasContact: Boolean(contact) };
+    contactForm.reset(); contactStatus.replaceChildren();
+    document.getElementById("contact-reply-field").hidden = true;
+    location.hash = "#case";
+  } catch (err) {
+    const offline = isOffline(err);
+    contactStatus.replaceChildren(stateCard("error", t(offline ? "state.offline" : "state.failed"),
+      t(offline ? "state.offlineBody" : "state.failedBody"), () => contactForm.requestSubmit()));
+  } finally {
+    contactSend.disabled = false; contactSend.textContent = t("consent.send");
   }
 });
 
@@ -768,7 +957,7 @@ function renderStatus() {
 }
 
 /* ---------- Views (hash routing) ---------- */
-const views = { chat: "view-chat", verify: "view-verify", status: "view-status", case: "view-case" };
+const views = { chat: "view-chat", verify: "view-verify", status: "view-status", case: "view-case", contact: "view-contact" };
 function route() {
   let name = location.hash.slice(1) || "chat";
   if (!views[name]) name = "chat";
@@ -787,7 +976,8 @@ window.addEventListener("hashchange", route);
 document.addEventListener("langchange", () => {
   renderSuggestions(); setPlaceholder();
   cells.forEach((c, i) => c.setAttribute("aria-label", t("verify.cell", { n: i + 1 })));
-  if (verifiedPhone) codeSent.textContent = t("verify.codeSent", { phone: verifiedPhone });
+  applyChannel();
+  if (pending) codeSent.textContent = t(pending.demo ? "verify.codeSentDemo" : pending.channel === "email" ? "verify.codeSentEmail" : "verify.codeSentWhatsapp", { to: pending.display });
   renderStatus();
   renderCase();
 });
@@ -795,4 +985,5 @@ document.addEventListener("langchange", () => {
 I18N.apply();
 renderSuggestions();
 setPlaceholder();
+loadChannels();
 loadTiers().then(route);

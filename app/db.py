@@ -26,6 +26,7 @@ class SupportCase(SQLModel, table=True):
     tier_id: Optional[str] = Field(default=None, index=True)
     summary: Optional[str] = None
     status: CaseStatus = Field(default=CaseStatus.new, index=True)
+    category: str = Field(default="inquiry", index=True)  # inquiry | complaint | suggestion | service
 
 
 class UnansweredQuestion(SQLModel, table=True):
@@ -69,13 +70,43 @@ class FaqItem(SQLModel, table=True):
     unanswered_id: Optional[str] = None        # set when promoted from an unanswered question
 
 
+class OtpChallenge(SQLModel, table=True):
+    """A pending verification code. Neither the code nor the phone/email is stored in
+    plain text: both are HMAC hashes. Rows are deleted on success and after a day."""
+    __tablename__ = "otp_challenges"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    target_hash: str = Field(index=True)
+    channel: str
+    code_hash: str
+    created_at: datetime = Field(default_factory=_now, index=True)
+    expires_at: datetime
+    attempts: int = 0
+
+
+class AuditEntry(SQLModel, table=True):
+    """Who did what and when in the staff dashboard (idea 66)."""
+    __tablename__ = "audit_log"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    at: datetime = Field(default_factory=_now, index=True)
+    actor: str = ""                      # name the staff member entered at sign-in (shared token)
+    action: str = Field(index=True)      # e.g. faq.promote, faq.update, faq.delete, case.status, export.cases
+    target_type: str = ""
+    target_id: str = Field(default="", index=True)
+    summary: str = ""
+
+
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine = create_engine(DATABASE_URL, connect_args=_connect_args)
 
 
 # Columns added after a table first shipped. create_all() does not alter existing
 # tables, so these are added here (SQLite and Postgres both support ADD COLUMN).
-_ADDED_COLUMNS = {"faq_items": {"source_title_en": "VARCHAR"}}
+_ADDED_COLUMNS = {
+    "faq_items": {"source_title_en": "VARCHAR"},
+    "support_cases": {"category": "VARCHAR DEFAULT 'inquiry'"},
+}
 
 
 def _add_missing_columns() -> None:

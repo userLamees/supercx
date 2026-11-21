@@ -19,3 +19,22 @@ SUPPORT_TOKEN = os.getenv("SUPPORT_TOKEN", "")
 
 # Unanswered questions asked at least this many times count as "high frequency".
 HIGH_FREQUENCY_THRESHOLD = int(os.getenv("HIGH_FREQUENCY_THRESHOLD", "10"))
+
+# Staff dashboard alerts.
+ALERT_CASE_AGE_HOURS = int(os.getenv("ALERT_CASE_AGE_HOURS", "48"))          # "new" requests waiting longer than this
+ALERT_COMPLAINTS_PER_WEEK = int(os.getenv("ALERT_COMPLAINTS_PER_WEEK", "3"))  # complaints in 7 days that trigger an alert
+
+# Verification codes (OTP). With no provider configured the app runs a labeled simulation.
+OTP_SECRET = os.getenv("OTP_SECRET", "")            # HMAC key for stored hashes; random per process if unset
+SMTP_HOST = os.getenv("SMTP_HOST", "")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USERNAME = os.getenv("SMTP_USERNAME", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SMTP_FROM = os.getenv("SMTP_FROM", "") or SMTP_USERNAME
+SMTP_SSL = os.getenv("SMTP_SSL", "false").lower() == "true"  # true for port 465; otherwise STARTTLS
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
+TWILIO_WHATSAPP_FROM = os.getenv("TWILIO_WHATSAPP_FROM", "")  # e.g. whatsapp:+14155238886
+
+# Member registry used after verification (demo file by default).
+MEMBERS_FILE = os.getenv("MEMBERS_FILE", "")

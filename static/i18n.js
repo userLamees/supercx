@@ -49,6 +49,19 @@
     return `${n} يومًا`;
   }
 
+  // Counted nouns. ar forms: [one, two, 3-10, 11+]; en forms: [one, other].
+  const NOUNS = {
+    minute: { ar: ["دقيقة واحدة", "دقيقتين", "{n} دقائق", "{n} دقيقة"], en: ["1 minute", "{n} minutes"] },
+    second: { ar: ["ثانية واحدة", "ثانيتين", "{n} ثوانٍ", "{n} ثانية"], en: ["1 second", "{n} seconds"] },
+    attempt: { ar: ["محاولة واحدة", "محاولتان", "{n} محاولات", "{n} محاولة"], en: ["1 attempt", "{n} attempts"] },
+  };
+  function count(n, noun, l = lang) {
+    const f = NOUNS[noun][l];
+    const form = l === "en" ? f[n === 1 ? 0 : 1]
+      : n === 1 ? f[0] : n === 2 ? f[1] : (n % 100 >= 3 && n % 100 <= 10) ? f[2] : f[3];
+    return form.replace("{n}", n);
+  }
+
   function add(strings) { Object.assign(dict.ar, strings.ar); Object.assign(dict.en, strings.en); }
 
   add({
@@ -58,7 +71,7 @@
           "demo": "Demo", "demoData": "Demo data" },
   });
 
-  window.I18N = { t, add, apply, setLang, icons, icon, formatDate, formatNumber, days, get lang() { return lang; } };
+  window.I18N = { t, add, apply, setLang, icons, icon, formatDate, formatNumber, days, count, get lang() { return lang; } };
 
   document.addEventListener("click", (e) => {
     if (e.target.closest("[data-lang-toggle]")) setLang(lang === "ar" ? "en" : "ar");

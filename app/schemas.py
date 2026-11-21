@@ -70,6 +70,13 @@ class CaseStatus(str, Enum):
     closed = "closed"
 
 
+class CaseCategory(str, Enum):
+    inquiry = "inquiry"
+    complaint = "complaint"
+    suggestion = "suggestion"
+    service = "service"
+
+
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$")
 _SA_MOBILE = re.compile(r"^(?:\+966|00966|966|0)?5\d{8}$")
 _ARABIC_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
@@ -91,6 +98,7 @@ class SupportCaseCreate(BaseModel):
     anonymous: bool = False
     tier_id: Optional[str] = None
     summary: Optional[str] = None
+    category: CaseCategory = CaseCategory.inquiry
 
     @model_validator(mode="after")
     def _contact_unless_anonymous(self):
@@ -134,6 +142,67 @@ class FaqCreate(BaseModel):
     answer: str = Field(min_length=3, max_length=4000)
     source_title: str = Field(min_length=2, max_length=300)
     source_url: Optional[str] = Field(default=None, max_length=500)
+    # Optional English translation when the main text is Arabic.
+    question_en: Optional[str] = Field(default=None, max_length=500)
+    answer_en: Optional[str] = Field(default=None, max_length=4000)
+    source_title_en: Optional[str] = Field(default=None, max_length=300)
+
+
+class FaqItemAdmin(BaseModel):
+    """Raw FAQ row for the staff editor, with who changed it last."""
+    id: str
+    category_id: str
+    question_ar: Optional[str] = None
+    question_en: Optional[str] = None
+    answer_ar: Optional[str] = None
+    answer_en: Optional[str] = None
+    source_title: str
+    source_title_en: Optional[str] = None
+    source_url: Optional[str] = None
+    checked_at: str
+    demo: bool
+    last_action: Optional[str] = None
+    last_actor: Optional[str] = None
+    last_at: Optional[str] = None
+
+
+class FaqItemWrite(BaseModel):
+    """Create or edit an FAQ entry from the staff editor. Each of question/answer needs
+    at least one language; source title is required."""
+    category_id: str
+    question_ar: Optional[str] = Field(default=None, max_length=500)
+    question_en: Optional[str] = Field(default=None, max_length=500)
+    answer_ar: Optional[str] = Field(default=None, max_length=4000)
+    answer_en: Optional[str] = Field(default=None, max_length=4000)
+    source_title: str = Field(min_length=2, max_length=300)
+    source_title_en: Optional[str] = Field(default=None, max_length=300)
+    source_url: Optional[str] = Field(default=None, max_length=500)
+    demo: bool = False
+
+    @model_validator(mode="after")
+    def _one_language_each(self):
+        for name in ("question_ar", "question_en", "answer_ar", "answer_en", "source_title_en", "source_url"):
+            value = getattr(self, name)
+            setattr(self, name, value.strip() if value and value.strip() else None)
+        self.source_title = self.source_title.strip()
+        if not (self.question_ar or self.question_en) or not (self.answer_ar or self.answer_en):
+            raise ValueError("question and answer each need at least one language")
+        return self
+
+
+class AuditOut(BaseModel):
+    at: str
+    actor: str
+    action: str
+    target_type: str
+    target_id: str
+    summary: str
+
+
+class Alert(BaseModel):
+    kind: str          # high_frequency_unanswered | stale_cases | complaints_spike
+    count: int
+    threshold: int
 
 
 class UnansweredOut(BaseModel):
@@ -150,8 +219,28 @@ class UnansweredStats(BaseModel):
     high_frequency_threshold: int
 
 
+class VerifyChannel(str, Enum):
+    whatsapp = "whatsapp"
+    email = "email"
+
+
 class VerifySend(BaseModel):
-    phone: str = Field(min_length=9, max_length=16)
+    """Send a code by WhatsApp (phone) or email. With no provider configured, the
+    app runs a labeled simulation and accepts any 4-digit code."""
+    channel: Optional[VerifyChannel] = None   # defaults from what is filled in
+    phone: Optional[str] = Field(default=None, min_length=9, max_length=20)
+    email: Optional[str] = Field(default=None, min_length=5, max_length=200)
+    lang: Lang = "ar"
+
+    @model_validator(mode="after")
+    def _target(self):
+        if self.channel is None:
+            self.channel = VerifyChannel.email if self.email and not self.phone else VerifyChannel.whatsapp
+        if self.channel == VerifyChannel.email and not self.email:
+            raise ValueError("email is required for the email channel")
+        if self.channel == VerifyChannel.whatsapp and not self.phone:
+            raise ValueError("phone is required for the whatsapp channel")
+        return self
 
 
 class VerifyCheck(VerifySend):

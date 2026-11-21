@@ -1,7 +1,17 @@
 {
-  "_note": "Simulated member registry for the phone verification demo. Not real people. Expiry is relative to today so the demo does not go stale.",
+  "_note": "Simulated member registry for the verification demo. Not real people. Expiry is relative to today so the demo does not go stale. To try a real email or WhatsApp code with your own address, copy this file outside git, add yourself, and set MEMBERS_FILE to its path.",
   "members": [
-    {"phone": "500000001", "tier_id": "5c54d2bc-2d3c-41e7-949c-62d45c22093b", "expires_in_days": 365},
-    {"phone": "500000002", "tier_id": "f1aecbd7-45e8-4438-919d-45a41b5d54f5", "expires_in_days": 21}
+    {
+      "phone": "500000001",
+      "tier_id": "5c54d2bc-2d3c-41e7-949c-62d45c22093b",
+      "expires_in_days": 365,
+      "email": "ambassador@example.com"
+    },
+    {
+      "phone": "500000002",
+      "tier_id": "f1aecbd7-45e8-4438-919d-45a41b5d54f5",
+      "expires_in_days": 21,
+      "email": "affiliate@example.com"
+    }
   ]
 }

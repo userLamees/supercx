@@ -1,17 +1,19 @@
-"""Simulated phone verification and membership lookup (demo data only).
+"""Membership lookup after verification, plus phone/email/code normalization.
 
-No SMS is sent. Any 4-digit code is accepted. Replace with the association's
-member registry and an OTP provider before production.
+The registry is data/members_demo.json (simulated members) unless MEMBERS_FILE
+points to another file with the same shape. Code delivery lives in app/otp.py.
 """
 import json
 import re
 from datetime import date, timedelta
 from pathlib import Path
 
+from . import config
 from .memberships import get_tier
 from .schemas import MembershipStatus
 
-MEMBERS_FILE = Path(__file__).resolve().parent.parent / "data" / "members_demo.json"
+DEMO_MEMBERS_FILE = Path(__file__).resolve().parent.parent / "data" / "members_demo.json"
+_EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$")
 RENEW_WINDOW_DAYS = 30
 _ARABIC_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
 
@@ -26,14 +28,28 @@ def normalize_phone(raw: str) -> str | None:
     return digits if re.fullmatch(r"5\d{8}", digits) else None
 
 
+def normalize_email(raw: str) -> str | None:
+    email = raw.strip().lower()
+    return email if _EMAIL.match(email) else None
+
+
+def normalize_code(code: str) -> str:
+    return code.strip().translate(_ARABIC_DIGITS)
+
+
 def valid_code(code: str) -> bool:
-    return re.fullmatch(r"\d{4}", code.translate(_ARABIC_DIGITS)) is not None
+    return re.fullmatch(r"\d{4}", normalize_code(code)) is not None
 
 
-def lookup(phone: str, today: date | None = None) -> MembershipStatus:
+def members_file() -> Path:
+    return Path(config.MEMBERS_FILE) if config.MEMBERS_FILE else DEMO_MEMBERS_FILE
+
+
+def lookup(phone: str | None = None, email: str | None = None, today: date | None = None) -> MembershipStatus:
     today = today or date.today()
-    members = json.loads(MEMBERS_FILE.read_text(encoding="utf-8"))["members"]
-    record = next((m for m in members if m["phone"] == phone), None)
+    members = json.loads(members_file().read_text(encoding="utf-8"))["members"]
+    record = next((m for m in members
+                   if (phone and m.get("phone") == phone) or (email and (m.get("email") or "").lower() == email)), None)
     tier = record and get_tier(record["tier_id"])
     if not record or not tier:
         return MembershipStatus(registered=False)
@@ -47,5 +63,5 @@ def lookup(phone: str, today: date | None = None) -> MembershipStatus:
         days_remaining=max(remaining, 0),
         period_days=365 * tier.period_years,
         can_renew=remaining <= RENEW_WINDOW_DAYS,
-        source="members_demo",
+        source="members_demo" if members_file() == DEMO_MEMBERS_FILE else "members_file",
     )

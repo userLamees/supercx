@@ -23,4 +23,9 @@ def client():
 
 
 def pytest_sessionfinish(session, exitstatus):
-    Path("test_supercx.db").unlink(missing_ok=True)
+    from app.db import engine
+    engine.dispose()  # Windows: close the DB connection before deleting the file
+    try:
+        Path("test_supercx.db").unlink(missing_ok=True)
+    except PermissionError:
+        pass

@@ -6,6 +6,7 @@ from pathlib import Path
 os.environ["DATABASE_URL"] = "sqlite:///./test_supercx.db"
 os.environ["MEMBERSHIP_API_URL"] = "http://127.0.0.1:9/unreachable"
 os.environ["SUPPORT_TOKEN"] = "test-token"
+os.environ["OPENAI_API_KEY"] = ""
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pytest  # noqa: E402

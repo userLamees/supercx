@@ -1,5 +1,8 @@
 """Runtime settings, read from environment variables (Replit Secrets)."""
 import os
+from dotenv import load_dotenv
+
+load_dotenv()  # reads .env locally; on Replit the values come from Secrets
 
 MEMBERSHIP_API_URL = os.getenv("MEMBERSHIP_API_URL", "https://cxa.sa/api/MemberShip/public")
 MEMBERSHIP_PAGE_URL = os.getenv("MEMBERSHIP_PAGE_URL", "https://cxa.sa/membership")
@@ -38,3 +41,12 @@ TWILIO_WHATSAPP_FROM = os.getenv("TWILIO_WHATSAPP_FROM", "")  # e.g. whatsapp:+1
 
 # Member registry used after verification (demo file by default).
 MEMBERS_FILE = os.getenv("MEMBERS_FILE", "")
+
+# AI agent settings
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4.1-mini")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+CHROMA_DIR = os.getenv("CHROMA_DIR", "./chroma_db")
+
+# Without a key, the app falls back to the rule-based agent (tests and offline demo).
+AGENT_ENABLED = bool(OPENAI_API_KEY)

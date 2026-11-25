@@ -15,6 +15,7 @@ from app.config import (ALERT_CASE_AGE_HOURS, ALERT_COMPLAINTS_PER_WEEK, HIGH_FR
                         SUPPORT_TOKEN)
 from app.db import FaqItem as FaqItemRow, SupportCase, UnansweredQuestion, engine, get_session, init_db
 from app.export import LABELS, csv_response, local_time
+from app.knowledge import refresh_index
 from app.faq import (add_approved, admin_items, approved_count, category_ids, get_faq, question_text,
                      seed_faq, write_item)
 from app.memberships import data_origin, get_tier, get_tiers
@@ -31,6 +32,7 @@ async def lifespan(_: FastAPI):
     init_db()
     with Session(engine) as session:
         seed_faq(session)  # first start only: loads data/faq.json into the DB
+    refresh_index()  # agent's search index follows the FAQ table
     yield
 
 
@@ -218,6 +220,7 @@ def promote_unanswered(question_id: str, payload: FaqCreate, actor: str = Depend
     session.add(row)
     audit.log(session, actor, "faq.promote", "faq", entry.id, payload.question.strip())
     session.commit()
+    refresh_index()
     return {"id": entry.id, "category_id": entry.category_id}
 
 
@@ -241,6 +244,7 @@ def staff_create_faq(payload: FaqItemWrite, actor: str = Depends(audit.staff_nam
     item = write_item(session, payload)
     audit.log(session, actor, "faq.create", "faq", item.id, question_text(item))
     session.commit()
+    refresh_index()
     return {"id": item.id}
 
 
@@ -254,6 +258,7 @@ def staff_update_faq(item_id: str, payload: FaqItemWrite, actor: str = Depends(a
     write_item(session, payload, item)
     audit.log(session, actor, "faq.update", "faq", item.id, question_text(item))
     session.commit()
+    refresh_index()
     return {"id": item.id}
 
 
@@ -267,6 +272,7 @@ def staff_delete_faq(item_id: str, actor: str = Depends(audit.staff_name),
     audit.log(session, actor, "faq.delete", "faq", item.id, question_text(item))
     session.delete(item)
     session.commit()
+    refresh_index()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

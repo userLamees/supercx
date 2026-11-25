@@ -78,7 +78,8 @@ to its path. The association's real member registry is not connected yet.
 | `LLM_MODEL` | `gpt-4.1-mini` | Model used by the agent |
 | `EMBEDDING_MODEL` | `text-embedding-3-small` | Model for the FAQ search index |
 | `CHROMA_DIR` | `./chroma_db` | Folder of the search index (rebuilt from the FAQ table if deleted) |
-| `RAG_TOP_K`, `RAG_MIN_SCORE` | `4`, `0.45` | Entries retrieved per question; weaker matches are ignored |
+| `RAG_TOP_K`, `RAG_MIN_SCORE` | `4`, `0.30` | Entries retrieved per question; weaker matches are ignored (chosen by evaluation) |
+| `OPENAI_STT_MODEL`, `OPENAI_TTS_MODEL`, `OPENAI_TTS_VOICE` | `gpt-4o-mini-transcribe`, `gpt-4o-mini-tts`, `coral` | Voice: microphone input and "Listen" under replies |
 
 If the membership API is unreachable, the app falls back to the last good copy,
 then to `data/memberships_fixture.json`. `/api/health` reports which one is in use.
@@ -91,6 +92,9 @@ app/schemas.py       API contract (shared with the agent)
 app/agent.py         run_agent(): LangGraph AI agent (classify, retrieve, generate, check)
 app/rules_agent.py   keyword fallback: used without an API key or if the LLM fails
 app/knowledge.py     FAQ search index (Chroma), kept in sync with the FAQ table
+app/speech.py        speech-to-text and text-to-speech (OpenAI)
+app/evaluate.py      agent evaluation: python -m app.evaluate, reports in reports/
+docs/AGENT.md        how the AI agent works, safety rules, evaluation results
 app/memberships.py   fetch + normalize + cache tiers
 app/db.py            tables: support_cases, unanswered_questions, faq_categories, faq_items
 app/faq.py           FAQ in the DB (faq_categories/faq_items), seeded once from data/faq.json

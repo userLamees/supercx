@@ -55,6 +55,12 @@ class ChatAction(str, Enum):
     verify = "verify"        # personal question: the UI starts identity verification first
 
 
+class SpeechRequest(BaseModel):
+    """Text to read aloud (a chat reply) and its language."""
+    text: str = Field(min_length=1, max_length=1500)
+    lang: Lang = "ar"
+
+
 class ChatResponse(BaseModel):
     answer: str
     lang: Lang

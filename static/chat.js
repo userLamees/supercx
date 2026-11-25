@@ -30,6 +30,17 @@ I18N.add({
     "composer.phQuiz": "أو اكتب احتياجك بأسلوبك…",
     "composer.aria": "رسالتك",
     "composer.send": "إرسال",
+    "voice.record": "تسجيل سؤالك بالصوت",
+    "voice.stop": "إيقاف التسجيل",
+    "voice.listen": "استمع",
+    "voice.stopListen": "إيقاف",
+    "voice.transcribing": "جارٍ تحويل الصوت إلى نص…",
+    "voice.listening": "أستمع إليك… {time} · اضغط ■ عند الانتهاء",
+    "voice.unclear": "لم أتمكن من فهم التسجيل. تحدّث بوضوح بعد ظهور «أستمع إليك» ثم حاول مرة أخرى.",
+    "voice.check": "راجع النص ثم اضغط إرسال",
+    "voice.failed": "تعذّر تحويل الصوت. حاول مرة أخرى أو اكتب سؤالك.",
+    "voice.denied": "لم يُسمح باستخدام الميكروفون. فعّله من إعدادات المتصفح.",
+    "voice.playFailed": "تعذّر تشغيل الصوت.",
     "sugg.fit": "أي عضوية تناسبني؟",
     "sugg.diff": "ما الفرق بين العضويات؟",
     "sugg.vote": "أي عضوية تمنحني حق التصويت؟",
@@ -190,6 +201,17 @@ I18N.add({
     "composer.phQuiz": "Or describe what you need…",
     "composer.aria": "Your message",
     "composer.send": "Send",
+    "voice.record": "Ask by voice",
+    "voice.stop": "Stop recording",
+    "voice.listen": "Listen",
+    "voice.stopListen": "Stop",
+    "voice.transcribing": "Turning your voice into text…",
+    "voice.listening": "Listening… {time} · press ■ when done",
+    "voice.unclear": "I couldn't understand the recording. Speak clearly once \u201cListening\u201d appears, then try again.",
+    "voice.check": "Check the text, then press send",
+    "voice.failed": "Couldn't transcribe the recording. Try again or type your question.",
+    "voice.denied": "Microphone access was blocked. Allow it in your browser settings.",
+    "voice.playFailed": "Couldn't play the audio.",
     "sugg.fit": "Which membership suits me?",
     "sugg.diff": "What's the difference between the memberships?",
     "sugg.vote": "Which membership lets me vote?",
@@ -364,7 +386,7 @@ function add(el) {
   return el;
 }
 
-function setBusy(on) { busy = on; sendBtn.disabled = on; }
+function setBusy(on) { busy = on; sendBtn.disabled = on; micBtn.disabled = on && !recorder; }
 
 function setPlaceholder() { input.placeholder = t(quizActive ? "composer.phQuiz" : "composer.ph"); }
 
@@ -398,6 +420,14 @@ function resetChat() {
 /* ---------- Messages ---------- */
 function userBubble(text) { return add(h("div", { class: "msg msg-user", dir: "auto" }, text)); }
 function botText(text, lang) { return add(h("div", { class: "msg msg-bot", dir: lang ? dirOf(lang) : "auto" }, text)); }
+
+// "Listen" goes on the agent's replies only (not on interface notes like "nothing was sent"),
+// placed last, after the sources line.
+function addListen(msg, text, lang) {
+  if (!voiceEnabled) return;
+  msg.append(h("div", {}, listenButton(text, lang)));
+  I18N.icons();
+}
 
 function sourcesLine(sources, lang, checkedAt) {
   const row = h("div", { class: "sources", dir: dirOf(lang) }, ic("link", "icon-sm"), t("src.label", null, lang));
@@ -469,6 +499,7 @@ function renderReply(question, reply) {
     // Personal question: the agent never shows member data, it sends the user to verification.
     const msg = botText(reply.answer, lang);
     msg.append(h("div", {}, h("a", { class: "chip", href: "#verify" }, ic("badge-check", "icon-sm"), t("statusPrompt.btn"))));
+    addListen(msg, reply.answer, lang);
     I18N.icons();
     return;
   }
@@ -481,7 +512,8 @@ function renderReply(question, reply) {
 
   if (tier) {
     // The card shows price and benefits, so only the recommendation sentence is kept as text.
-    botText(reply.answer.split(/\n\s*\n/)[0], lang);
+    const intro = reply.answer.split(/\n\s*\n/)[0];
+    addListen(botText(intro, lang), intro, lang);
     const block = h("div", { class: "chat-block", dir: dirOf(ui) }, tierCard(tier, ui));
     const sources = reply.sources?.length ? reply.sources : [{ title: t("src.memberships"), url: tier.source_url }];
     block.append(sourcesLine(sources, ui, tier.checked_at));
@@ -495,6 +527,7 @@ function renderReply(question, reply) {
 
   const msg = botText(reply.answer, lang);
   if (reply.sources?.length) msg.append(sourcesLine(reply.sources, ui));
+  addListen(msg, reply.answer, lang);
 }
 
 /* 03 Recommendation card (matched by tier_id, never by name) */
@@ -699,6 +732,133 @@ function statusPrompt(text) {
   const msg = botText(t("statusPrompt"));
   msg.append(h("div", {}, h("a", { class: "chip", href: "#verify" }, ic("badge-check", "icon-sm"), t("statusPrompt.btn"))));
   I18N.icons();
+}
+
+/* ---------- Voice (speech-to-text and text-to-speech) ----------
+   Shown only when the server has an OpenAI key (GET /api/speech) and the browser can record. */
+const micBtn = document.getElementById("mic");
+let voiceEnabled = false;
+let recorder = null;
+let recordTimer = null;
+let clockTimer = null;
+let player = null;
+const MAX_RECORDING_MS = 60000;
+
+async function initVoice() {
+  try {
+    voiceEnabled = (await (await fetch("/api/speech")).json()).enabled === true;
+  } catch { voiceEnabled = false; }
+  micBtn.hidden = !(voiceEnabled && window.MediaRecorder && navigator.mediaDevices?.getUserMedia);
+}
+
+function setMicIcon(recording) {
+  micBtn.classList.toggle("recording", recording);
+  form.classList.toggle("recording", recording);
+  micBtn.setAttribute("aria-label", t(recording ? "voice.stop" : "voice.record"));
+  micBtn.replaceChildren(ic(recording ? "square" : "mic"));
+  input.disabled = recording;
+  clearInterval(clockTimer);
+  if (recording) {
+    // The box itself shows that the microphone is on, with a running timer.
+    const started = Date.now();
+    const tick = () => {
+      const s = Math.floor((Date.now() - started) / 1000);
+      input.value = "";
+      input.placeholder = t("voice.listening", { time: `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}` });
+    };
+    tick();
+    clockTimer = setInterval(tick, 500);
+  } else {
+    setPlaceholder();
+  }
+  I18N.icons();
+}
+
+async function startRecording() {
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch {
+    add(stateCard("error", t("voice.denied")));
+    return;
+  }
+  const chunks = [];
+  let startedAt = 0;
+  recorder = new MediaRecorder(stream);
+  recorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+  recorder.onstop = async () => {
+    clearTimeout(recordTimer);
+    stream.getTracks().forEach((track) => track.stop());
+    const type = (recorder.mimeType || "audio/webm").split(";")[0];
+    recorder = null;
+    setMicIcon(false);
+    if (Date.now() - startedAt < 800) return;  // a tap, not a question: nothing to transcribe
+    if (chunks.length) await transcribe(new Blob(chunks, { type }));
+  };
+  recorder.onstart = () => { startedAt = Date.now(); setMicIcon(true); };  // "Listening" appears only once audio is really captured
+  recorder.start();
+  recordTimer = setTimeout(() => recorder?.state === "recording" && recorder.stop(), MAX_RECORDING_MS);
+}
+
+async function transcribe(blob) {
+  const working = add(stateCard("info", t("voice.transcribing")));
+  setBusy(true);
+  try {
+    const res = await fetch("/api/speech/transcribe", {
+      method: "POST", headers: { "Content-Type": blob.type }, body: blob,
+    });
+    if (res.status === 422) throw new Error("unclear");
+    if (!res.ok) throw new Error(String(res.status));
+    const { text } = await res.json();
+    working.remove();
+    setBusy(false);
+    // The transcript goes into the box so the user can check or fix it before sending.
+    input.value = text.trim();
+    input.placeholder = t("voice.check");
+    input.focus();
+  } catch (err) {
+    working.remove();
+    setBusy(false);
+    add(stateCard("error", t(err.message === "unclear" ? "voice.unclear" : "voice.failed")));
+  }
+}
+
+micBtn.addEventListener("click", () => {
+  if (recorder?.state === "recording") recorder.stop();
+  else if (!busy) startRecording();
+});
+
+function listenButton(text, lang) {
+  const label = h("span", {}, t("voice.listen", null, lang));
+  const btn = h("button", { class: "listen-btn", type: "button" }, ic("volume-2", "icon-sm"), label);
+  let audioUrl = null;  // generated once per reply, replayed from memory
+  btn.addEventListener("click", async () => {
+    if (player && btn.classList.contains("playing")) { player.pause(); return; }
+    player?.pause();
+    try {
+      if (!audioUrl) {
+        btn.disabled = true;
+        const res = await fetch("/api/speech/synthesize", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: text.slice(0, 1500), lang }),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        audioUrl = URL.createObjectURL(await res.blob());
+      }
+      player = new Audio(audioUrl);
+      const done = () => { btn.classList.remove("playing"); label.textContent = t("voice.listen", null, lang); };
+      player.onpause = done;
+      player.onended = done;
+      btn.classList.add("playing");
+      label.textContent = t("voice.stopListen", null, lang);
+      await player.play();
+    } catch {
+      add(stateCard("error", t("voice.playFailed")));
+    } finally {
+      btn.disabled = false;
+    }
+  });
+  return btn;
 }
 
 /* ---------- Send ---------- */
@@ -997,4 +1157,5 @@ I18N.apply();
 renderSuggestions();
 setPlaceholder();
 loadChannels();
+initVoice();
 loadTiers().then(route);

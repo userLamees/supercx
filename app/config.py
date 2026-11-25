@@ -50,5 +50,11 @@ CHROMA_DIR = os.getenv("CHROMA_DIR", "./chroma_db")
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "4"))              # FAQ entries retrieved per question
 RAG_MIN_SCORE = float(os.getenv("RAG_MIN_SCORE", "0.30"))  # below this similarity a match is ignored (tuned in evaluation)
 
+
+# Voice: speech-to-text (microphone) and text-to-speech ("Listen"). Same key as the agent.
+OPENAI_STT_MODEL = os.getenv("OPENAI_STT_MODEL", "gpt-4o-mini-transcribe")
+OPENAI_TTS_MODEL = os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts")
+OPENAI_TTS_VOICE = os.getenv("OPENAI_TTS_VOICE", "coral")
+
 # Without a key, the app falls back to the rule-based agent (tests and offline demo).
 AGENT_ENABLED = bool(OPENAI_API_KEY)

@@ -232,3 +232,11 @@ def test_the_same_link_is_listed_once(client, use_llm):
 def test_unanswered_question_has_no_category(client, use_llm):
     use_llm(Route(intent="faq", question="q", category="inquiry", summary="s"), hits=[])
     assert chat(client, "سؤال غير موجود")["category"] is None
+
+
+def test_summary_is_in_the_users_language(client, use_llm):
+    fake = use_llm(Route(intent="faq", question="Is there a student discount?", category="inquiry",
+                         summary="السؤال عن وجود خصم للطلاب"), hits=[])   # LLM answered in the wrong language
+    r = chat(client, "Is there a student discount?")
+    assert r["summary"] == "[en] Is there a student discount?"           # falls back to the user's own words
+    assert "English" in fake.calls[0][1][0][1]                            # and the router was told the language

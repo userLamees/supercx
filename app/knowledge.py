@@ -19,7 +19,7 @@ from sqlmodel import Session, select
 
 import logging
 
-from .config import AGENT_ENABLED, CHROMA_DIR, EMBEDDING_MODEL, RAG_MIN_SCORE, RAG_TOP_K
+from .config import AGENT_ENABLED, CHROMA_DIR, EMBEDDING_MODEL
 from .db import FaqItem
 
 COLLECTION = "faq"
@@ -141,10 +141,14 @@ def refresh_index() -> None:
         logging.getLogger(__name__).exception("FAQ index sync failed")
 
 
-def search(question: str, k: int = RAG_TOP_K, min_score: float = RAG_MIN_SCORE,
+def search(question: str, k: int | None = None, min_score: float | None = None,
            lang: str | None = None, store=None) -> list[Hit]:
     """Returns the closest FAQ entries, best first. Entries below `min_score` are dropped,
-    so an empty list means "nothing reliable found": the agent should escalate, not guess."""
+    so an empty list means "nothing reliable found": the agent should escalate, not guess.
+    Defaults come from config at call time, so the evaluation can try other values."""
+    from . import config
+    k = config.RAG_TOP_K if k is None else k
+    min_score = config.RAG_MIN_SCORE if min_score is None else min_score
     store = store or get_store()
     search_filter = {"lang": lang} if lang else None
     results = store.similarity_search_with_relevance_scores(question, k=k, filter=search_filter)

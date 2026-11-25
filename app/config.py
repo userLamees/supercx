@@ -48,7 +48,7 @@ LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4.1-mini")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 CHROMA_DIR = os.getenv("CHROMA_DIR", "./chroma_db")
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "4"))              # FAQ entries retrieved per question
-RAG_MIN_SCORE = float(os.getenv("RAG_MIN_SCORE", "0.45"))  # below this similarity a match is ignored (tuned in evaluation)
+RAG_MIN_SCORE = float(os.getenv("RAG_MIN_SCORE", "0.30"))  # below this similarity a match is ignored (tuned in evaluation)
 
 # Without a key, the app falls back to the rule-based agent (tests and offline demo).
 AGENT_ENABLED = bool(OPENAI_API_KEY)

@@ -255,15 +255,23 @@ button { cursor: pointer; }
 }
 .tier-card .btn-gold { width: 100%; }
 
-/* 09 Status messages (accent bar on the inline-start edge) */
+/* 09 Status messages: same rounded grey card as the quiz and question cards.
+   The kind (searching, warning, error, done) is shown by a coloured label with a dot,
+   or a spinner while searching, instead of a side bar that bent around the rounded corners. */
 .state {
   display: grid; gap: var(--s-1);
-  padding: var(--s-3) var(--s-4);
-  border-radius: var(--r-md);
-  border-inline-start: var(--bw-accent) solid var(--accent, var(--c-violet));
+  padding: var(--s-4);
+  border-radius: var(--r-card);
   background: var(--c-surface);
 }
-.state-kind { font-size: var(--fs-caption); font-weight: 600; color: var(--accent, var(--c-violet)); }
+.state-kind {
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  font-size: var(--fs-caption); font-weight: 600; color: var(--accent, var(--c-violet));
+}
+.state-kind::before {
+  content: ""; flex: none; width: var(--s-2); height: var(--s-2);
+  border-radius: var(--r-pill); background: var(--accent, var(--c-violet));
+}
 .state-title { font-size: var(--fs-sub); font-weight: 700; }
 .state-body { font-size: var(--fs-footnote); color: var(--c-text-2); white-space: pre-line; }
 .state .btn { justify-self: start; margin-top: var(--s-2); }
@@ -271,11 +279,13 @@ button { cursor: pointer; }
 .state[data-kind="warn"] { --accent: var(--c-gold); }
 .state[data-kind="success"] { --accent: var(--c-success); }
 .state[data-kind="error"] { --accent: var(--c-danger); }
-.state[data-kind="info"] .state-title::after {
-  content: ""; display: inline-block; width: var(--s-2); height: var(--s-2);
-  margin-inline-start: var(--s-2); border-radius: var(--r-pill); background: var(--c-violet);
-  vertical-align: middle;
+.state[data-kind="info"] .state-kind::before {
+  width: 10px; height: 10px; background: transparent;
+  border: 2px solid var(--c-violet-soft); border-top-color: var(--c-violet);
+  animation: state-spin 0.8s linear infinite;
 }
+@keyframes state-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .state[data-kind="info"] .state-kind::before { animation: none; } }
 
 /* 04 Unpublished question + consent */
 .consent { display: grid; gap: var(--s-3); }
@@ -337,6 +347,28 @@ button { cursor: pointer; }
   background: var(--c-violet); color: var(--c-on-primary);
 }
 .send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Voice: microphone in the composer, "Listen" under replies */
+.mic-btn {
+  display: grid; place-items: center; flex: none;
+  width: var(--tap); height: var(--tap);
+  border: 0; border-radius: var(--r-pill);
+  background: transparent; color: var(--c-violet);
+}
+.mic-btn:hover { background: var(--c-violet-soft); }
+.mic-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.mic-btn.recording { background: var(--c-danger, #c62828); color: #fff; animation: mic-pulse 1.2s ease-in-out infinite; }
+@keyframes mic-pulse { 50% { opacity: 0.6; } }
+.composer.recording { box-shadow: 0 0 0 var(--bw-focus) var(--c-danger, #c62828); }
+.composer.recording input::placeholder { color: var(--c-danger, #c62828); opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .mic-btn.recording { animation: none; } }
+.listen-btn {
+  display: inline-flex; align-items: center; gap: var(--s-1);
+  margin-block-start: var(--s-1); padding: 0;
+  border: 0; background: transparent; color: var(--c-text-2);
+  font-size: var(--fs-footnote); cursor: pointer;
+}
+.listen-btn:hover, .listen-btn.playing { color: var(--c-violet); }
 
 /* =====================================================================
    Pages (verify, membership status, FAQ)
@@ -561,8 +593,7 @@ dialog.modal::backdrop { background: var(--c-overlay); }
 
 /* 04 Escalation card: notice + consents + send state in one place */
 .escalation { display: grid; gap: var(--s-3); }
-.escalation-head { display: grid; gap: var(--s-1); padding-inline-start: var(--s-3); border-inline-start: var(--bw-accent) solid var(--c-gold); }
-.escalation-head .state-kind { color: var(--c-gold); }
+.escalation-head { display: grid; gap: var(--s-1); --accent: var(--c-gold); }  /* gold dot, like the status cards */
 .escalation .divider { margin: 0; }
 .consent-status:empty { display: none; }
 .input[aria-invalid="true"] { border-color: var(--c-danger); }

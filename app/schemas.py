@@ -52,6 +52,13 @@ class ChatAction(str, Enum):
     answer = "answer"        # general answer from approved sources
     recommend = "recommend"  # recommends one tier (tier_id is set)
     escalate = "escalate"    # cannot answer reliably; hand over to support
+    verify = "verify"        # personal question: the UI starts identity verification first
+
+
+class SpeechRequest(BaseModel):
+    """Text to read aloud (a chat reply) and its language."""
+    text: str = Field(min_length=1, max_length=1500)
+    lang: Lang = "ar"
 
 
 class ChatResponse(BaseModel):
@@ -62,6 +69,9 @@ class ChatResponse(BaseModel):
     tier_id: Optional[str] = None
     needs_contact: bool = False    # escalate without contact -> UI asks for it
     summary: Optional[str] = None  # case summary prepared by the agent on escalate
+    # Set when the user made a request (complaint, suggestion, service) rather than asked a
+    # question with no answer: the UI preselects it, and it is not logged as "unanswered".
+    category: Optional[Literal["inquiry", "complaint", "suggestion", "service"]] = None
 
 
 class CaseStatus(str, Enum):

@@ -4,24 +4,25 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Response, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response, status
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, func, select
 
-from app import audit, otp
+from app import audit, otp, speech
 from app.agent import run_agent
 from app.config import (ALERT_CASE_AGE_HOURS, ALERT_COMPLAINTS_PER_WEEK, HIGH_FREQUENCY_THRESHOLD,
                         SUPPORT_TOKEN)
 from app.db import FaqItem as FaqItemRow, SupportCase, UnansweredQuestion, engine, get_session, init_db
 from app.export import LABELS, csv_response, local_time
+from app.knowledge import refresh_index
 from app.faq import (add_approved, admin_items, approved_count, category_ids, get_faq, question_text,
                      seed_faq, write_item)
 from app.memberships import data_origin, get_tier, get_tiers
 from app.redact import normalize_key, redact
 from app.schemas import (Alert, AuditOut, CaseCategory, CaseStatus, ChatAction, ChatRequest,
                          ChatResponse, FaqCategory, FaqCreate, FaqItemAdmin, FaqItemWrite,
-                         MembershipStatus, SupportCaseCreate, SupportCaseUpdate, Tier, UnansweredOut,
+                         MembershipStatus, SpeechRequest, SupportCaseCreate, SupportCaseUpdate, Tier, UnansweredOut,
                          UnansweredStats, VerifyChannel, VerifyCheck, VerifySend)
 from app.verify import lookup, normalize_code, normalize_email, normalize_phone, valid_code
 
@@ -31,6 +32,7 @@ async def lifespan(_: FastAPI):
     init_db()
     with Session(engine) as session:
         seed_faq(session)  # first start only: loads data/faq.json into the DB
+    refresh_index()  # agent's search index follows the FAQ table
     yield
 
 
@@ -90,9 +92,52 @@ def record_unanswered(session: Session, message: str) -> None:
 @app.post("/api/chat", response_model=ChatResponse)
 def chat(request: ChatRequest, session: Session = Depends(get_session)) -> ChatResponse:
     reply = run_agent(request.message, request.history)
-    if reply.action == ChatAction.escalate:
+    if reply.action == ChatAction.escalate and reply.category is None:
+        # Questions with no answer feed the FAQ learning list; requests (complaints,
+        # suggestions, services) are not knowledge gaps, so they are not logged there.
         record_unanswered(session, request.message)
     return reply
+
+
+# ---------- Voice (speech-to-text and text-to-speech) ----------
+@app.get("/api/speech")
+def speech_status():
+    """The UI shows the microphone and "Listen" buttons only when this is enabled."""
+    return {"enabled": speech.enabled()}
+
+
+@app.post("/api/speech/transcribe")
+async def speech_transcribe(request: Request):
+    """Body: the raw recording (audio/webm, audio/mp4...). Returns {"text": ...}.
+    422 means the recording was silent or unclear, so the user is asked to try again."""
+    if not speech.enabled():
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Voice is not configured")
+    audio = await request.body()
+    if not audio:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No audio")
+    if len(audio) > speech.MAX_AUDIO_BYTES:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Recording too long")
+    content_type = request.headers.get("content-type", "audio/webm").split(";")[0]
+    extension = {"audio/mp4": "mp4", "audio/mpeg": "mp3", "audio/wav": "wav", "audio/ogg": "ogg"}.get(content_type, "webm")
+    try:
+        text = speech.transcribe_audio(audio, filename=f"recording.{extension}")
+    except speech.UnclearAudio:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Unclear audio")
+    except Exception:  # noqa: BLE001 - provider error
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Transcription failed")
+    return {"text": text}
+
+
+@app.post("/api/speech/synthesize")
+def speech_synthesize(payload: SpeechRequest):
+    """Returns the reply as MP3 audio."""
+    if not speech.enabled():
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Voice is not configured")
+    try:
+        audio = speech.synthesize_speech(payload.text, payload.lang)
+    except Exception:  # noqa: BLE001
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Speech generation failed")
+    return Response(content=audio, media_type="audio/mpeg")
 
 
 @app.post("/api/support-cases", status_code=status.HTTP_201_CREATED)
@@ -218,6 +263,7 @@ def promote_unanswered(question_id: str, payload: FaqCreate, actor: str = Depend
     session.add(row)
     audit.log(session, actor, "faq.promote", "faq", entry.id, payload.question.strip())
     session.commit()
+    refresh_index()
     return {"id": entry.id, "category_id": entry.category_id}
 
 
@@ -241,6 +287,7 @@ def staff_create_faq(payload: FaqItemWrite, actor: str = Depends(audit.staff_nam
     item = write_item(session, payload)
     audit.log(session, actor, "faq.create", "faq", item.id, question_text(item))
     session.commit()
+    refresh_index()
     return {"id": item.id}
 
 
@@ -254,6 +301,7 @@ def staff_update_faq(item_id: str, payload: FaqItemWrite, actor: str = Depends(a
     write_item(session, payload, item)
     audit.log(session, actor, "faq.update", "faq", item.id, question_text(item))
     session.commit()
+    refresh_index()
     return {"id": item.id}
 
 
@@ -267,6 +315,7 @@ def staff_delete_faq(item_id: str, actor: str = Depends(audit.staff_name),
     audit.log(session, actor, "faq.delete", "faq", item.id, question_text(item))
     session.delete(item)
     session.commit()
+    refresh_index()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

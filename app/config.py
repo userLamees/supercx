@@ -1,5 +1,8 @@
 """Runtime settings, read from environment variables (Replit Secrets)."""
 import os
+from dotenv import load_dotenv
+
+load_dotenv()  # reads .env locally; on Replit the values come from Secrets
 
 MEMBERSHIP_API_URL = os.getenv("MEMBERSHIP_API_URL", "https://cxa.sa/api/MemberShip/public")
 MEMBERSHIP_PAGE_URL = os.getenv("MEMBERSHIP_PAGE_URL", "https://cxa.sa/membership")
@@ -38,3 +41,20 @@ TWILIO_WHATSAPP_FROM = os.getenv("TWILIO_WHATSAPP_FROM", "")  # e.g. whatsapp:+1
 
 # Member registry used after verification (demo file by default).
 MEMBERS_FILE = os.getenv("MEMBERS_FILE", "")
+
+# AI agent settings
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4.1-mini")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+CHROMA_DIR = os.getenv("CHROMA_DIR", "./chroma_db")
+RAG_TOP_K = int(os.getenv("RAG_TOP_K", "4"))              # FAQ entries retrieved per question
+RAG_MIN_SCORE = float(os.getenv("RAG_MIN_SCORE", "0.30"))  # below this similarity a match is ignored (tuned in evaluation)
+
+
+# Voice: speech-to-text (microphone) and text-to-speech ("Listen"). Same key as the agent.
+OPENAI_STT_MODEL = os.getenv("OPENAI_STT_MODEL", "gpt-4o-mini-transcribe")
+OPENAI_TTS_MODEL = os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts")
+OPENAI_TTS_VOICE = os.getenv("OPENAI_TTS_VOICE", "coral")
+
+# Without a key, the app falls back to the rule-based agent (tests and offline demo).
+AGENT_ENABLED = bool(OPENAI_API_KEY)

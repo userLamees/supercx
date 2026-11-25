@@ -74,6 +74,11 @@ to its path. The association's real member registry is not connected yet.
 | `MEMBERS_FILE` | `data/members_demo.json` | Member registry used after verification |
 | `ALERT_CASE_AGE_HOURS` | `48` | Alert when "new" requests wait longer than this |
 | `ALERT_COMPLAINTS_PER_WEEK` | `3` | Alert when this many complaints arrive in 7 days |
+| `OPENAI_API_KEY` | *(none)* | Turns on the AI agent. Without it the rule-based agent answers |
+| `LLM_MODEL` | `gpt-4.1-mini` | Model used by the agent |
+| `EMBEDDING_MODEL` | `text-embedding-3-small` | Model for the FAQ search index |
+| `CHROMA_DIR` | `./chroma_db` | Folder of the search index (rebuilt from the FAQ table if deleted) |
+| `RAG_TOP_K`, `RAG_MIN_SCORE` | `4`, `0.45` | Entries retrieved per question; weaker matches are ignored |
 
 If the membership API is unreachable, the app falls back to the last good copy,
 then to `data/memberships_fixture.json`. `/api/health` reports which one is in use.
@@ -83,7 +88,9 @@ then to `data/memberships_fixture.json`. `/api/health` reports which one is in u
 ```
 main.py              routes
 app/schemas.py       API contract (shared with the agent)
-app/agent.py         run_agent(): rule-based stub, replaced by the LLM agent
+app/agent.py         run_agent(): LangGraph AI agent (classify, retrieve, generate, check)
+app/rules_agent.py   keyword fallback: used without an API key or if the LLM fails
+app/knowledge.py     FAQ search index (Chroma), kept in sync with the FAQ table
 app/memberships.py   fetch + normalize + cache tiers
 app/db.py            tables: support_cases, unanswered_questions, faq_categories, faq_items
 app/faq.py           FAQ in the DB (faq_categories/faq_items), seeded once from data/faq.json
@@ -137,6 +144,10 @@ signature and return a `ChatResponse`:
 | `sources` | `[{title, url}]` | Required for `answer` and `recommend` |
 | `tier_id` | str or null | Tier `id` from `get_tiers()`. Required for `recommend`. Never a display name |
 | `needs_contact` | bool | `true` on `escalate`, so the UI asks for email/phone |
+
+The `action` can also be `verify`: a personal question (own status, expiry, renewal).
+The UI shows the verification button; the agent never receives member data.
+
 | `summary` | str or null | Case summary for support on `escalate` |
 
 Available helpers: `get_tiers()`, `get_tier(id)`. The UI creates the support case
@@ -152,7 +163,7 @@ Available helpers: `get_tiers()`, `get_tier(id)`. The UI creates the support cas
 | Unanswered questions, FAQ | **Live in this app** | Database tables; FAQ content itself is demo (marked "تجريبي") until approved |
 | Verification codes (OTP) | **Live when configured** | Email via SMTP, WhatsApp via Twilio; labeled simulation until a provider is set |
 | Member records (type, expiry) | **Simulated** | `data/members_demo.json`, not the association's member registry |
-| AI answers | **Stub** | `app/agent.py` is rule-based until the LLM agent replaces it |
+| AI answers | **Live with `OPENAI_API_KEY`** | LangGraph agent over the FAQ (Chroma) and live tier data; rule-based fallback without a key |
 
 ## Still to do
 

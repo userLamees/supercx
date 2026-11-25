@@ -92,7 +92,9 @@ def record_unanswered(session: Session, message: str) -> None:
 @app.post("/api/chat", response_model=ChatResponse)
 def chat(request: ChatRequest, session: Session = Depends(get_session)) -> ChatResponse:
     reply = run_agent(request.message, request.history)
-    if reply.action == ChatAction.escalate:
+    if reply.action == ChatAction.escalate and reply.category is None:
+        # Questions with no answer feed the FAQ learning list; requests (complaints,
+        # suggestions, services) are not knowledge gaps, so they are not logged there.
         record_unanswered(session, request.message)
     return reply
 

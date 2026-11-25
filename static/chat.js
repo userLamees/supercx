@@ -67,6 +67,7 @@ I18N.add({
     "state.searching": "جارٍ البحث",
     "state.searchingBody": "نبحث في المحتوى المعتمد للجمعية…",
     "state.noInfo": "لا توجد معلومة",
+    "state.request": "تحويل لفريق الجمعية",
     "state.sending": "جارٍ الإرسال",
     "state.sendingBody": "نرسل طلبك إلى فريق الدعم، لحظات من فضلك.",
     "state.sent": "تم الإرسال",
@@ -226,6 +227,7 @@ I18N.add({
     "state.searching": "Searching",
     "state.searchingBody": "Searching the association's approved content…",
     "state.noInfo": "No information found",
+    "state.request": "Handed to the association's team",
     "state.sending": "Sending",
     "state.sendingBody": "Sending your request to the support team, one moment please.",
     "state.sent": "Sent",
@@ -463,6 +465,14 @@ function renderReply(question, reply) {
   const ui = I18N.lang;     // language of everything the interface adds around it
   const tier = reply.action === "recommend" && reply.tier_id ? tiersById[reply.tier_id] : null;
 
+  if (reply.action === "verify") {
+    // Personal question: the agent never shows member data, it sends the user to verification.
+    const msg = botText(reply.answer, lang);
+    msg.append(h("div", {}, h("a", { class: "chip", href: "#verify" }, ic("badge-check", "icon-sm"), t("statusPrompt.btn"))));
+    I18N.icons();
+    return;
+  }
+
   if (reply.action === "escalate") {
     if (reply.needs_contact) consentCard(question, reply, reply.answer);
     else add(stateCard("warn", t("state.noInfo"), reply.answer));
@@ -523,6 +533,7 @@ function consentCard(question, reply, notice) {
     h("label", { class: "label", for: `ci-${uid}` }, tl("consent.contactLabel")), contactInput);
   const categorySelect = h("select", { class: "select", id: `ct-${uid}` },
     ...["inquiry", "complaint", "suggestion", "service"].map((c) => new Option(tl(`cat.${c}`), c)));
+  if (reply.category) categorySelect.value = reply.category;  // the agent recognized a request
   const error = h("p", { class: "form-error", id: `ce-${uid}`, role: "alert", hidden: true });
   const status = h("div", { class: "consent-status" });
   const sendButton = h("button", { class: "btn btn-primary btn-block", type: "submit" }, tl("consent.send"));
@@ -539,7 +550,7 @@ function consentCard(question, reply, notice) {
     h("div", { class: "card consent" },
       h("div", { class: "escalation-head" },
         h("span", { class: "state-kind" }, tl("state.kind.warn")),
-        h("span", { class: "state-title" }, tl("state.noInfo")),
+        h("span", { class: "state-title" }, tl(reply.category ? "state.request" : "state.noInfo")),
         notice ? h("p", { class: "state-body", dir: "auto" }, notice) : null),
       h("hr", { class: "divider" }),
       h("div", { class: "field" }, h("label", { class: "label", for: `ct-${uid}` }, tl("consent.type")), categorySelect),

@@ -105,6 +105,7 @@ to its path. The association's real member registry is not connected yet.
 | `MEMBER_REGISTRY` | `demo` (`file` if `MEMBERS_FILE` is set) | Member registry: `demo`, `file` or `api` |
 | `MEMBERS_FILE` | `data/members_demo.json` | Member file for `MEMBER_REGISTRY=file` (same shape as the demo file; `expires_at` or `expires_in_days`) |
 | `MEMBER_REGISTRY_URL`, `MEMBER_REGISTRY_TOKEN`, `MEMBER_REGISTRY_TIMEOUT` | *(none)*, *(none)*, `10` | The association's lookup endpoint for `MEMBER_REGISTRY=api` |
+| `WHATSAPP_ASSISTANT`, `WHATSAPP_SESSION_MINUTES`, `WHATSAPP_MAX_PER_5MIN` | `true`, `30`, `20` | Assistant on WhatsApp (needs the Twilio settings) |
 | `CASE_SYNC` | `demo` | Send requests to the association's system: `off`, `demo`, `webhook` or `email` |
 | `CASE_WEBHOOK_URL`, `CASE_WEBHOOK_SECRET` | *(none)* | Webhook address and HMAC key (`X-SuperCX-Signature`) |
 | `CASE_EMAIL_TO` | *(none)* | Team inbox for `CASE_SYNC=email` (uses the SMTP settings) |
@@ -138,6 +139,8 @@ app/db.py            tables (SQLModel) and init_db(): runs the migrations at sta
 migrations/          Alembic migrations (versions/0001_baseline_schema.py, ...)
 app/staff.py         staff accounts: sign-in, sessions, roles
 app/notify.py        reply notifications: email / WhatsApp / demo outbox
+app/whatsapp.py      the assistant on WhatsApp (Twilio webhook and staff simulator)
+app/chatlog.py       chat events and unanswered questions, shared by website and WhatsApp
 app/integrations/    connectors: member registry, requests to the association's system, status
 app/faq.py           FAQ in the DB (faq_categories/faq_items), seeded once from data/faq.json
 app/verify.py        member lookup (phone or email) + normalization
@@ -150,6 +153,28 @@ static/tokens.css    design tokens (Figma "Screens v2"); styles use variables on
 static/              chat, FAQ and staff dashboard (AR/RTL default, EN toggle)
 tests/               success, error and permission tests
 ```
+
+## Assistant on WhatsApp (idea 39)
+
+The same agent and rules as the website, on the association's WhatsApp number (`app/whatsapp.py`).
+
+- Answers from approved content with the source under each answer; membership questions show the
+  tier cards as text (prices and benefits from the memberships API, matched by `tier_id`).
+- **Personal information only for the number that writes:** WhatsApp has already verified that the
+  sender holds the number, which is what the website's code proves. "حالة عضويتي" shows that
+  number's membership; nobody can ask about another number.
+- **Handing over needs consent:** when the agent can't answer, the visitor replies `1` to send a
+  summary to the team (contact = this number) or `2` to cancel. The case gets a case number and a
+  tracking code (it also works on the website), goes to the association's system, and the reply
+  notification comes back on WhatsApp. "طلباتي" lists this number's requests and team replies.
+- **Privacy:** the number is stored only as a hash; recent turns (redacted) are kept for
+  `WHATSAPP_SESSION_MINUTES` (30) for context, then forgotten. 20 messages per number per 5 minutes.
+- **Demo now:** the staff dashboard has a **واتساب** simulator (`POST /api/whatsapp/simulate`,
+  staff only) that runs the exact same conversation; requests made there are marked demo.
+- **Live:** set the Twilio secrets and, in Twilio, the incoming-message webhook
+  `{PUBLIC_BASE_URL}/api/whatsapp/webhook`. Every request is checked against Twilio's signature
+  (`X-Twilio-Signature`); answers go back as TwiML, split under WhatsApp's length limit.
+- The overview counts website and WhatsApp conversations together (`chat_events.channel`, migration `0003`).
 
 ## Integrations (connectors to the association's systems)
 

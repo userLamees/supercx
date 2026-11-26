@@ -224,7 +224,7 @@ def test_case_sync_endpoints_need_staff(client):
 def test_status_lists_every_connector(client):
     items = {i["key"]: i for i in client.get("/api/integrations", headers=TOKEN).json()}
     assert set(items) == {"ai_agent", "memberships", "member_registry", "case_sync", "email", "whatsapp",
-                          "notifications", "database", "staff_accounts", "secrets"}
+                          "notifications", "database", "staff_accounts", "secrets", "whatsapp_assistant"}
     assert items["member_registry"]["state"] == "demo" and items["case_sync"]["state"] == "demo"
     assert items["ai_agent"]["state"] == "demo" and "OPENAI_API_KEY" in items["ai_agent"]["needs"]
     assert items["database"]["version"]  # migration version

@@ -72,6 +72,29 @@ I18N.add({
     "pw.e.too_simple": "اجمع بين الحروف والأرقام أو الرموز.",
     "pw.e.same_password": "اختر كلمة مختلفة عن الحالية.",
     "pw.e.failed": "تعذّر حفظ كلمة المرور. حاول مرة أخرى.",
+    "wa.nav": "واتساب",
+    "wa.title": "المساعد على واتساب",
+    "wa.sub": "جرّب المحادثة كما تصل عبر واتساب الجمعية: نفس المساعد ونفس القواعد. الطلبات التي تُنشأ هنا تُعلَّم تجريبية.",
+    "wa.phone": "رقم المرسل (تجريبي)",
+    "wa.phoneHelp": "0500000001 عضو تجريبي (سفير). جرّب رقمًا آخر لترى رد غير العضو.",
+    "wa.newChat": "محادثة جديدة",
+    "wa.org": "جمعية تجربة العميل",
+    "wa.online": "مساعد آلي",
+    "wa.ph": "اكتب رسالة",
+    "wa.send": "إرسال",
+    "wa.typing": "يكتب…",
+    "wa.error": "تعذّر إرسال الرسالة. حاول مرة أخرى.",
+    "wa.badPhone": "اكتب رقم جوال صحيحًا.",
+    "wa.q1": "السلام عليكم",
+    "wa.q2": "ما الفرق بين العضويات؟",
+    "wa.q3": "حالة عضويتي",
+    "wa.q4": "هل يمكن تقسيط الرسوم؟",
+    "wa.q5": "طلباتي",
+    "wa.liveOn": "واتساب الجمعية مربوط: الرسائل الحقيقية تصل إلى {url}",
+    "wa.liveOff": "لربط رقم واتساب الجمعية: أضف إعدادات Twilio في Replit Secrets، ثم اجعل رابط الرسائل الواردة في Twilio: {url}",
+    "int.whatsapp_assistant": "المساعد على واتساب",
+    "int.whatsapp_assistant.simulator": "يعمل في المحاكي التجريبي من لوحة الموظف. اربط Twilio ليصل للأعضاء على واتساب.",
+    "int.whatsapp_assistant.webhook": "يستقبل رسائل واتساب الجمعية ويرد عليها.",
     "int.nav": "التكاملات",
     "int.title": "التكاملات",
     "int.sub": "ما يعمل فعليًا وما يزال تجريبيًا. كل بند تجريبي يتحول إلى فعلي بإضافة الإعدادات المذكورة في Replit Secrets، دون تعديل الكود.",
@@ -417,6 +440,29 @@ I18N.add({
     "pw.e.too_simple": "Mix letters with digits or symbols.",
     "pw.e.same_password": "Choose a password different from the current one.",
     "pw.e.failed": "Couldn't save the password. Please try again.",
+    "wa.nav": "WhatsApp",
+    "wa.title": "Assistant on WhatsApp",
+    "wa.sub": "Try the conversation as it arrives on the association's WhatsApp: same assistant, same rules. Requests created here are marked demo.",
+    "wa.phone": "Sender number (demo)",
+    "wa.phoneHelp": "0500000001 is a demo member (Ambassador). Try another number to see the non-member reply.",
+    "wa.newChat": "New chat",
+    "wa.org": "Customer Experience Association",
+    "wa.online": "Automated assistant",
+    "wa.ph": "Type a message",
+    "wa.send": "Send",
+    "wa.typing": "typing…",
+    "wa.error": "Couldn't send the message. Please try again.",
+    "wa.badPhone": "Enter a valid mobile number.",
+    "wa.q1": "Hello",
+    "wa.q2": "What's the difference between the memberships?",
+    "wa.q3": "Membership status",
+    "wa.q4": "Can I pay the fees in installments?",
+    "wa.q5": "My requests",
+    "wa.liveOn": "The association's WhatsApp is connected: real messages arrive at {url}",
+    "wa.liveOff": "To connect the association's WhatsApp number: add the Twilio settings in Replit Secrets, then set Twilio's incoming-message URL to {url}",
+    "int.whatsapp_assistant": "Assistant on WhatsApp",
+    "int.whatsapp_assistant.simulator": "Runs in the demo simulator in the staff dashboard. Connect Twilio to reach members on WhatsApp.",
+    "int.whatsapp_assistant.webhook": "Receives and answers messages on the association's WhatsApp.",
     "int.nav": "Integrations",
     "int.title": "Integrations",
     "int.sub": "What is live and what is still demo. Each demo item goes live by adding the listed settings in Replit Secrets, with no code change.",
@@ -777,7 +823,7 @@ function relative(iso) {
 const ref = (id) => `CX-${id.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
 
 /* ---------- Views ---------- */
-const VIEWS = ["overview", "cases", "unanswered", "faq", "team", "integrations"];
+const VIEWS = ["overview", "cases", "unanswered", "faq", "whatsapp", "team", "integrations"];
 const PERIOD_VIEWS = ["overview", "cases", "unanswered"];
 function currentView() { const v = location.hash.slice(1).split("?")[0]; return VIEWS.includes(v) ? v : "overview"; }
 const hashParams = () => new URLSearchParams(location.hash.split("?")[1] || "");
@@ -904,10 +950,10 @@ function show(view) {
 
 const STATE = { overview: ["overview-state", "overview-body"], unanswered: ["unanswered-state", "unanswered-table"],
                 cases: ["cases-state", "cases-table"], faq: ["faq-state", "faq-table"], team: ["team-state", "team-table"],
-                integrations: ["integrations-state", "integrations-list"] };
+                integrations: ["integrations-state", "integrations-list"], whatsapp: ["whatsapp-state", "whatsapp-body"] };
 const LOADERS = { overview: () => Overview.load(periodQuery("overview")), unanswered: () => loadUnanswered(),
                   cases: () => loadCases(), faq: () => loadFaq(), team: () => loadTeam(),
-                  integrations: () => loadIntegrations() };
+                  integrations: () => loadIntegrations(), whatsapp: () => loadWhatsApp() };
 async function route() {
   let view = currentView();
   if (!isAuthed()) { show(view); syncPeriodBar(view); $("login-email").focus(); return; }
@@ -1207,6 +1253,63 @@ async function resendSync(id, btn) {
     btn.disabled = false;
   }
 }
+
+/* ---------- WhatsApp simulator: same conversation as the real number, without Twilio ---------- */
+let waStarted = false;
+function waBubble(text, who) {
+  const el = h("div", { class: `wa-msg wa-${who}`, dir: "auto" });
+  // WhatsApp *bold*: shown as bold here too; everything else is plain text.
+  text.split(/(\*[^*\n]+\*)/).forEach((part) => {
+    if (/^\*[^*\n]+\*$/.test(part)) el.append(h("strong", {}, part.slice(1, -1)));
+    else el.append(part);
+  });
+  $("wa-log").append(el);
+  $("wa-log").scrollTop = $("wa-log").scrollHeight;
+  return el;
+}
+async function waSend(text) {
+  text = text.trim();
+  const phone = $("wa-phone").value.trim();
+  if (!text) return;
+  if (!/^[+\d\s-]{9,16}$/.test(phone)) { toast(t("wa.badPhone")); $("wa-phone").focus(); return; }
+  waBubble(text, "me");
+  $("wa-input").value = "";
+  const typing = waBubble(t("wa.typing"), "typing");
+  try {
+    const data = await api("/api/whatsapp/simulate", { method: "POST", body: JSON.stringify({ phone, text }) });
+    typing.remove();
+    data.messages.forEach((m) => waBubble(m, "bot"));
+  } catch (err) {
+    typing.remove();
+    if (err.message === "auth") return authFailed();
+    toast(t(isOffline(err) ? "dash.offline" : "wa.error"));
+  }
+  $("wa-input").focus();
+}
+function waQuick() {
+  $("wa-quick").replaceChildren(...["wa.q1", "wa.q2", "wa.q3", "wa.q4", "wa.q5", "1", "2"].map((k) =>
+    h("button", { class: "pill", type: "button", onclick: () => waSend(k.startsWith("wa.") ? t(k) : k) }, k.startsWith("wa.") ? t(k) : k)));
+}
+async function loadWhatsApp() {
+  if (!$("wa-avatar").firstChild) $("wa-avatar").append(Brand.avatar("sm"));
+  waQuick();
+  $("whatsapp-body").hidden = false;
+  $("whatsapp-state").hidden = true;
+  if (me?.role === "admin") {  // where Twilio should post, from the integrations report
+    try {
+      const item = (await api("/api/integrations")).find((i) => i.key === "whatsapp_assistant");
+      const url = item?.webhook?.startsWith("http") ? item.webhook : `${location.origin}/api/whatsapp/webhook`;
+      $("wa-live-note").textContent = t(item?.state === "live" ? "wa.liveOn" : "wa.liveOff", { url });
+    } catch { $("wa-live-note").textContent = ""; }
+  }
+  if (!waStarted) { waStarted = true; $("wa-input").focus(); }
+}
+$("wa-form").addEventListener("submit", (e) => { e.preventDefault(); waSend($("wa-input").value); });
+$("wa-number-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  $("wa-log").replaceChildren();
+  $("wa-input").focus();
+});
 
 /* ---------- Integrations (admins): live vs demo, and the settings each item needs ---------- */
 async function loadIntegrations() {

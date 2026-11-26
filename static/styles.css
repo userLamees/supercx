@@ -967,3 +967,21 @@ dialog.drawer {
 .sync-payload { margin: 0; max-height: 240px; overflow: auto; padding: var(--s-2); border-radius: var(--r-sm); background: var(--c-surface-2); font-size: 11px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (min-width: 768px) { .int-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1200px) { .int-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* Staff: WhatsApp simulator (a phone-shaped chat; colors stay on the brand tokens) */
+.wa-panel { gap: var(--s-4); }
+.wa-number { display: grid; gap: var(--s-1); max-width: 420px; }
+.wa-phone { display: flex; flex-direction: column; width: 100%; max-width: 420px; height: 560px; border: var(--bw) solid var(--c-border); border-radius: var(--r-lg); overflow: hidden; background: var(--c-surface); }
+.wa-head { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: var(--c-bg); border-bottom: var(--bw) solid var(--c-line); }
+.wa-head strong { display: block; font-size: var(--fs-small); }
+.wa-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-4) var(--s-3); }
+.wa-msg { max-width: 85%; padding: var(--s-2) var(--s-3); border-radius: 14px; font-size: var(--fs-footnote); line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+.wa-bot { align-self: flex-start; background: var(--c-bg); border: var(--bw) solid var(--c-bubble-border); border-start-start-radius: 4px; }
+.wa-me { align-self: flex-end; background: var(--c-blue-soft); color: var(--c-text); border-end-end-radius: 4px; }
+.wa-typing { align-self: flex-start; color: var(--c-meta); font-style: italic; background: transparent; }
+.wa-quick { display: flex; gap: var(--s-1); overflow-x: auto; padding: var(--s-2) var(--s-3); scrollbar-width: none; }
+.wa-quick .pill { min-height: 32px; font-size: var(--fs-caption); flex: none; }
+.wa-compose { display: flex; align-items: center; gap: var(--s-2); padding: var(--s-2) var(--s-3) var(--s-3); background: var(--c-surface); }
+.wa-compose input { flex: 1; min-width: 0; height: 42px; padding: 0 var(--s-4); border: var(--bw) solid var(--c-input-border); border-radius: var(--r-pill); background: var(--c-bg); font-size: var(--fs-sub); }
+.wa-compose input:focus { outline: none; border-color: var(--c-blue-bright); }
+@media (min-width: 1200px) { .wa-panel { grid-template-columns: 420px 1fr; align-items: start; } .wa-panel .wa-number { grid-column: 1 / -1; } }

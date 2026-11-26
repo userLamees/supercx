@@ -78,6 +78,11 @@ STAFF_MIN_PASSWORD = int(os.getenv("STAFF_MIN_PASSWORD", "10"))
 # SUPPORT_TOKEN still works as an admin key (scripts, first setup). Set to false to allow accounts only.
 ALLOW_SUPPORT_TOKEN = os.getenv("ALLOW_SUPPORT_TOKEN", "true").lower() == "true"
 
+# The assistant on WhatsApp (Twilio webhook: {PUBLIC_BASE_URL}/api/whatsapp/webhook).
+WHATSAPP_ASSISTANT = os.getenv("WHATSAPP_ASSISTANT", "true").lower() == "true"
+WHATSAPP_SESSION_MINUTES = int(os.getenv("WHATSAPP_SESSION_MINUTES", "30"))  # context kept this long
+WHATSAPP_MAX_PER_5MIN = int(os.getenv("WHATSAPP_MAX_PER_5MIN", "20"))        # messages per number
+
 # Member registry used after verification: demo (data/members_demo.json), file (MEMBERS_FILE),
 # or api (the association's lookup endpoint, see app/integrations/members.py for the contract).
 MEMBERS_FILE = os.getenv("MEMBERS_FILE", "")

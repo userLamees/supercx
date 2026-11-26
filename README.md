@@ -128,18 +128,42 @@ app/speech.py        speech-to-text and text-to-speech (OpenAI)
 app/evaluate.py      agent evaluation: python -m app.evaluate, reports in reports/
 docs/AGENT.md        how the AI agent works, safety rules, evaluation results
 app/memberships.py   fetch + normalize + cache tiers
-app/db.py            tables: support_cases, unanswered_questions, faq_categories, faq_items
+app/db.py            tables (SQLModel) and init_db(): runs the migrations at startup
+migrations/          Alembic migrations (versions/0001_baseline_schema.py, ...)
+app/staff.py         staff accounts: sign-in, sessions, roles
+app/notify.py        reply notifications: email / WhatsApp / demo outbox
 app/faq.py           FAQ in the DB (faq_categories/faq_items), seeded once from data/faq.json
 app/verify.py        member lookup (phone or email) + normalization
 app/otp.py           verification codes: email (SMTP) / WhatsApp (Twilio), limits, hashing
 app/audit.py         staff action log
 app/export.py        CSV exports (UTF-8 BOM, formula-safe)
 app/redact.py        strips emails/phone numbers from summaries
-app/seed_demo.py     loads the design's sample unanswered questions (dev only)
+app/seed_demo.py     demo questions, requests, notifications and staff accounts (dev only)
 static/tokens.css    design tokens (Figma "Screens v2"); styles use variables only
 static/              chat, FAQ and staff dashboard (AR/RTL default, EN toggle)
 tests/               success, error and permission tests
 ```
+
+## Database migrations
+
+The schema is managed with **Alembic** (`migrations/`). At every start the app runs
+`upgrade head` (`app/db.py: init_db`), so a new deploy brings the database up to date by itself,
+on SQLite locally and Postgres on Replit.
+
+- **Changing a model:** edit `app/db.py`, then create the migration and review it:
+
+```bash
+alembic revision --autogenerate -m "add phone to staff_users"
+```
+
+  Commit the new file in `migrations/versions/`. `tests/test_migrations.py` fails if a model
+  changed without a migration.
+- **Useful commands:** `alembic current` (version of this database), `alembic history`,
+  `alembic upgrade head --sql` (print the SQL without running it), `alembic downgrade -1`.
+- **Databases from before migrations** (made by `create_all`): on first start they get the
+  columns they lacked, the baseline creates only the tables they don't have, and they are marked
+  as version `0001`. Data is kept.
+- On Postgres, back up before a release that adds a migration (Replit: database → backups).
 
 ## v2 additions
 
@@ -296,4 +320,3 @@ Available helpers: `get_tiers()`, `get_tier(id)`. The UI creates the support cas
 - Send support cases to the association's system and confirm response times.
 - Choose the email/WhatsApp provider and get the WhatsApp reply template approved by Meta (notifications run in the demo outbox until then).
 - Sign in with the association's identity provider (SSO), if they have one; today staff accounts live in this app.
-- Database migrations (tables are created with `create_all`; schema changes need a migration tool).

@@ -18,8 +18,11 @@ def client():
     from sqlmodel import SQLModel
     from app.db import engine
     from main import app
+    from sqlalchemy import text
     SQLModel.metadata.drop_all(engine)
-    with TestClient(app) as c:  # startup recreates the tables
+    with engine.begin() as conn:  # forget the schema version too, so startup migrates from scratch
+        conn.execute(text("DROP TABLE IF EXISTS alembic_version"))
+    with TestClient(app) as c:  # startup runs the migrations
         yield c
 
 

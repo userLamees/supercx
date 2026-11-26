@@ -191,7 +191,7 @@ def test_postgres_url_scheme_is_converted(monkeypatch):
     from app import config
     monkeypatch.setenv("DATABASE_URL", "postgres://user:pass@host:5432/db")
     try:
-        assert importlib.reload(config).DATABASE_URL == "postgresql://user:pass@host:5432/db"
+        assert importlib.reload(config).DATABASE_URL == "postgresql+psycopg2://user:pass@host:5432/db"
     finally:
         monkeypatch.setenv("DATABASE_URL", "sqlite:///./test_supercx.db")
         importlib.reload(config)

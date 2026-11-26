@@ -101,7 +101,12 @@ to its path. The association's real member registry is not connected yet.
 | `PUBLIC_BASE_URL` | address of the staff request | Public address used in the notification link, e.g. `https://supercx.replit.app` |
 | `TWILIO_REPLY_TEMPLATE_SID` | *(none)* | Meta-approved WhatsApp template (Twilio Content SID; variables 1 = case number, 2 = link). Needed to message outside the 24-hour window |
 | `OTP_SECRET` | random per start | Key for hashing codes and addresses |
-| `MEMBERS_FILE` | `data/members_demo.json` | Member registry used after verification |
+| `MEMBER_REGISTRY` | `demo` (`file` if `MEMBERS_FILE` is set) | Member registry: `demo`, `file` or `api` |
+| `MEMBERS_FILE` | `data/members_demo.json` | Member file for `MEMBER_REGISTRY=file` (same shape as the demo file; `expires_at` or `expires_in_days`) |
+| `MEMBER_REGISTRY_URL`, `MEMBER_REGISTRY_TOKEN`, `MEMBER_REGISTRY_TIMEOUT` | *(none)*, *(none)*, `10` | The association's lookup endpoint for `MEMBER_REGISTRY=api` |
+| `CASE_SYNC` | `demo` | Send requests to the association's system: `off`, `demo`, `webhook` or `email` |
+| `CASE_WEBHOOK_URL`, `CASE_WEBHOOK_SECRET` | *(none)* | Webhook address and HMAC key (`X-SuperCX-Signature`) |
+| `CASE_EMAIL_TO` | *(none)* | Team inbox for `CASE_SYNC=email` (uses the SMTP settings) |
 | `ALERT_CASE_AGE_HOURS` | `48` | Alert when "new" requests wait longer than this |
 | `ALERT_COMPLAINTS_PER_WEEK` | `3` | Alert when this many complaints arrive in 7 days |
 | `REPLY_BUSINESS_DAYS` | `2` | Expected reply time shown to visitors; "reply needed" flag after this (Fri/Sat not counted). Demo assumption |
@@ -132,6 +137,7 @@ app/db.py            tables (SQLModel) and init_db(): runs the migrations at sta
 migrations/          Alembic migrations (versions/0001_baseline_schema.py, ...)
 app/staff.py         staff accounts: sign-in, sessions, roles
 app/notify.py        reply notifications: email / WhatsApp / demo outbox
+app/integrations/    connectors: member registry, requests to the association's system, status
 app/faq.py           FAQ in the DB (faq_categories/faq_items), seeded once from data/faq.json
 app/verify.py        member lookup (phone or email) + normalization
 app/otp.py           verification codes: email (SMTP) / WhatsApp (Twilio), limits, hashing
@@ -143,6 +149,38 @@ static/tokens.css    design tokens (Figma "Screens v2"); styles use variables on
 static/              chat, FAQ and staff dashboard (AR/RTL default, EN toggle)
 tests/               success, error and permission tests
 ```
+
+## Integrations (connectors to the association's systems)
+
+Each connector lives in one file under `app/integrations/`, works with demo data today, and goes
+live by settings only. Admins see the state of every connector, and the settings it needs, on
+**التكاملات** (`/support#integrations`, `GET /api/integrations`); secret values are never shown.
+
+**Member registry** (`members.py`, `MEMBER_REGISTRY`): after verification, who is a member.
+`demo` reads `data/members_demo.json`, `file` reads `MEMBERS_FILE`, `api` asks the association:
+
+```
+POST {MEMBER_REGISTRY_URL}            Authorization: Bearer {MEMBER_REGISTRY_TOKEN}
+{"phone": "+9665XXXXXXXX"}  or  {"email": "name@example.com"}
+→ 200 {"found": true, "tier_id": "<id from the public memberships API>", "expires_at": "2027-05-01"}
+→ 200 {"found": false}
+```
+
+Only the tier and expiry come back; nothing else about the member is stored or shown. If the
+registry doesn't answer, the visitor sees "try again shortly" (503 `registry_unavailable`).
+`_from_api` is the one place to adapt if the association's API differs.
+
+**Requests to the association's system** (`case_sync.py`, `CASE_SYNC`): `case.created`,
+`case.replied` and `case.status` are sent after the response (a failure never loses the request).
+
+- `webhook`: JSON POST to `CASE_WEBHOOK_URL` with `X-SuperCX-Event`, `X-SuperCX-Delivery` (unique,
+  for de-duplication) and `X-SuperCX-Signature: sha256=<HMAC-SHA256 of the body with
+  CASE_WEBHOOK_SECRET>`. A 2xx answer is delivered; `{"external_id": "..."}` in it is kept.
+- `email`: a readable Arabic message to `CASE_EMAIL_TO`.
+- `demo` (default): the exact payload is kept in an outbox; staff read it in the case panel
+  ("نظام الجمعية") and can send again. A live mode without its settings falls back to demo.
+- The payload has the redacted request text, the contact only if the visitor gave it with
+  consent, and never the tracking code. Every attempt is a `case_syncs` row (migration `0002`).
 
 ## Database migrations
 
@@ -303,20 +341,21 @@ Available helpers: `get_tiers()`, `get_tier(id)`. The UI creates the support cas
 |---|---|---|
 | Membership tiers (names, prices, benefits) | **Live** | Public API `cxa.sa/api/MemberShip/public`, read only; falls back to the bundled copy |
 | Registration / renewal | **Link only** | Buttons open `cxa.sa/membership`; no enrollment or payment here (Track 2) |
-| Support cases | **Live in this app** | Stored in this app's database, not yet in the association's system |
+| Support cases | **Live in this app** | Stored in this app's database; also sent to the association's system when `CASE_SYNC` is live |
 | Staff reply and tracking | **Live in this app** | Visitors read the reply in "طلباتي" or by tracking code |
 | Reply notifications | **Live when configured** | Email via SMTP, WhatsApp via Twilio; demo outbox (readable by staff) until a provider is set |
 | Reply time ("within two business days") | **Assumption** | `REPLY_BUSINESS_DAYS`, labeled as an estimate until the association confirms it |
 | Unanswered questions, FAQ | **Live in this app** | Database tables; FAQ content itself is demo (marked "تجريبي") until approved |
 | Verification codes (OTP) | **Live when configured** | Email via SMTP, WhatsApp via Twilio; labeled simulation until a provider is set |
-| Member records (type, expiry) | **Simulated** | `data/members_demo.json`, not the association's member registry |
+| Member records (type, expiry) | **Demo, ready for live** | `data/members_demo.json` until `MEMBER_REGISTRY=api` (or `file`) is set |
+| Requests in the association's system | **Demo, ready for live** | Demo outbox until `CASE_SYNC=webhook` or `email` is set |
 | AI answers | **Live with `OPENAI_API_KEY`** | LangGraph agent over the FAQ (Chroma) and live tier data; rule-based fallback without a key |
 
 ## Still to do
 
-- Connect the member registry so verified users see their real membership (needs the association).
+- From the association: the member registry endpoint and token (`MEMBER_REGISTRY=api`), and where requests should go (a webhook URL, or a team inbox).
 - WhatsApp Business sender approval for production WhatsApp codes.
 - Approved FAQ content and sources from the association; replace the demo answers.
-- Send support cases to the association's system and confirm response times.
+- Confirm the expected reply time with the association (`REPLY_BUSINESS_DAYS`).
 - Choose the email/WhatsApp provider and get the WhatsApp reply template approved by Meta (notifications run in the demo outbox until then).
 - Sign in with the association's identity provider (SSO), if they have one; today staff accounts live in this app.

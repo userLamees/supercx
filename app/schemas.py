@@ -135,6 +135,21 @@ class SupportCaseReply(BaseModel):
     reply: Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=4000)]
 
 
+class CaseSyncOut(BaseModel):
+    """One case event sent to the association's system (or kept in the demo outbox)."""
+    id: str
+    created_at: str
+    event: str                 # case.created | case.replied | case.status
+    target: str                # webhook | email | demo
+    status: str                # pending | sent | simulated | failed
+    payload: str               # the JSON that was (or would be) sent
+    external_id: Optional[str] = None
+    error: Optional[str] = None
+    attempts: int
+    sent_at: Optional[str] = None
+    demo: bool
+
+
 class NotificationOut(BaseModel):
     """A message to the visitor, as staff see it (recipient masked)."""
     id: str

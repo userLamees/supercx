@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/tokens.css?v=11">
-  <link rel="stylesheet" href="/static/styles.css?v=11">
+  <link rel="stylesheet" href="/static/tokens.css?v=12">
+  <link rel="stylesheet" href="/static/styles.css?v=12">
 </head>
 <body>
   <div class="dash">
@@ -22,6 +22,7 @@
         <a class="tab" href="#unanswered" data-view="unanswered"><i data-lucide="circle-help" class="icon icon-sm"></i><span data-i18n="dash.unanswered">الأسئلة غير المجابة</span></a>
         <a class="tab" href="#faq" data-view="faq"><i data-lucide="book-open" class="icon icon-sm"></i><span data-i18n="dash.faq">الأسئلة الشائعة</span></a>
         <a class="tab" href="#team" data-view="team" data-admin hidden><i data-lucide="users" class="icon icon-sm"></i><span data-i18n="team.nav">الفريق</span></a>
+        <a class="tab" href="#integrations" data-view="integrations" data-admin hidden><i data-lucide="plug" class="icon icon-sm"></i><span data-i18n="int.nav">التكاملات</span></a>
       </nav>
       <div class="side-foot">
         <strong id="side-name" data-i18n="dash.team">فريق إدارة المعرفة</strong><span id="side-role"></span>
@@ -46,6 +47,7 @@
         <a class="tab" href="#unanswered" data-view="unanswered"><i data-lucide="circle-help" class="icon icon-sm"></i><span data-i18n="dash.unanswered">الأسئلة غير المجابة</span></a>
         <a class="tab" href="#faq" data-view="faq"><i data-lucide="book-open" class="icon icon-sm"></i><span data-i18n="dash.faq">الأسئلة الشائعة</span></a>
         <a class="tab" href="#team" data-view="team" data-admin hidden><i data-lucide="users" class="icon icon-sm"></i><span data-i18n="team.nav">الفريق</span></a>
+        <a class="tab" href="#integrations" data-view="integrations" data-admin hidden><i data-lucide="plug" class="icon icon-sm"></i><span data-i18n="int.nav">التكاملات</span></a>
       </nav>
 
       <main class="dash-content">
@@ -272,6 +274,17 @@
             </table>
           </section>
         </div>
+        <!-- Integrations (admins only): what is live, what is still demo, and what each needs -->
+        <div id="view-integrations" class="dash-section" hidden>
+          <div class="dash-head">
+            <h2 data-i18n="int.title">التكاملات</h2>
+            <p data-i18n="int.sub">ما يعمل فعليًا وما يزال تجريبيًا. كل بند تجريبي يتحول إلى فعلي بإضافة الإعدادات المذكورة في Replit Secrets، دون تعديل الكود.</p>
+          </div>
+          <p class="muted" id="integrations-state" role="status" hidden></p>
+          <div class="int-summary" id="integrations-summary"></div>
+          <div class="int-grid" id="integrations-list"></div>
+        </div>
+
         <!-- Team accounts (admins only) -->
         <div id="view-team" class="dash-section" hidden>
           <div class="dash-head">
@@ -477,9 +490,9 @@
   <div class="toast" id="toast" role="status" hidden></div>
 
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-  <script src="/static/brand.js?v=11"></script>
-  <script src="/static/i18n.js?v=11"></script>
-  <script src="/static/overview.js?v=11"></script>
-  <script src="/static/support.js?v=11"></script>
+  <script src="/static/brand.js?v=12"></script>
+  <script src="/static/i18n.js?v=12"></script>
+  <script src="/static/overview.js?v=12"></script>
+  <script src="/static/support.js?v=12"></script>
 </body>
 </html>

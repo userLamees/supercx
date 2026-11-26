@@ -953,3 +953,17 @@ dialog.drawer {
   .team-form .form-error, .team-form > .btn { grid-column: 1 / -1; justify-self: start; }
 }
 .side-foot { display: grid; gap: 2px; justify-items: start; }
+
+/* Admin: integrations; case panel: data sent to the association's system */
+.int-summary { font-size: var(--fs-footnote); font-weight: 600; color: var(--c-text-2); }
+.int-grid { display: grid; gap: var(--s-3); }
+.int-card { display: grid; gap: var(--s-2); align-content: start; padding: var(--s-4); border: var(--bw) solid var(--c-border); border-radius: var(--r-card); background: var(--c-bg); }
+.int-card h3 { font-size: var(--fs-sub); font-weight: 700; }
+.int-card.int-missing { border-color: var(--c-danger); }
+.int-detail { font-size: var(--fs-footnote); color: var(--c-text-2); line-height: var(--lh); }
+.int-needs { display: grid; gap: var(--s-1); }
+.int-keys { display: flex; flex-wrap: wrap; gap: var(--s-1); }
+.int-keys code { padding: 2px var(--s-2); border-radius: 6px; background: var(--c-surface-2); font-size: var(--fs-caption); color: var(--c-text); }
+.sync-payload { margin: 0; max-height: 240px; overflow: auto; padding: var(--s-2); border-radius: var(--r-sm); background: var(--c-surface-2); font-size: 11px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (min-width: 768px) { .int-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .int-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

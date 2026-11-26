@@ -56,6 +56,25 @@ class Notification(SQLModel, table=True):
     demo: bool = False                      # no provider configured: kept in the demo outbox
 
 
+class CaseSync(SQLModel, table=True):
+    """One attempt to send a case event to the association's system (webhook or email), or the
+    demo outbox when no system is configured. Holds the payload sent, never a secret."""
+    __tablename__ = "case_syncs"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    created_at: datetime = Field(default_factory=_now, index=True)
+    case_id: str = Field(index=True)
+    event: str                              # case.created | case.replied | case.status
+    target: str                             # webhook | email | demo
+    status: str = Field(default="pending", index=True)  # pending | sent | simulated | failed
+    payload: str = ""                       # JSON sent (redacted text, contact only with consent)
+    external_id: Optional[str] = None       # the association system's id for the case, if returned
+    error: Optional[str] = None
+    attempts: int = 0
+    sent_at: Optional[datetime] = None
+    demo: bool = False
+
+
 class ChatEvent(SQLModel, table=True):
     """One row per chat message, for the staff overview. No message text and no personal
     data: only when, which language, what the agent did, and what the visitor did next."""

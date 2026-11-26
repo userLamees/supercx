@@ -487,7 +487,7 @@ function renderReply(question, reply) {
     // The card shows price and benefits, so only the recommendation sentence is kept as text.
     const intro = reply.answer.split(/\n\s*\n/)[0];
     addListen(botText(intro, lang), intro, lang);
-    const block = h("div", { class: "chat-block", dir: dirOf(ui) }, tierCard(tier, ui));
+    const block = h("div", { class: "chat-block", dir: dirOf(ui) }, tierCard(tier, ui, reply.chat_event_id));
     const sources = reply.sources?.length ? reply.sources : [{ title: t("src.memberships"), url: tier.source_url }];
     block.append(sourcesLine(sources, ui, tier.checked_at));
     const count = Object.keys(tiersById).length;
@@ -504,7 +504,15 @@ function renderReply(question, reply) {
 }
 
 /* 03 Recommendation card (matched by tier_id, never by name) */
-function tierCard(tier, lang) {
+/* Counts "registration after a recommendation" on the staff overview. Only the event id is sent. */
+function trackRegister(eventId) {
+  if (!eventId) return;
+  const url = `/api/chat-events/${encodeURIComponent(eventId)}/register`;
+  try { if (navigator.sendBeacon && navigator.sendBeacon(url)) return; } catch { /* fall back to fetch */ }
+  fetch(url, { method: "POST", keepalive: true }).catch(() => {});
+}
+
+function tierCard(tier, lang, eventId) {
   const unit = tier.period_years > 1 ? t("tier.perYears", { n: tier.period_years }, lang) : t("tier.perYear", null, lang);
   return h("article", { class: "tier-card", dir: dirOf(lang) },
     h("div", { class: "tier-head" },
@@ -513,7 +521,8 @@ function tierCard(tier, lang) {
     h("div", { class: "tier-price" }, h("strong", {}, I18N.formatNumber(tier.price_sar, lang)), h("span", {}, unit)),
     h("ul", { class: "benefits" }, ...tier.features[lang].map((f) => h("li", {}, ic("check"), h("span", {}, f)))),
     h("p", { class: "needs-validation" }, ic("info", "icon-sm"), h("span", {}, t("tier.pending", null, lang))),
-    h("a", { class: "btn btn-gold", href: tier.source_url, target: "_blank", rel: "noopener" }, t("tier.register", null, lang)));
+    h("a", { class: "btn btn-gold", href: tier.source_url, target: "_blank", rel: "noopener",
+             onclick: () => trackRegister(eventId) }, t("tier.register", null, lang)));
 }
 
 /* Same rules as the server: an email address or a Saudi mobile number. */
@@ -588,7 +597,7 @@ function consentCard(question, reply, notice) {
     try {
       if (!navigator.onLine) throw new TypeError("offline");
       const body = { question: redact(question), language: lang, summary, tier_id: reply.tier_id || null,
-                     category: categorySelect.value };
+                     category: categorySelect.value, chat_event_id: reply.chat_event_id || null };
       if (contact) body.contact = contact; else body.anonymous = true;
       const res = await fetch("/api/support-cases", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),

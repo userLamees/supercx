@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/tokens.css?v=5">
-  <link rel="stylesheet" href="/static/styles.css?v=5">
+  <link rel="stylesheet" href="/static/tokens.css?v=6">
+  <link rel="stylesheet" href="/static/styles.css?v=6">
 </head>
 <body>
   <div class="dash">
@@ -16,9 +16,10 @@
     <aside class="side">
       <div class="side-brand"><strong>SuperCX</strong><span data-i18n="dash.org">جمعية تجربة العميل</span></div>
       <nav data-i18n-aria="dash.navAria">
-        <a class="tab" href="#unanswered" data-view="unanswered" data-i18n="dash.unanswered">الأسئلة غير المجابة</a>
-        <a class="tab" href="#cases" data-view="cases" data-i18n="dash.cases">حالات الدعم</a>
-        <a class="tab" href="#faq" data-view="faq" data-i18n="dash.faq">الأسئلة الشائعة</a>
+        <a class="tab" href="#overview" data-view="overview"><i data-lucide="layout-dashboard" class="icon icon-sm"></i><span data-i18n="ov.title">نظرة عامة</span></a>
+        <a class="tab" href="#cases" data-view="cases"><i data-lucide="inbox" class="icon icon-sm"></i><span data-i18n="dash.cases">حالات الدعم</span><span class="nav-badge" data-badge="new-cases" hidden></span></a>
+        <a class="tab" href="#unanswered" data-view="unanswered"><i data-lucide="circle-help" class="icon icon-sm"></i><span data-i18n="dash.unanswered">الأسئلة غير المجابة</span></a>
+        <a class="tab" href="#faq" data-view="faq"><i data-lucide="book-open" class="icon icon-sm"></i><span data-i18n="dash.faq">الأسئلة الشائعة</span></a>
       </nav>
       <div class="side-foot"><strong id="side-name" data-i18n="dash.team">فريق إدارة المعرفة</strong><span data-i18n="dash.role">صلاحية: محرر محتوى</span></div>
     </aside>
@@ -34,9 +35,10 @@
       </header>
       <!-- Tabs (mobile) -->
       <nav class="tabs" data-i18n-aria="dash.navAria">
-        <a class="tab" href="#unanswered" data-view="unanswered" data-i18n="dash.unanswered">الأسئلة غير المجابة</a>
-        <a class="tab" href="#cases" data-view="cases" data-i18n="dash.cases">حالات الدعم</a>
-        <a class="tab" href="#faq" data-view="faq" data-i18n="dash.faq">الأسئلة الشائعة</a>
+        <a class="tab" href="#overview" data-view="overview"><i data-lucide="layout-dashboard" class="icon icon-sm"></i><span data-i18n="ov.title">نظرة عامة</span></a>
+        <a class="tab" href="#cases" data-view="cases"><i data-lucide="inbox" class="icon icon-sm"></i><span data-i18n="dash.cases">حالات الدعم</span><span class="nav-badge" data-badge="new-cases" hidden></span></a>
+        <a class="tab" href="#unanswered" data-view="unanswered"><i data-lucide="circle-help" class="icon icon-sm"></i><span data-i18n="dash.unanswered">الأسئلة غير المجابة</span></a>
+        <a class="tab" href="#faq" data-view="faq"><i data-lucide="book-open" class="icon icon-sm"></i><span data-i18n="dash.faq">الأسئلة الشائعة</span></a>
       </nav>
 
       <main class="dash-content">
@@ -61,10 +63,48 @@
         <!-- Smart alerts (idea 62) -->
         <section class="alerts" id="alerts" aria-live="polite" hidden></section>
 
+        <!-- Date filter: overview, unanswered questions and support cases. Kept in the URL hash. -->
+        <section class="period-bar" id="period-bar" hidden>
+          <div class="period-main">
+            <label class="label" for="period" data-i18n="period.label">الفترة</label>
+            <select class="select" id="period">
+              <option value="all" data-i18n="period.all">كل الفترات</option>
+              <option value="today" data-i18n="period.today">اليوم</option>
+              <option value="7d" data-i18n="period.7d">آخر 7 أيام</option>
+              <option value="30d" data-i18n="period.30d">آخر 30 يومًا</option>
+              <option value="custom" data-i18n="period.custom">مدة مخصصة</option>
+            </select>
+            <span class="caption" id="period-range" aria-live="polite"></span>
+          </div>
+          <form class="period-custom" id="period-custom" hidden novalidate>
+            <div class="field">
+              <label class="label" for="period-from" data-i18n="period.from">من</label>
+              <input class="input" type="date" id="period-from" dir="ltr">
+            </div>
+            <div class="field">
+              <label class="label" for="period-to" data-i18n="period.to">إلى</label>
+              <input class="input" type="date" id="period-to" dir="ltr">
+            </div>
+            <button class="btn btn-sm btn-primary" type="submit" data-i18n="period.apply">تطبيق</button>
+            <p class="form-error" id="period-error" role="alert" hidden></p>
+          </form>
+        </section>
+
+        <!-- Overview: first screen for staff -->
+        <div id="view-overview" class="dash-section" hidden>
+          <div class="dash-head">
+            <h2 data-i18n="ov.title">نظرة عامة</h2>
+            <p data-i18n="ov.sub">ملخص أداء المساعد وطلبات الدعم في الفترة المختارة. كل رقم محسوب من قاعدة البيانات.</p>
+            <span class="tag demo-tag" id="overview-demo" hidden></span>
+          </div>
+          <p class="muted" id="overview-state" role="status" hidden></p>
+          <div class="overview" id="overview-body"></div>
+        </div>
+
         <!-- 10 Unanswered questions -->
         <div id="view-unanswered" class="dash-section" hidden>
           <div class="dash-head">
-            <h2 data-i18n="dash.title">لوحة الموظف</h2>
+            <h2 data-i18n="dash.unanswered">الأسئلة غير المجابة</h2>
             <p data-i18n="dash.sub">راجع الأسئلة المتكررة وحدّث قاعدة المعرفة.</p>
           </div>
           <div class="stats">
@@ -337,7 +377,8 @@
   <div class="toast" id="toast" role="status" hidden></div>
 
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-  <script src="/static/i18n.js?v=5"></script>
-  <script src="/static/support.js?v=5"></script>
+  <script src="/static/i18n.js?v=7"></script>
+  <script src="/static/overview.js?v=6"></script>
+  <script src="/static/support.js?v=6"></script>
 </body>
 </html>

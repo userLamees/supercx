@@ -135,7 +135,39 @@ Other changes: `POST /api/support-cases` accepts `anonymous: true` without `cont
 `Tier` has `checked_at` (last verified date). Every escalation from `/api/chat` is
 logged (redacted) in `unanswered_questions`.
 
-Demo data for the dashboard: `python -m app.seed_demo`.
+Demo data for the dashboard: `python -m app.seed_demo`. It adds the design's sample unanswered
+questions, plus chat events and requests spread over the last 14 days (marked `demo`, replaced on
+every run, real rows untouched) so the overview chart has data.
+
+## Staff overview
+
+The dashboard opens on **Overview** (`/support#overview`). Every number is counted from the
+database, with a line under it saying how:
+
+| Number | How it is counted |
+|---|---|
+| Questions today | `chat_events` since midnight Riyadh time (the period total is shown under it) |
+| Answered by the assistant | `answer` + `recommend` ÷ all chat events in the period |
+| Passed to support | `escalate` ÷ all chat events in the period |
+| Open / overdue requests | `new` + `in_progress` now; overdue = `new` past `REPLY_BUSINESS_DAYS` |
+| Verified answer rate | answers/recommendations that cite an approved source ÷ all chat events |
+| Successful handoff rate | escalations the visitor sent on as a request ÷ all escalations |
+| Registration after a recommendation | recommendations followed by "Go to the registration page" ÷ all recommendations |
+
+`chat_events` stores time, language, the agent's action, whether the answer cited the FAQ /
+any source, the recommended tier, and two follow-up flags. **No message text, no personal data.**
+It is written in `main.py` around `run_agent` (the agent itself is unchanged); `/api/chat`
+returns its `chat_event_id` so a later request or registration click can be linked to it.
+
+| Endpoint | Access | Purpose |
+|---|---|---|
+| `GET /api/overview?date_from&date_to` | support token | All overview numbers (default: last 7 days) |
+| `GET /api/staff/counts` | support token | New-request badge in the sidebar |
+| `POST /api/chat-events/{id}/register` | public | Visitor opened the registration page from a recommendation (flag only) |
+
+Date filter (today, 7 days, 30 days, custom) on Overview, Unanswered questions and Support cases:
+sent to the server as `date_from`/`date_to` (Riyadh calendar days, inclusive), honored by the CSV
+exports, and kept in the URL hash (`#cases?period=7d`) so it survives a reload.
 
 ## Request loop (visitor ↔ staff)
 

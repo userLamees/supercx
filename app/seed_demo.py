@@ -10,8 +10,9 @@ from datetime import datetime, timedelta, timezone
 
 from sqlmodel import Session, delete, select
 
+from . import config, notify
 from .cases import hash_code, new_tracking_code
-from .db import ChatEvent, SupportCase, UnansweredQuestion, engine, init_db
+from .db import ChatEvent, Notification, SupportCase, UnansweredQuestion, engine, init_db
 from .redact import normalize_key
 from .rules_agent import TIER_AFFILIATE, TIER_AMBASSADOR, TIER_SUPPORTER
 
@@ -38,6 +39,7 @@ DEMO_CASES = [  # (category, language, question)
 REPLIES = {"ar": "شكرًا لتواصلك. تمت مراجعة طلبك وسيصلك التحديث عبر «طلباتي».",
            "en": "Thank you for reaching out. We reviewed your request; updates will appear in My requests."}
 TIERS = [TIER_AFFILIATE, TIER_AMBASSADOR, TIER_SUPPORTER]
+DEMO_BASE_URL = config.PUBLIC_BASE_URL or "http://localhost:8000"  # link inside demo messages
 
 
 def seed_questions(session: Session) -> int:
@@ -57,6 +59,8 @@ def seed_activity(session: Session, days: int = 14, seed: int = 7) -> tuple[int,
     """Replaces previous demo chat events and demo requests with fresh ones over `days` days."""
     rng = random.Random(seed)
     session.exec(delete(ChatEvent).where(ChatEvent.demo == True))  # noqa: E712
+    demo_cases = select(SupportCase.id).where(SupportCase.demo == True)  # noqa: E712
+    session.exec(delete(Notification).where(Notification.case_id.in_(demo_cases)))
     session.exec(delete(SupportCase).where(SupportCase.demo == True))  # noqa: E712
     now = datetime.now(timezone.utc)
     events = cases = 0
@@ -82,14 +86,20 @@ def seed_activity(session: Session, days: int = 14, seed: int = 7) -> tuple[int,
             else:
                 status = rng.choices(["new", "in_progress", "replied", "closed"], [15, 20, 45, 20])[0]
             replied = status in ("replied", "closed")
-            session.add(SupportCase(
+            case = SupportCase(
                 question=question, summary=question, language=lang, category=category, demo=True,
                 contact=rng.choice(["", f"member{rng.randint(1, 99)}@example.com"]),
                 created_at=created, updated_at=created + timedelta(hours=rng.randint(2, 40)) if status != "new" else created,
                 status=status, tracking_hash=hash_code(new_tracking_code()),
                 reply=REPLIES[lang] if replied else None,
                 replied_at=created + timedelta(hours=rng.randint(3, 40)) if replied else None,
-                replied_by="فريق الدعم (تجريبي)" if replied else None))
+                replied_by="فريق الدعم (تجريبي)" if replied else None)
+            session.add(case)
+            if replied:  # the user was told by email: kept in the demo outbox, nothing is sent
+                note = notify.queue_reply(session, case, DEMO_BASE_URL)
+                if note is not None and note.status == "pending":
+                    note.status, note.demo, note.attempts = "simulated", True, 1
+                    note.created_at = note.sent_at = case.replied_at
             cases += 1
     return events, cases
 

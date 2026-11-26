@@ -1,9 +1,14 @@
-run = "uvicorn main:app --host 0.0.0.0 --port 8000"
+# SuperCX on Replit. Secrets (DATABASE_URL from Replit Postgres, SUPPORT_TOKEN, OTP_SECRET, ...)
+# are listed in docs/REPLIT.md; `python -m app.preflight` checks them.
+# --proxy-headers: Replit's proxy forwards the visitor's address and https, so attempt limits
+# count each visitor separately and links use https.
+run = "uvicorn main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'"
 entrypoint = "main.py"
 modules = ["python-3.12"]
 
 [deployment]
-run = ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8000"]
+run = ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'"]
+build = ["sh", "-c", "pip install -r requirements.txt"]
 
 [[ports]]
 localPort = 8000

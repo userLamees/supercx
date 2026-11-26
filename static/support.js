@@ -72,6 +72,70 @@ I18N.add({
     "pw.e.too_simple": "اجمع بين الحروف والأرقام أو الرموز.",
     "pw.e.same_password": "اختر كلمة مختلفة عن الحالية.",
     "pw.e.failed": "تعذّر حفظ كلمة المرور. حاول مرة أخرى.",
+    "int.nav": "التكاملات",
+    "int.title": "التكاملات",
+    "int.sub": "ما يعمل فعليًا وما يزال تجريبيًا. كل بند تجريبي يتحول إلى فعلي بإضافة الإعدادات المذكورة في Replit Secrets، دون تعديل الكود.",
+    "int.summary": "{live} فعلي · {demo} تجريبي · {missing} ناقص",
+    "int.needs": "الإعدادات المطلوبة",
+    "int.state.live": "فعلي",
+    "int.state.demo": "تجريبي",
+    "int.state.off": "متوقف",
+    "int.state.missing": "ناقص",
+    "int.ai_agent": "المساعد الذكي",
+    "int.ai_agent.llm": "يجيب بالذكاء الاصطناعي ({model}) من المحتوى المعتمد.",
+    "int.ai_agent.rules": "يعمل بالوكيل الاحتياطي المبني على قواعد. أضف مفتاح OpenAI لتفعيل الذكاء الاصطناعي.",
+    "int.memberships": "بيانات العضويات",
+    "int.memberships.live": "مربوطة مباشرة بواجهة العضويات العامة في موقع الجمعية.",
+    "int.memberships.cache": "آخر نسخة محفوظة، لأن واجهة الجمعية لم ترد مؤخرًا.",
+    "int.memberships.fixture": "نسخة مرفقة بالمشروع، لأن واجهة الجمعية لا ترد.",
+    "int.memberships.not_loaded": "لم تُحمّل بعد.",
+    "int.member_registry": "سجل الأعضاء",
+    "int.member_registry.demo": "أعضاء تجريبيون من ملف المشروع. اربطه بواجهة سجل الأعضاء لدى الجمعية.",
+    "int.member_registry.file": "ملف أعضاء من الجمعية (MEMBERS_FILE).",
+    "int.member_registry.api": "واجهة سجل الأعضاء لدى الجمعية.",
+    "int.case_sync": "إرسال الطلبات لنظام الجمعية",
+    "int.case_sync.demo": "تُحفظ الطلبات في صندوق تجريبي يقرؤه الموظف من تفاصيل الحالة، ولا يُرسل شيء.",
+    "int.case_sync.webhook": "تُرسل الطلبات والردود موقّعة إلى رابط نظام الجمعية (webhook).",
+    "int.case_sync.email": "تُرسل الطلبات والردود بالبريد إلى صندوق فريق الجمعية.",
+    "int.case_sync.off": "متوقف: الطلبات في هذا التطبيق فقط.",
+    "int.email": "البريد الإلكتروني",
+    "int.email.smtp": "رموز التحقق والإشعارات تُرسل بالبريد فعليًا.",
+    "int.email.simulated": "رموز التحقق محاكاة، والإشعارات في الصندوق التجريبي.",
+    "int.whatsapp": "واتساب",
+    "int.whatsapp.template": "مفعّل، مع قالب معتمد للإشعارات.",
+    "int.whatsapp.no_template": "مفعّل، لكن بلا قالب معتمد: الإشعار يصل فقط لمن راسلكم خلال 24 ساعة.",
+    "int.whatsapp.simulated": "غير مربوط: الرموز محاكاة والإشعارات في الصندوق التجريبي.",
+    "int.notifications": "إشعارات الرد",
+    "int.notifications.base_url": "الرابط في الرسالة يشير إلى العنوان العام المضبوط.",
+    "int.notifications.no_base_url": "اضبط العنوان العام للتطبيق ليكون الرابط في الرسالة صحيحًا دائمًا.",
+    "int.database": "قاعدة البيانات",
+    "int.database.postgresql": "Postgres · نسخة الجداول {version}.",
+    "int.database.sqlite": "SQLite محلية للتجربة · نسخة الجداول {version}. على Replit تُستخدم Postgres تلقائيًا.",
+    "int.staff_accounts": "حسابات الفريق",
+    "int.staff_accounts.token_on": "{admins} مدير نشط. رمز الفريق المشترك ما يزال يعمل كمفتاح إدارة.",
+    "int.staff_accounts.token_off": "{admins} مدير نشط. رمز الفريق المشترك متوقف.",
+    "int.secrets": "مفتاح التشفير",
+    "int.secrets.set": "مضبوط.",
+    "int.secrets.random_per_start": "يُولَّد عشوائيًا عند كل تشغيل، فتضيع رموز التحقق المعلقة عند إعادة التشغيل.",
+    "sync.title": "نظام الجمعية",
+    "sync.none": "لم يُرسل شيء لنظام الجمعية بعد.",
+    "sync.off": "إرسال الطلبات لنظام الجمعية متوقف.",
+    "sync.e.case.created": "طلب جديد",
+    "sync.e.case.replied": "الرد",
+    "sync.e.case.status": "تغيّر الحالة",
+    "sync.t.webhook": "رابط النظام",
+    "sync.t.email": "بريد الفريق",
+    "sync.t.demo": "صندوق تجريبي",
+    "sync.s.pending": "قيد الإرسال",
+    "sync.s.sent": "أُرسل",
+    "sync.s.simulated": "تجريبي: لم يُرسل فعليًا",
+    "sync.s.failed": "تعذّر الإرسال",
+    "sync.external": "رقمه في نظام الجمعية: {id}",
+    "sync.payload": "البيانات المرسلة",
+    "sync.resend": "إعادة الإرسال",
+    "sync.resent": "أُعيد الإرسال لنظام الجمعية.",
+    "sync.resendError": "تعذّر إعادة الإرسال. حاول مرة أخرى.",
+    "action.case.sync": "أعاد الإرسال لنظام الجمعية",
     "team.nav": "الفريق",
     "team.title": "حسابات الفريق",
     "team.sub": "لكل موظف حساب باسمه، فيظهر اسمه في السجل وفي «تم الرد بواسطة». المدير وحده يضيف الحسابات ويعدّلها.",
@@ -353,6 +417,70 @@ I18N.add({
     "pw.e.too_simple": "Mix letters with digits or symbols.",
     "pw.e.same_password": "Choose a password different from the current one.",
     "pw.e.failed": "Couldn't save the password. Please try again.",
+    "int.nav": "Integrations",
+    "int.title": "Integrations",
+    "int.sub": "What is live and what is still demo. Each demo item goes live by adding the listed settings in Replit Secrets, with no code change.",
+    "int.summary": "{live} live · {demo} demo · {missing} missing",
+    "int.needs": "Settings needed",
+    "int.state.live": "Live",
+    "int.state.demo": "Demo",
+    "int.state.off": "Off",
+    "int.state.missing": "Missing",
+    "int.ai_agent": "AI assistant",
+    "int.ai_agent.llm": "Answers with AI ({model}) from approved content.",
+    "int.ai_agent.rules": "Runs on the rule-based fallback. Add an OpenAI key to turn on AI.",
+    "int.memberships": "Membership data",
+    "int.memberships.live": "Connected to the association's public memberships API.",
+    "int.memberships.cache": "Last saved copy; the association's API didn't answer recently.",
+    "int.memberships.fixture": "Bundled copy; the association's API doesn't answer.",
+    "int.memberships.not_loaded": "Not loaded yet.",
+    "int.member_registry": "Member registry",
+    "int.member_registry.demo": "Demo members from the project file. Connect it to the association's registry API.",
+    "int.member_registry.file": "A member file from the association (MEMBERS_FILE).",
+    "int.member_registry.api": "The association's member registry API.",
+    "int.case_sync": "Requests to the association's system",
+    "int.case_sync.demo": "Requests are kept in a demo outbox staff can read in the case details; nothing is sent.",
+    "int.case_sync.webhook": "Requests and replies are sent, signed, to the association's system (webhook).",
+    "int.case_sync.email": "Requests and replies are emailed to the association team's inbox.",
+    "int.case_sync.off": "Off: requests stay in this app only.",
+    "int.email": "Email",
+    "int.email.smtp": "Verification codes and notifications are really emailed.",
+    "int.email.simulated": "Verification codes are simulated; notifications go to the demo outbox.",
+    "int.whatsapp": "WhatsApp",
+    "int.whatsapp.template": "On, with an approved notification template.",
+    "int.whatsapp.no_template": "On, but without an approved template: notifications reach only people who messaged you in the last 24 hours.",
+    "int.whatsapp.simulated": "Not connected: codes are simulated and notifications go to the demo outbox.",
+    "int.notifications": "Reply notifications",
+    "int.notifications.base_url": "The link in the message uses the configured public address.",
+    "int.notifications.no_base_url": "Set the app's public address so the link in the message is always right.",
+    "int.database": "Database",
+    "int.database.postgresql": "Postgres · schema version {version}.",
+    "int.database.sqlite": "Local SQLite for testing · schema version {version}. Replit uses Postgres automatically.",
+    "int.staff_accounts": "Team accounts",
+    "int.staff_accounts.token_on": "{admins} active admin(s). The shared team token still works as an admin key.",
+    "int.staff_accounts.token_off": "{admins} active admin(s). The shared team token is off.",
+    "int.secrets": "Encryption key",
+    "int.secrets.set": "Set.",
+    "int.secrets.random_per_start": "Random at every start, so pending verification codes are lost on restart.",
+    "sync.title": "Association system",
+    "sync.none": "Nothing sent to the association's system yet.",
+    "sync.off": "Sending requests to the association's system is off.",
+    "sync.e.case.created": "New request",
+    "sync.e.case.replied": "Reply",
+    "sync.e.case.status": "Status change",
+    "sync.t.webhook": "System link",
+    "sync.t.email": "Team inbox",
+    "sync.t.demo": "Demo outbox",
+    "sync.s.pending": "Sending",
+    "sync.s.sent": "Sent",
+    "sync.s.simulated": "Demo: not actually sent",
+    "sync.s.failed": "Failed",
+    "sync.external": "Its id in the association's system: {id}",
+    "sync.payload": "Data sent",
+    "sync.resend": "Send again",
+    "sync.resent": "Sent again to the association's system.",
+    "sync.resendError": "Couldn't send it again. Please try again.",
+    "action.case.sync": "Resent to the association's system",
     "team.nav": "Team",
     "team.title": "Team accounts",
     "team.sub": "Each staff member has their own account, so their name appears in the log and as the replier. Only admins add and edit accounts.",
@@ -649,7 +777,7 @@ function relative(iso) {
 const ref = (id) => `CX-${id.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
 
 /* ---------- Views ---------- */
-const VIEWS = ["overview", "cases", "unanswered", "faq", "team"];
+const VIEWS = ["overview", "cases", "unanswered", "faq", "team", "integrations"];
 const PERIOD_VIEWS = ["overview", "cases", "unanswered"];
 function currentView() { const v = location.hash.slice(1).split("?")[0]; return VIEWS.includes(v) ? v : "overview"; }
 const hashParams = () => new URLSearchParams(location.hash.split("?")[1] || "");
@@ -775,9 +903,11 @@ function show(view) {
 }
 
 const STATE = { overview: ["overview-state", "overview-body"], unanswered: ["unanswered-state", "unanswered-table"],
-                cases: ["cases-state", "cases-table"], faq: ["faq-state", "faq-table"], team: ["team-state", "team-table"] };
+                cases: ["cases-state", "cases-table"], faq: ["faq-state", "faq-table"], team: ["team-state", "team-table"],
+                integrations: ["integrations-state", "integrations-list"] };
 const LOADERS = { overview: () => Overview.load(periodQuery("overview")), unanswered: () => loadUnanswered(),
-                  cases: () => loadCases(), faq: () => loadFaq(), team: () => loadTeam() };
+                  cases: () => loadCases(), faq: () => loadFaq(), team: () => loadTeam(),
+                  integrations: () => loadIntegrations() };
 async function route() {
   let view = currentView();
   if (!isAuthed()) { show(view); syncPeriodBar(view); $("login-email").focus(); return; }
@@ -787,7 +917,7 @@ async function route() {
       show(view); $("overview-state").textContent = t(isOffline(e) ? "dash.offline" : "dash.loadError"); return;
     } finally { resetSignInButtons(); }
   }
-  if (view === "team" && me.role !== "admin") { location.replace("#overview"); return; }
+  if ((view === "team" || view === "integrations") && me.role !== "admin") { location.replace("#overview"); return; }
   show(view);
   if (needsPassword()) { $("pw-current").focus(); return; }
   syncPeriodBar(view);
@@ -1024,18 +1154,75 @@ async function openCase(id) {
   if (!$("case-detail").open) $("case-detail").showModal();
   $("cd-text").focus();
   try {
-    const [log, notes] = await Promise.all([
+    const soft = (err) => { if (err.message === "auth") throw err; return null; };
+    const [log, notes, sent] = await Promise.all([
       api(`/api/audit-log?target_id=${encodeURIComponent(id)}`),
-      api(`/api/support-cases/${encodeURIComponent(id)}/notifications`).catch((err) => { if (err.message === "auth") throw err; return null; }),
+      api(`/api/support-cases/${encodeURIComponent(id)}/notifications`).catch(soft),
+      api(`/api/support-cases/${encodeURIComponent(id)}/syncs`).catch(soft),
     ]);
     caseNotes[id] = notes;
+    caseSyncs[id] = sent;
     if (openCaseId === id) renderCase(casesById[id], log);
     // Sending runs right after the reply is saved: look again once if it is still going.
-    if (notes?.some((n) => n.status === "pending")) setTimeout(() => { if (openCaseId === id) openCase(id); }, 1500);
+    if ([...(notes || []), ...(sent || [])].some((n) => n.status === "pending")) setTimeout(() => { if (openCaseId === id) openCase(id); }, 1500);
   } catch (err) {
     if (err.message === "auth") return authFailed();
     if (openCaseId === id) renderCase(casesById[id], "error");
   }
+}
+
+/* What was sent to the association's system for this case: webhook, team email, or demo outbox. */
+const caseSyncs = {};
+const SYNC_TAG = { sent: "badge-success", simulated: "tag-demo", failed: "badge-danger", pending: "req-new" };
+function syncBlock(c) {
+  const rows = caseSyncs[c.id];
+  if (rows === undefined) return null;
+  const head = h("h3", {}, t("sync.title"));
+  if (!rows || !rows.length) return h("section", { class: "detail-block" }, head, h("p", { class: "muted" }, t(rows === null ? "detail.loadError" : "sync.none")));
+  const pretty = (p) => { try { return JSON.stringify(JSON.parse(p), null, 2); } catch { return p; } };
+  const items = rows.map((r) => h("li", { class: "notify-item" },
+    h("div", { class: "notify-row" },
+      h("span", { class: "notify-chan" }, ic(r.target === "webhook" ? "webhook" : r.target === "email" ? "mail" : "archive", "icon-sm"),
+        t(`sync.e.${r.event}`), h("span", { class: "muted" }, `· ${t(`sync.t.${r.target}`)}`)),
+      h("span", { class: `tag ${SYNC_TAG[r.status] || ""}` }, t(`sync.s.${r.status}`))),
+    h("span", { class: "caption" }, relative(r.sent_at || r.created_at), r.attempts > 1 ? ` · ${t("notify.attempts", { n: r.attempts })}` : ""),
+    r.external_id ? h("p", { class: "caption" }, t("sync.external", { id: r.external_id })) : null,
+    r.status === "failed" ? h("p", { class: "caption notify-error" }, r.error) : null,
+    h("details", { class: "translation" }, h("summary", {}, t("sync.payload")), h("pre", { class: "sync-payload", dir: "ltr" }, pretty(r.payload)))));
+  const canResend = rows[0].status !== "pending";
+  return h("section", { class: "detail-block" }, head, h("ol", { class: "notify-list" }, ...items),
+    canResend ? h("button", { class: `btn btn-sm ${rows[0].status === "failed" ? "btn-primary" : "btn-secondary"}`, type: "button",
+      onclick: (e) => resendSync(c.id, e.currentTarget) }, ic("send", "icon-sm"), t("sync.resend")) : null);
+}
+
+async function resendSync(id, btn) {
+  btn.disabled = true;
+  try {
+    await api(`/api/support-cases/${encodeURIComponent(id)}/sync`, { method: "POST" });
+    toast(t("sync.resent"));
+    await openCase(id);
+  } catch (err) {
+    if (err.message === "auth") return authFailed();
+    toast(t(isOffline(err) ? "dash.offline" : err.status === 409 ? "sync.off" : "sync.resendError"));
+    btn.disabled = false;
+  }
+}
+
+/* ---------- Integrations (admins): live vs demo, and the settings each item needs ---------- */
+async function loadIntegrations() {
+  const items = await api("/api/integrations");
+  const count = (s) => items.filter((i) => i.state === s).length;
+  $("integrations-summary").textContent = t("int.summary", { live: count("live"), demo: count("demo") + count("off"), missing: count("missing") });
+  const ORDER = { missing: 0, demo: 1, off: 2, live: 3 };
+  const STATE_TAG = { live: "badge-success", demo: "tag-demo", off: "req-status", missing: "badge-danger" };
+  $("integrations-list").replaceChildren(...[...items].sort((a, b) => ORDER[a.state] - ORDER[b.state]).map((i) =>
+    h("section", { class: `int-card int-${i.state}` },
+      h("div", { class: "notify-row" }, h("h3", {}, t(`int.${i.key}`)), h("span", { class: `tag ${STATE_TAG[i.state]}` }, t(`int.state.${i.state}`))),
+      h("p", { class: "int-detail" }, t(`int.${i.key}.${i.detail}`, { model: i.model || "", version: i.version || "—", admins: i.admins ?? 0 })),
+      i.state === "live" ? null : h("div", { class: "int-needs" }, h("span", { class: "caption" }, t("int.needs")),
+        h("div", { class: "int-keys", dir: "ltr" }, ...i.needs.map((n) => h("code", {}, n)))))));
+  $("integrations-list").hidden = false;
+  $("integrations-state").hidden = true;
 }
 
 /* The message to the user about the reply: email, WhatsApp, or the demo outbox. */
@@ -1111,6 +1298,7 @@ function renderCase(c, log) {
       h("p", { dir: "auto" }, c.reply),
       h("span", { class: "caption" }, t("detail.replyBy", { actor: c.replied_by || t("audit.unknown"), when: relative(c.replied_at) }))) : null,
     notificationBlock(c),
+    syncBlock(c),
     h("section", { class: "detail-block" }, h("h3", {}, t("detail.log")), history)].filter(Boolean));
   I18N.icons();
 }

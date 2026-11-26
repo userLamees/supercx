@@ -26,11 +26,13 @@ from app.memberships import data_origin, get_tier, get_tiers
 from app.redact import normalize_key, redact
 from app.schemas import (StaffCreate, StaffLogin, StaffLoginOut, StaffOut, StaffPasswordChange,
                          StaffPasswordReset, StaffUpdate)
-from app.schemas import (Alert, AuditOut, NotificationOut, CaseCategory, CaseStatus, ChatAction, ChatRequest,
+from app.schemas import (Alert, AuditOut, CaseSyncOut, NotificationOut, CaseCategory, CaseStatus, ChatAction, ChatRequest,
                          ChatResponse, FaqCategory, FaqCreate, FaqItemAdmin, FaqItemWrite,
                          MembershipStatus, Overview, SpeechRequest, SupportCaseCreate, SupportCaseOut, SupportCaseReply,
                          SupportCaseUpdate, Tier, TrackRequest, TrackResponse, UnansweredOut,
                          UnansweredStats, VerifyChannel, VerifyCheck, VerifySend)
+from app.integrations import case_sync
+from app.integrations.members import RegistryUnavailable
 from app.verify import lookup, normalize_code, normalize_email, normalize_phone, valid_code
 
 
@@ -151,6 +153,13 @@ def staff_change_password(payload: StaffPasswordChange, authorization: str = Hea
 
 def _active_admins(session: Session) -> int:
     return len(session.exec(select(StaffUser).where(StaffUser.role == "admin", StaffUser.active == True)).all())  # noqa: E712
+
+
+@app.get("/api/integrations", dependencies=[Depends(require_admin)])
+def integrations(session: Session = Depends(get_session)) -> list[dict]:
+    """Admins: which connectors are live and which are still demo, with the settings each needs."""
+    from app.integrations import status as integration_status
+    return integration_status.report(session)
 
 
 @app.get("/api/staff/users", response_model=list[StaffOut], dependencies=[Depends(require_admin)])
@@ -337,7 +346,7 @@ def speech_synthesize(payload: SpeechRequest):
 
 
 @app.post("/api/support-cases", status_code=status.HTTP_201_CREATED)
-def create_case(payload: SupportCaseCreate, session: Session = Depends(get_session)) -> dict:
+def create_case(payload: SupportCaseCreate, background: BackgroundTasks, session: Session = Depends(get_session)) -> dict:
     if payload.tier_id and get_tier(payload.tier_id) is None:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Unknown tier_id")
     data = payload.model_dump(exclude={"anonymous", "chat_event_id"})
@@ -354,7 +363,10 @@ def create_case(payload: SupportCaseCreate, session: Session = Depends(get_sessi
         if event is not None and event.action == ChatAction.escalate.value:
             event.case_created = True
             session.add(event)
+    sync = case_sync.queue(session, case, "case.created")  # on to the association's system
     session.commit()
+    if sync is not None:
+        background.add_task(case_sync.deliver, sync.id)
     # Visitors only get their own case number and tracking code, never other cases or member data.
     # The tracking code is returned this once; only its hash is stored.
     return {"id": case.id, "status": case.status, "reference": case_reference(case.id),
@@ -469,9 +481,12 @@ def reply_case(case_id: str, payload: SupportCaseReply, request: Request, backgr
     audit.log(session, actor, "case.reply" if first else "case.reply_update", "case", case.id,
               f"{case_reference(case.id)}: {payload.reply}")
     note = notify.queue_reply(session, case, str(request.base_url), update=not first)
+    sync = case_sync.queue(session, case, "case.replied")
     session.commit()
     if note is not None and note.status == "pending":
         background.add_task(notify.deliver, note.id)
+    if sync is not None:
+        background.add_task(case_sync.deliver, sync.id)
     session.refresh(case)
     return case_out(case)
 
@@ -514,8 +529,8 @@ def resend_notification(case_id: str, request: Request, background: BackgroundTa
 
 @app.patch("/api/support-cases/{case_id}", response_model=SupportCaseOut,
            dependencies=[Depends(require_support_token)])
-def update_case(case_id: str, payload: SupportCaseUpdate, actor: str = Depends(audit.staff_name),
-                session: Session = Depends(get_session)) -> SupportCaseOut:
+def update_case(case_id: str, payload: SupportCaseUpdate, background: BackgroundTasks,
+                actor: str = Depends(audit.staff_name), session: Session = Depends(get_session)) -> SupportCaseOut:
     case = session.get(SupportCase, case_id)
     if case is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Case not found")
@@ -525,9 +540,46 @@ def update_case(case_id: str, payload: SupportCaseUpdate, actor: str = Depends(a
     session.add(case)
     audit.log(session, actor, "case.status", "case", case.id,
               f"{case_reference(case.id)}: {getattr(old, 'value', old)} → {payload.status.value}")
+    sync = case_sync.queue(session, case, "case.status") if old != payload.status else None
     session.commit()
+    if sync is not None:
+        background.add_task(case_sync.deliver, sync.id)
     session.refresh(case)
     return case_out(case)
+
+
+def case_sync_out(r) -> CaseSyncOut:
+    return CaseSyncOut(id=r.id, created_at=_iso(r.created_at), event=r.event, target=r.target, status=r.status,
+                       payload=r.payload, external_id=r.external_id, error=r.error, attempts=r.attempts,
+                       sent_at=_iso(r.sent_at), demo=bool(r.demo))
+
+
+@app.get("/api/support-cases/{case_id}/syncs", response_model=list[CaseSyncOut],
+         dependencies=[Depends(require_support_token)])
+def case_syncs(case_id: str, session: Session = Depends(get_session)) -> list[CaseSyncOut]:
+    """What was sent to the association's system for this case (or kept in the demo outbox)."""
+    if session.get(SupportCase, case_id) is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Case not found")
+    return [case_sync_out(r) for r in case_sync.for_case(session, case_id)]
+
+
+@app.post("/api/support-cases/{case_id}/sync", response_model=CaseSyncOut,
+          dependencies=[Depends(require_support_token)])
+def resend_case_sync(case_id: str, background: BackgroundTasks, actor: str = Depends(audit.staff_name),
+                     session: Session = Depends(get_session)) -> CaseSyncOut:
+    """Staff "send again": retries the last failed event, or sends the case again."""
+    case = session.get(SupportCase, case_id)
+    if case is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Case not found")
+    row = case_sync.retry(session, case)
+    if row is None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Case sync is turned off")
+    audit.log(session, actor, "case.sync", "case", case.id, f"{case_reference(case.id)}: {row.event} → {row.target}")
+    session.commit()
+    session.refresh(row)
+    if row.status == "pending":
+        background.add_task(case_sync.deliver, row.id)
+    return case_sync_out(row)
 
 
 # FAQ: read-only for visitors, staff can approve new entries.
@@ -749,7 +801,11 @@ def verify_check(payload: VerifyCheck, session: Session = Depends(get_session)):
             otp.check_code(session, channel, target, normalize_code(payload.code))
         except otp.OtpError as err:
             return _otp_error(err)
-    return lookup(phone=target if channel == "whatsapp" else None, email=target if channel == "email" else None)
+    try:
+        return lookup(phone=target if channel == "whatsapp" else None, email=target if channel == "email" else None)
+    except RegistryUnavailable:
+        # The code was right; the registry didn't answer. Nothing about the person is shown.
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "registry_unavailable")
 
 
 @app.get("/", include_in_schema=False)

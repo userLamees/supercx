@@ -140,6 +140,8 @@ I18N.add({
     "verify.badPhone": "أدخل رقم جوال سعوديًا صحيحًا يبدأ بـ 5 ويتكوّن من 9 أرقام.",
     "verify.badCode": "أدخل الرمز كاملًا (4 أرقام).",
     "verify.failed": "تعذّر التحقق. أعد المحاولة.",
+    "verify.registryDown": "تحققنا من رمزك، لكن سجل الأعضاء لا يرد الآن. حاول بعد قليل.",
+    "status.sourceLive": "المصدر: سجل أعضاء الجمعية",
     "verify.offline": "لا يوجد اتصال. تحقق من الإنترنت ثم أعد المحاولة.",
     "verify.cell": "الخانة {n}",
     "verify.subEmail": "لعرض بيانات عضويتك نحتاج التحقق من بريدك الإلكتروني",
@@ -316,6 +318,8 @@ I18N.add({
     "verify.badPhone": "Enter a valid Saudi mobile number: 9 digits starting with 5.",
     "verify.badCode": "Enter the full 4-digit code.",
     "verify.failed": "Verification failed. Please try again.",
+    "verify.registryDown": "Your code was verified, but the member registry isn't answering right now. Please try again shortly.",
+    "status.sourceLive": "Source: the association's member registry",
     "verify.offline": "No connection. Check your internet and try again.",
     "verify.cell": "Digit {n}",
     "verify.subEmail": "To show your membership details we need to verify your email",
@@ -1103,6 +1107,7 @@ codeForm.addEventListener("submit", async (e) => {
       else cells[0].focus();
       return;
     }
+    if (res.status === 503) { showError(codeError, "verify.registryDown"); return; }
     if (!res.ok) throw new Error(String(res.status));
     lastStatus = await res.json();
     // The number or email is not kept once verification is done.
@@ -1173,7 +1178,7 @@ function renderStatus() {
   if (!s.registered) {
     sub.textContent = t("status.subNone"); sub.dataset.i18n = "status.subNone";
     body.replaceChildren(h("section", { class: "card card-white status-alt" },
-      h("p", { class: "demo-note" }, h("span", { class: "caption" }, t("status.altCaption")), h("span", { class: "tag" }, t("demoData"))),
+      h("p", { class: "demo-note" }, h("span", { class: "caption" }, t("status.altCaption")), s.demo === false ? null : h("span", { class: "tag" }, t("demoData"))),
       h("h2", {}, t("status.none")),
       h("p", {}, t("status.noneBody")),
       h("button", { class: "btn btn-secondary btn-block", type: "button", onclick: () => { location.hash = "#chat"; send(t("sugg.diff")); } }, t("status.browse"))));
@@ -1193,7 +1198,7 @@ function renderStatus() {
     h("div", { class: "progress", role: "progressbar", "aria-label": t("status.progress"), "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(pct) },
       h("span", { style: `width:${pct}%` })),
     s.can_renew ? h("a", { class: "btn btn-primary btn-block", href: tier?.source_url || "https://cxa.sa/membership", target: "_blank", rel: "noopener" }, t("status.renew")) : null,
-    h("p", { class: "caption" }, t("status.source"))));
+    h("p", { class: "caption" }, t(s.demo === false ? "status.sourceLive" : "status.source"))));
 }
 
 /* ---------- Views (hash routing) ---------- */

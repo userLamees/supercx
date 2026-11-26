@@ -75,8 +75,20 @@ STAFF_MIN_PASSWORD = int(os.getenv("STAFF_MIN_PASSWORD", "10"))
 # SUPPORT_TOKEN still works as an admin key (scripts, first setup). Set to false to allow accounts only.
 ALLOW_SUPPORT_TOKEN = os.getenv("ALLOW_SUPPORT_TOKEN", "true").lower() == "true"
 
-# Member registry used after verification (demo file by default).
+# Member registry used after verification: demo (data/members_demo.json), file (MEMBERS_FILE),
+# or api (the association's lookup endpoint, see app/integrations/members.py for the contract).
 MEMBERS_FILE = os.getenv("MEMBERS_FILE", "")
+MEMBER_REGISTRY = os.getenv("MEMBER_REGISTRY", "file" if MEMBERS_FILE else "demo").strip().lower()
+MEMBER_REGISTRY_URL = os.getenv("MEMBER_REGISTRY_URL", "").strip()
+MEMBER_REGISTRY_TOKEN = os.getenv("MEMBER_REGISTRY_TOKEN", "")
+MEMBER_REGISTRY_TIMEOUT = float(os.getenv("MEMBER_REGISTRY_TIMEOUT", "10"))
+
+# Support cases sent on to the association's system: off, demo (kept in an outbox staff can read),
+# webhook (signed JSON POST), or email (to a team inbox, via the SMTP settings above).
+CASE_SYNC = os.getenv("CASE_SYNC", "demo").strip().lower()
+CASE_WEBHOOK_URL = os.getenv("CASE_WEBHOOK_URL", "").strip()
+CASE_WEBHOOK_SECRET = os.getenv("CASE_WEBHOOK_SECRET", "")   # HMAC-SHA256 key for X-SuperCX-Signature
+CASE_EMAIL_TO = os.getenv("CASE_EMAIL_TO", "").strip()
 
 # AI agent settings
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")

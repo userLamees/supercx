@@ -6,8 +6,9 @@ I18N.add({
   ar: {
     "page.title": "SuperCX | مساعد جمعية تجربة العميل",
     "chat.new": "محادثة جديدة",
-    "hero.title": "كيف يمكنني مساعدتك؟",
-    "hero.sub": "اسأل عن العضويات واحصل على توصية موثّقة بمصدرها.",
+    "hero.title": "أهلًا، أنا {assistant}، مساعد جمعية تجربة العميل",
+    "hero.sub": "أجيبك من المحتوى المعتمد للجمعية، وأحوّل سؤالك للفريق إذا لم أجد الإجابة.",
+    "typing": "{assistant} يكتب…",
     "hero.privacy": "لا نطلب بياناتك الشخصية إلا عند تحويل سؤالك للدعم، وبموافقتك.",
     "hero.status": "حالة عضويتي",
     "hero.faq": "الأسئلة الشائعة",
@@ -60,7 +61,11 @@ I18N.add({
     "quiz.orgSummary": "سؤال عن توفر عضوية للجهات والشركات.",
     "quiz.orgNoInfo": "لا أجد معلومات منشورة عن عضوية الجهات في المحتوى المعتمد للجمعية، ولا أريد أن أخمّن. يمكنني تحويل سؤالك إلى فريق الدعم.",
 
-    "tier.popular": "الأكثر شيوعًا",
+    "tier.popular": "الأكثر شعبية",
+    "tier.best": "الأنسب لك",
+    "tier.get": "احصل على العضوية",
+    "tier.cardsIntro": "هذه عضويات الجمعية المتاحة:",
+    "tier.cardsAria": "بطاقات العضويات",
     "tier.perYear": "ريال سنويًا",
     "tier.perYears": "ريال لكل {n} سنوات",
     "tier.pending": "شروط الأهلية والمستندات بانتظار تأكيد الجمعية",
@@ -164,8 +169,9 @@ I18N.add({
   en: {
     "page.title": "SuperCX | Customer Experience Association assistant",
     "chat.new": "New chat",
-    "hero.title": "How can I help you?",
-    "hero.sub": "Ask about memberships and get a recommendation backed by its source.",
+    "hero.title": "Hello, I'm {assistant}, the Customer Experience Association's assistant",
+    "hero.sub": "I answer from the association's approved content, and pass your question to the team if I can't find the answer.",
+    "typing": "{assistant} is typing…",
     "hero.privacy": "We only ask for personal details when you choose to send your question to support.",
     "hero.status": "My membership status",
     "hero.faq": "FAQ",
@@ -219,6 +225,10 @@ I18N.add({
     "quiz.orgNoInfo": "I can't find published information about organization memberships in the association's approved content, and I won't guess. I can pass your question to the support team.",
 
     "tier.popular": "Most popular",
+    "tier.best": "Best for you",
+    "tier.get": "Get the membership",
+    "tier.cardsIntro": "These are the association's memberships:",
+    "tier.cardsAria": "Membership cards",
     "tier.perYear": "SAR per year",
     "tier.perYears": "SAR per {n} years",
     "tier.pending": "Eligibility conditions and documents await the association's confirmation",
@@ -333,6 +343,7 @@ let history = [];
 let tiersById = {};
 let busy = false;
 let quizActive = false;
+let lastRecommended = null;  // keeps "Best for you" on later comparisons in the same chat
 let lastStatus = null;
 
 /* ---------- DOM helpers ---------- */
@@ -352,10 +363,13 @@ const ic = (name, cls = "") => h("i", { "data-lucide": name, class: `icon ${cls}
 const dirOf = (lang) => (lang === "ar" ? "rtl" : "ltr");
 const detectLang = (text) => (/[؀-ۿ]/.test(text) ? "ar" : "en");
 
+// Smooth scrolling only when the visitor hasn't asked for reduced motion.
+const scrollBehavior = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
+
 function add(el) {
   log.appendChild(el);
   I18N.icons();
-  requestAnimationFrame(() => el.scrollIntoView({ block: "nearest", behavior: "smooth" }));
+  requestAnimationFrame(() => el.scrollIntoView({ block: "nearest", behavior: scrollBehavior() }));
   return el;
 }
 
@@ -384,7 +398,7 @@ function renderSuggestions() {
 function hideStart() { hero.hidden = true; suggestionsList.hidden = true; }
 
 function resetChat() {
-  history = []; quizActive = false; setBusy(false);
+  history = []; quizActive = false; lastRecommended = null; setBusy(false);
   log.replaceChildren(hero, suggestionsList);
   hero.hidden = false; suggestionsList.hidden = false;
   input.value = ""; setPlaceholder(); input.focus();
@@ -393,6 +407,15 @@ function resetChat() {
 /* ---------- Messages ---------- */
 function userBubble(text) { return add(h("div", { class: "msg msg-user", dir: "auto" }, text)); }
 function botText(text, lang) { return add(h("div", { class: "msg msg-bot", dir: lang ? dirOf(lang) : "auto" }, text)); }
+
+/* The assistant's avatar and name above its turn (user messages have neither). */
+function agentMeta(l = I18N.lang) {
+  return add(h("div", { class: "bot-meta", dir: dirOf(l) }, Brand.avatar("sm"), h("span", {}, I18N.assistantName(l))));
+}
+function typingRow() {
+  return add(h("div", { class: "bot-meta", role: "status", "aria-live": "polite" }, Brand.avatar("sm"),
+    h("span", { class: "typing" }, t("typing"), h("span", { class: "typing-dots", "aria-hidden": "true" }, h("i"), h("i"), h("i")))));
+}
 
 // "Listen" goes on the agent's replies only (not on interface notes like "nothing was sent"),
 // placed last, after the sources line.
@@ -431,7 +454,7 @@ function isOffline(err) { return !navigator.onLine || err instanceof TypeError; 
 /* ---------- Agent call ---------- */
 async function askAgent(text) {
   userBubble(text);
-  const searching = add(stateCard("info", t("state.searching"), t("state.searchingBody")));
+  const searching = typingRow();
   setBusy(true);
   try {
     if (!navigator.onLine) throw new TypeError("offline");
@@ -466,7 +489,7 @@ async function askAgentRetry(text) {
 function renderReply(question, reply) {
   const lang = reply.lang;  // language of the agent's own text
   const ui = I18N.lang;     // language of everything the interface adds around it
-  const tier = reply.action === "recommend" && reply.tier_id ? tiersById[reply.tier_id] : null;
+  agentMeta(ui);
 
   if (reply.action === "verify") {
     // Personal question: the agent never shows member data, it sends the user to verification.
@@ -483,18 +506,23 @@ function renderReply(question, reply) {
     return;
   }
 
-  if (tier) {
-    // The card shows price and benefits, so only the recommendation sentence is kept as text.
-    const intro = reply.answer.split(/\n\s*\n/)[0];
-    addListen(botText(intro, lang), intro, lang);
-    const block = h("div", { class: "chat-block", dir: dirOf(ui) }, tierCard(tier, ui, reply.chat_event_id));
-    const sources = reply.sources?.length ? reply.sources : [{ title: t("src.memberships"), url: tier.source_url }];
-    block.append(sourcesLine(sources, ui, tier.checked_at));
-    const count = Object.keys(tiersById).length;
-    const compareText = t("sugg.diff");
-    block.append(h("button", { class: "chip", type: "button", onclick: () => send(compareText) },
-      t(count === 3 ? "tier.compareThree" : "tier.compare")));
-    add(block);
+  // Comparison cards: for a recommendation, a comparison question, or a reply naming 2+ tiers.
+  const decision = Tiers.cardsFor(reply, question, Object.values(tiersById), lastRecommended);
+  if (decision) {
+    if (reply.action === "recommend") lastRecommended = reply.tier_id;
+    // The cards carry prices and benefits, so list lines are dropped from the text above them.
+    const text = reply.action === "recommend" ? reply.answer.split(/\n\s*\n/)[0]
+      : reply.answer.split("\n").filter((l) => !/^\s*([•\-*]|\d+[.)])\s/.test(l)).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+    const shown = text || t("tier.cardsIntro", null, lang);
+    addListen(botText(shown, lang), shown, lang);
+    const block = add(tierCards(decision, ui, reply.chat_event_id));
+    // On a phone the cards scroll sideways: bring the recommended one into view.
+    const rec = block.querySelector(".tier.is-recommended");
+    const row = block.querySelector(".tier-cards");
+    if (rec && row.scrollWidth > row.clientWidth) {
+      // inline "center" works in both RTL and LTR scroll containers.
+      setTimeout(() => rec.scrollIntoView({ inline: "center", block: "nearest", behavior: scrollBehavior() }), 50);
+    }
     return;
   }
 
@@ -512,17 +540,30 @@ function trackRegister(eventId) {
   fetch(url, { method: "POST", keepalive: true }).catch(() => {});
 }
 
-function tierCard(tier, lang, eventId) {
-  const unit = tier.period_years > 1 ? t("tier.perYears", { n: tier.period_years }, lang) : t("tier.perYear", null, lang);
-  return h("article", { class: "tier-card", dir: dirOf(lang) },
-    h("div", { class: "tier-head" },
-      h("h3", { class: "tier-name" }, tier.name[lang]),
-      tier.is_most_common ? h("span", { class: "tag tier-badge" }, t("tier.popular", null, lang)) : null),
-    h("div", { class: "tier-price" }, h("strong", {}, I18N.formatNumber(tier.price_sar, lang)), h("span", {}, unit)),
-    h("ul", { class: "benefits" }, ...tier.features[lang].map((f) => h("li", {}, ic("check"), h("span", {}, f)))),
-    h("p", { class: "needs-validation" }, ic("info", "icon-sm"), h("span", {}, t("tier.pending", null, lang))),
-    h("a", { class: "btn btn-gold", href: tier.source_url, target: "_blank", rel: "noopener",
-             onclick: () => trackRegister(eventId) }, t("tier.register", null, lang)));
+/* 03 Membership cards, in the pattern of the cxa.sa membership cards. Data comes from the tiers
+   API only (matched by tier_id); see static/tiers.js for which cards show and their badges. */
+function tierCards(decision, lang, eventId) {
+  const tones = Tiers.tones(Object.values(tiersById));
+  const models = decision.ids.map((id) => Tiers.cardModel(tiersById[id], lang, decision));
+  const cards = models.map((m) => {
+    const unit = m.periodYears > 1 ? t("tier.perYears", { n: m.periodYears }, lang) : t("tier.perYear", null, lang);
+    const badge = m.badge ? t(m.badge === "recommended" ? "tier.best" : "tier.popular", null, lang) : null;
+    return h("article", { class: `tier${m.recommended ? " is-recommended" : ""}`, role: "listitem",
+                          "aria-label": badge ? `${m.name} · ${badge}` : m.name },
+      badge ? h("span", { class: "tier-badge" }, badge) : null,
+      h("div", { class: "tier-top", "data-tone": tones[m.id] },
+        h("h3", {}, m.name),
+        h("div", { class: "tier-cost" }, h("strong", {}, I18N.formatNumber(m.price, lang)), h("span", {}, unit))),
+      h("div", { class: "tier-body" },
+        h("ul", { class: "benefits" }, ...m.features.map((f) => h("li", {}, ic("check"), h("span", {}, f)))),
+        h("a", { class: "btn btn-primary", href: m.url, target: "_blank", rel: "noopener",
+                 onclick: () => trackRegister(eventId) }, t("tier.get", null, lang))));
+  });
+  const first = tiersById[decision.ids[0]];
+  return h("div", { class: "tiers", dir: dirOf(lang) },
+    h("div", { class: "tier-cards", role: "list", "aria-label": t("tier.cardsAria", null, lang) }, ...cards),
+    sourcesLine([{ title: t("src.memberships", null, lang), url: first.source_url }], lang, first.checked_at),
+    h("p", { class: "footnote" }, t("tier.pending", null, lang)));
 }
 
 /* Same rules as the server: an email address or a Saudi mobile number. */
@@ -615,7 +656,7 @@ function consentCard(question, reply, notice) {
       const card = Requests.confirmCard(data, ui, saved);
       wrap.replaceWith(card);
       I18N.icons();
-      card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      card.scrollIntoView({ block: "nearest", behavior: scrollBehavior() });
       Requests.updateDot();
     } catch (err) {
       const offline = isOffline(err);
@@ -648,6 +689,7 @@ function answeredRow(question, value) {
 function startQuiz(text) {
   userBubble(text);
   quizActive = true; setPlaceholder();
+  agentMeta();
   botText(t("quiz.intro"));
   history.push({ role: "user", content: text }, { role: "assistant", content: `${t("quiz.intro")}\n${t("quiz.q1")}` });
 
@@ -693,6 +735,7 @@ function orgEscalation() {
 
 function statusPrompt(text) {
   userBubble(text);
+  agentMeta();
   const msg = botText(t("statusPrompt"));
   msg.append(h("div", {}, h("a", { class: "chip", href: "#verify" }, ic("badge-check", "icon-sm"), t("statusPrompt.btn"))));
   I18N.icons();
@@ -1120,6 +1163,7 @@ document.addEventListener("langchange", () => {
   if (!document.getElementById("view-requests").hidden) Requests.render(false);
 });
 
+document.getElementById("hero-avatar").append(Brand.avatar("lg"));
 I18N.apply();
 renderSuggestions();
 setPlaceholder();

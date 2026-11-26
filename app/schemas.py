@@ -328,6 +328,7 @@ class Metric(BaseModel):
 class DayCount(BaseModel):
     date: str          # YYYY-MM-DD, Riyadh
     total: int
+    answered: int      # answered or recommended by the assistant ("resolved")
     escalated: int
 
 

@@ -4,8 +4,18 @@
   let lang = "ar";
   try { lang = localStorage.getItem("supercx.lang") === "en" ? "en" : "ar"; } catch { /* private mode */ }
 
+  // The assistant's name comes from the server (config ASSISTANT_NAME_AR / _EN) via meta tags,
+  // and fills {assistant} in any string. Pages without it fall back to a generic word.
+  const meta = (n) => document.querySelector(`meta[name="supercx:assistant-${n}"]`)?.content;
+  const assistant = { ar: meta("ar"), en: meta("en") };
+  const assistantName = (l = lang) => {
+    const v = assistant[l];
+    return v && !v.startsWith("__") ? v : (l === "ar" ? "المساعد" : "the assistant");
+  };
+
   function t(key, vars, l = lang) {
     let s = dict[l][key] ?? dict.ar[key] ?? key;
+    if (s.includes("{assistant}")) s = s.replaceAll("{assistant}", assistantName(l));
     if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, v);
     return s;
   }
@@ -72,7 +82,7 @@
           "demo": "Demo", "demoData": "Demo data" },
   });
 
-  window.I18N = { t, add, apply, setLang, icons, icon, formatDate, formatNumber, days, count, get lang() { return lang; } };
+  window.I18N = { t, add, apply, setLang, icons, icon, formatDate, formatNumber, days, count, assistantName, get lang() { return lang; } };
 
   document.addEventListener("click", (e) => {
     if (e.target.closest("[data-lang-toggle]")) setLang(lang === "ar" ? "en" : "ar");

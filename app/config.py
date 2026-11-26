@@ -16,6 +16,10 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./supercx.db")
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
 
+# The assistant's display name (persona is the name and avatar only; the agent's wording is unchanged).
+ASSISTANT_NAME_AR = os.getenv("ASSISTANT_NAME_AR", "مشاري")
+ASSISTANT_NAME_EN = os.getenv("ASSISTANT_NAME_EN", "Mishari")
+
 # Shared token for the staff dashboard. Set it in Replit Secrets; there is no
 # default in code. If unset, every staff endpoint returns 401.
 SUPPORT_TOKEN = os.getenv("SUPPORT_TOKEN", "")

@@ -139,6 +139,19 @@ Demo data for the dashboard: `python -m app.seed_demo`. It adds the design's sam
 questions, plus chat events and requests spread over the last 14 days (marked `demo`, replaced on
 every run, real rows untouched) so the overview chart has data.
 
+## Brand and assistant
+
+- Colors follow the association's website (cxa.sa): green `#102E1A` nav bar and staff sidebar,
+  blue `#3040D0` buttons and links, `#5A62F5` badges. Defined once in `static/tokens.css`, with a
+  dark mode (`#05030F` background, `#121826` cards) that follows the system setting. Text/background
+  pairs meet WCAG AA.
+- SuperCX logo (`static/brand.js`, `static/favicon.svg`): original mark, not the association's logo.
+- The assistant is called **مشاري / Mishari**; the persona is only the name and avatar, the agent's
+  wording is unchanged. Change it with `ASSISTANT_NAME_AR` / `ASSISTANT_NAME_EN`.
+- Membership questions that compare tiers (or replies naming two or more) show three cards built
+  in the browser from `/api/memberships` only, matched by `tier_id`: "Most popular" on the tier the
+  API marks `is_most_common`, and "Best for you" with a frame on the recommended tier.
+
 ## Staff overview
 
 The dashboard opens on **Overview** (`/support#overview`). Every number is counted from the

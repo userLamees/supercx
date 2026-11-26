@@ -1,4 +1,5 @@
 """SuperCX API: chat, memberships, and support cases."""
+import logging
 import secrets
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
@@ -43,6 +44,9 @@ async def lifespan(_: FastAPI):
     with Session(engine) as session:
         seed_faq(session)  # first start only: loads data/faq.json into the DB
     refresh_index()  # agent's search index follows the FAQ table
+    from app.preflight import problems
+    for problem in problems():  # shows in Replit's console; details: python -m app.preflight
+        logging.getLogger("supercx").warning("Go-live check: %s", problem)
     yield
 
 

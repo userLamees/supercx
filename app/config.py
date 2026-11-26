@@ -61,7 +61,10 @@ TWILIO_WHATSAPP_FROM = os.getenv("TWILIO_WHATSAPP_FROM", "")  # e.g. whatsapp:+1
 NOTIFY_ON_REPLY = os.getenv("NOTIFY_ON_REPLY", "true").lower() == "true"
 # Public address of the app, used in the link inside the message (e.g. https://supercx.replit.app).
 # If unset, the address of the staff request that saved the reply is used.
-PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
+# Running on Replit (workspace or deployment): Replit sets these.
+ON_REPLIT = bool(os.getenv("REPL_ID") or os.getenv("REPLIT_DEPLOYMENT"))
+_REPLIT_DOMAIN = (os.getenv("REPLIT_DOMAINS", "").split(",")[0] or os.getenv("REPLIT_DEV_DOMAIN", "")).strip()
+PUBLIC_BASE_URL = (os.getenv("PUBLIC_BASE_URL", "") or (f"https://{_REPLIT_DOMAIN}" if _REPLIT_DOMAIN else "")).rstrip("/")
 # WhatsApp outside the 24-hour window needs a template approved by Meta. Set its Twilio Content SID
 # (variables: 1 = case number, 2 = link); without it a plain message is sent (sandbox / within 24h).
 TWILIO_REPLY_TEMPLATE_SID = os.getenv("TWILIO_REPLY_TEMPLATE_SID", "")

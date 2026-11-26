@@ -13,9 +13,10 @@ uvicorn main:app --reload --port 8000
 python -m app.seed_demo                   # optional: demo questions, requests and two demo staff accounts
 ```
 
-On Replit: add **Replit Postgres** (sets `DATABASE_URL`; `postgres://` URLs are
-converted to `postgresql://` automatically) and set `SUPPORT_TOKEN`, `STAFF_ADMIN_EMAIL` and
-`STAFF_ADMIN_PASSWORD` in **Secrets**, then press Run. `psycopg2-binary` is in `requirements.txt`.
+On Replit: follow **[docs/REPLIT.md](docs/REPLIT.md)** (Arabic, step by step). In short: add
+Replit Postgres (sets `DATABASE_URL`), generate secrets with `python -m app.preflight --secrets`,
+add them in **Secrets**, press Run, and check with `python -m app.preflight`. The run command uses
+`--proxy-headers` so attempt limits see each visitor's real address behind Replit's proxy.
 
 ### Staff access for testing
 

@@ -15,16 +15,18 @@ HEADERS = {
         "en": ["Question", "Times asked", "First seen", "Last seen", "Status"],
     },
     "cases": {
-        "ar": ["رقم الحالة", "التاريخ", "النوع", "الحالة", "اللغة", "السؤال", "الملخص", "العضوية", "التواصل"],
-        "en": ["Case no.", "Date", "Type", "Status", "Language", "Question", "Summary", "Membership", "Contact"],
+        "ar": ["رقم الحالة", "التاريخ", "النوع", "الحالة", "اللغة", "السؤال", "الملخص", "العضوية", "التواصل", "رد الفريق", "وقت الرد", "الموظف"],
+        "en": ["Case no.", "Date", "Type", "Status", "Language", "Question", "Summary", "Membership", "Contact", "Team reply", "Replied at", "Staff member"],
     },
 }
 LABELS = {
     "ar": {"pending": "بانتظار الإجابة", "resolved": "حُوّل إلى سؤال شائع", "new": "جديدة",
-           "in_progress": "قيد المعالجة", "closed": "مغلقة", "inquiry": "استفسار", "complaint": "شكوى",
+           "in_progress": "قيد المعالجة", "replied": "تم الرد", "closed": "مغلقة",
+           "unanswered": "سؤال غير مجاب", "inquiry": "استفسار", "complaint": "شكوى",
            "suggestion": "مقترح", "service": "طلب خدمة", "lang_ar": "عربي", "lang_en": "إنجليزي"},
     "en": {"pending": "Awaiting answer", "resolved": "Converted to FAQ", "new": "New",
-           "in_progress": "In progress", "closed": "Closed", "inquiry": "Inquiry", "complaint": "Complaint",
+           "in_progress": "In progress", "replied": "Replied", "closed": "Closed",
+           "unanswered": "Unanswered question", "inquiry": "Inquiry", "complaint": "Complaint",
            "suggestion": "Suggestion", "service": "Service request", "lang_ar": "Arabic", "lang_en": "English"},
 }
 

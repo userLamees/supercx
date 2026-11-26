@@ -27,6 +27,13 @@ HIGH_FREQUENCY_THRESHOLD = int(os.getenv("HIGH_FREQUENCY_THRESHOLD", "10"))
 ALERT_CASE_AGE_HOURS = int(os.getenv("ALERT_CASE_AGE_HOURS", "48"))          # "new" requests waiting longer than this
 ALERT_COMPLAINTS_PER_WEEK = int(os.getenv("ALERT_COMPLAINTS_PER_WEEK", "3"))  # complaints in 7 days that trigger an alert
 
+# Expected reply time shown to visitors ("within two business days"). A demo assumption until
+# the association confirms it. Saudi weekend (Friday, Saturday) does not count.
+REPLY_BUSINESS_DAYS = int(os.getenv("REPLY_BUSINESS_DAYS", "2"))
+# Public "track your request": failed attempts allowed per 15 minutes.
+TRACK_MAX_FAILURES_PER_IP = int(os.getenv("TRACK_MAX_FAILURES_PER_IP", "10"))
+TRACK_MAX_FAILURES_PER_CASE = int(os.getenv("TRACK_MAX_FAILURES_PER_CASE", "5"))
+
 # Verification codes (OTP). With no provider configured the app runs a labeled simulation.
 OTP_SECRET = os.getenv("OTP_SECRET", "")            # HMAC key for stored hashes; random per process if unset
 SMTP_HOST = os.getenv("SMTP_HOST", "")

@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/tokens.css?v=4">
-  <link rel="stylesheet" href="/static/styles.css?v=4">
+  <link rel="stylesheet" href="/static/tokens.css?v=5">
+  <link rel="stylesheet" href="/static/styles.css?v=5">
 </head>
 <body>
   <div class="chat-page">
@@ -19,6 +19,7 @@
         </div>
         <a class="nav-title" href="/">SuperCX</a>
         <div class="nav-end">
+          <a class="icon-btn has-badge" href="#requests" id="requests-btn" data-i18n-aria="req.nav"><i data-lucide="inbox" class="icon"></i><span class="dot-badge" hidden></span></a>
           <button class="lang-btn" type="button" data-lang-toggle data-i18n="lang.toggle" data-i18n-aria="lang.toggleAria">EN</button>
         </div>
       </div>
@@ -139,11 +140,34 @@
       </div>
     </main>
 
-    <!-- 05 Request confirmation -->
-    <main class="view page-tint" id="view-case" hidden>
+    <!-- My requests + track a request from any device -->
+    <main class="view page-tint" id="view-requests" hidden>
       <div class="container page">
         <a class="back-btn" href="#chat"><i data-lucide="arrow-left" class="icon flip"></i><span data-i18n="nav.back">العودة للمحادثة</span></a>
-        <div id="case-body"></div>
+        <div class="page-head">
+          <h1 data-i18n="req.title">طلباتي</h1>
+          <p data-i18n="req.sub">طلباتك المرسلة من هذا الجهاز وردود الفريق عليها.</p>
+        </div>
+        <div id="requests-body" aria-live="polite"></div>
+        <form class="card card-white track-form" id="track-form" novalidate>
+          <div>
+            <h2 data-i18n="track.title">تابع طلبك</h2>
+            <p class="help" data-i18n="track.sub">من أي جهاز: أدخل رقم الحالة ورمز المتابعة اللذين ظهرا لك عند الإرسال.</p>
+          </div>
+          <div class="track-fields">
+            <div class="field">
+              <label class="label" for="track-ref" data-i18n="track.ref">رقم الحالة</label>
+              <input class="input" id="track-ref" dir="ltr" autocomplete="off" autocapitalize="characters" maxlength="20" placeholder="CX-XXXXXX">
+            </div>
+            <div class="field">
+              <label class="label" for="track-code" data-i18n="track.code">رمز المتابعة</label>
+              <input class="input" id="track-code" dir="ltr" autocomplete="off" autocapitalize="characters" maxlength="20" placeholder="XXXX-XXXX">
+            </div>
+          </div>
+          <p class="form-error" id="track-error" role="alert" hidden></p>
+          <p class="help" id="track-status" role="status"></p>
+          <button class="btn btn-primary btn-block" type="submit" id="track-submit" data-i18n="track.submit">متابعة الطلب</button>
+        </form>
       </div>
     </main>
 
@@ -161,7 +185,8 @@
   </div>
 
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-  <script src="/static/i18n.js?v=4"></script>
-  <script src="/static/chat.js?v=4"></script>
+  <script src="/static/i18n.js?v=5"></script>
+  <script src="/static/requests.js?v=5"></script>
+  <script src="/static/chat.js?v=5"></script>
 </body>
 </html>

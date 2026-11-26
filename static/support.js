@@ -61,7 +61,43 @@ I18N.add({
     "dash.statusAria": "حالة الطلب",
     "status.new": "جديدة",
     "status.in_progress": "قيد المعالجة",
+    "status.replied": "تم الرد",
     "status.closed": "مغلقة",
+    "cat.unanswered": "سؤال غير مجاب",
+    "dash.overdue": "رد جديد مطلوب",
+    "dash.overdueHint": "مضى أكثر من يومي عمل دون رد",
+    "dash.details": "التفاصيل",
+    "dash.replied": "تم الرد",
+    "detail.title": "تفاصيل الحالة",
+    "detail.type": "النوع",
+    "detail.date": "تاريخ الإرسال",
+    "detail.status": "الحالة",
+    "detail.contact": "وسيلة التواصل",
+    "detail.tier": "العضوية",
+    "detail.lang": "لغة الطلب",
+    "detail.lang.ar": "العربية",
+    "detail.lang.en": "الإنجليزية",
+    "detail.due": "الرد المتوقع قبل",
+    "detail.text": "نص الطلب",
+    "detail.summary": "الملخص",
+    "detail.log": "السجل",
+    "detail.logReceived": "تم استلام الطلب",
+    "detail.lastReply": "آخر رد أُرسل",
+    "detail.replyBy": "{actor} · {when}",
+    "detail.replyLabel": "الرد على المستخدم",
+    "detail.replyPh": "اكتب ردًا واضحًا ومهذبًا…",
+    "detail.replyHelp": "يظهر الرد للمستخدم في «طلباتي» وعند متابعة طلبه برقم الحالة. لا يظهر له اسمك.",
+    "detail.send": "إرسال الرد",
+    "detail.update": "تحديث الرد",
+    "detail.sending": "جارٍ الإرسال…",
+    "detail.sent": "أُرسل الرد وتغيّرت الحالة إلى «تم الرد».",
+    "detail.needReply": "اكتب الرد قبل الإرسال.",
+    "detail.error": "تعذّر إرسال الرد. حاول مرة أخرى.",
+    "detail.offline": "لا يوجد اتصال بالإنترنت. لم يُرسل الرد.",
+    "detail.loadError": "تعذّر تحميل سجل الحالة.",
+    "action.case.status": "غيّر الحالة",
+    "action.case.reply": "ردّ على المستخدم",
+    "action.case.reply_update": "حدّث الرد",
     "modal.title": "تحويل إلى سؤال شائع",
     "modal.sub": "أضف إجابة واضحة وأرفق مصدرها قبل الاعتماد.",
     "modal.close": "إغلاق",
@@ -205,7 +241,43 @@ I18N.add({
     "dash.statusAria": "Case status",
     "status.new": "New",
     "status.in_progress": "In progress",
+    "status.replied": "Replied",
     "status.closed": "Closed",
+    "cat.unanswered": "Unanswered question",
+    "dash.overdue": "Reply needed",
+    "dash.overdueHint": "More than two business days without a reply",
+    "dash.details": "Details",
+    "dash.replied": "Replied",
+    "detail.title": "Case details",
+    "detail.type": "Type",
+    "detail.date": "Sent",
+    "detail.status": "Status",
+    "detail.contact": "Contact",
+    "detail.tier": "Membership",
+    "detail.lang": "Request language",
+    "detail.lang.ar": "Arabic",
+    "detail.lang.en": "English",
+    "detail.due": "Reply expected by",
+    "detail.text": "Request text",
+    "detail.summary": "Summary",
+    "detail.log": "History",
+    "detail.logReceived": "Request received",
+    "detail.lastReply": "Last reply sent",
+    "detail.replyBy": "{actor} · {when}",
+    "detail.replyLabel": "Reply to the user",
+    "detail.replyPh": "Write a clear, polite reply…",
+    "detail.replyHelp": "The user sees the reply in My requests and when tracking the case number. Your name isn't shown to them.",
+    "detail.send": "Send reply",
+    "detail.update": "Update reply",
+    "detail.sending": "Sending…",
+    "detail.sent": "Reply sent. The status changed to Replied.",
+    "detail.needReply": "Write the reply before sending.",
+    "detail.error": "Couldn't send the reply. Please try again.",
+    "detail.offline": "No internet connection. The reply wasn't sent.",
+    "detail.loadError": "Couldn't load the case history.",
+    "action.case.status": "Changed status",
+    "action.case.reply": "Replied to the user",
+    "action.case.reply_update": "Updated the reply",
     "modal.title": "Convert to FAQ",
     "modal.sub": "Add a clear answer and its source before approving.",
     "modal.close": "Close",
@@ -522,12 +594,12 @@ $("promote-form").addEventListener("submit", async (e) => {
 /* ---------- Support cases ---------- */
 function statusSelect(c) {
   const select = h("select", { class: "select", "aria-label": t("dash.statusAria") });
-  ["new", "in_progress", "closed"].forEach((v) => select.add(new Option(t(`status.${v}`), v, false, v === c.status)));
+  ["new", "in_progress", "replied", "closed"].forEach((v) => select.add(new Option(t(`status.${v}`), v, false, v === c.status)));
   select.addEventListener("change", async () => {
     select.disabled = true;
     try {
       await api(`/api/support-cases/${c.id}`, { method: "PATCH", body: JSON.stringify({ status: select.value }) });
-      c.status = select.value; toast(t("dash.statusSaved")); loadAlerts().catch(() => {});
+      c.status = select.value; toast(t("dash.statusSaved")); loadAlerts().catch(() => {}); loadCases().catch(() => {});
     } catch (err) {
       if (err.message === "auth") return authFailed();
       select.value = c.status; toast(t(isOffline(err) ? "dash.offline" : "dash.statusSaveError"));
@@ -543,19 +615,104 @@ async function loadCases() {
   const [cases, tiers] = await Promise.all([api(`/api/support-cases?${params}`), fetch("/api/memberships").then((r) => r.json())]);
   tierNames = Object.fromEntries(tiers.map((tier) => [tier.id, tier.name]));
   const filtered = params.toString() !== "";
-  $("cases-rows").replaceChildren(...cases.map((c) => h("tr", {},
-    h("td", { class: "q", dir: "ltr" }, ref(c.id)),
+  casesById = Object.fromEntries(cases.map((c) => [c.id, c]));
+  $("cases-rows").replaceChildren(...cases.map((c) => h("tr", { class: c.overdue ? "overdue" : null },
+    h("td", { class: "q", dir: "ltr" }, h("span", { class: "tag-row" }, ref(c.id),
+      c.overdue ? h("span", { class: "tag tag-overdue", title: t("dash.overdueHint"), dir: "auto" }, ic("clock-alert", "icon-sm"), t("dash.overdue")) : null)),
     h("td", { "data-label": t("dash.colDate"), class: "muted" }, relative(c.created_at)),
     h("td", { "data-label": t("dash.colType") }, h("span", { class: `tag cat-${c.category || "inquiry"}` }, t(`cat.${c.category || "inquiry"}`))),
     h("td", { "data-label": t("dash.colQuestion"), dir: "auto" }, c.question,
       c.summary && c.summary !== c.question ? h("span", { class: "case-summary", dir: "auto" }, c.summary) : null),
     h("td", { "data-label": t("dash.colTier") }, tierNames[c.tier_id]?.[I18N.lang] || "—"),
     h("td", { "data-label": t("dash.colContact"), dir: "auto" }, c.contact || t("dash.noContact")),
-    h("td", { "data-label": t("dash.colStatus") }, statusSelect(c)))));
+    h("td", { "data-label": t("dash.colStatus") }, statusSelect(c)),
+    h("td", { class: "act" }, h("button", { class: "btn btn-sm btn-secondary", type: "button", onclick: () => openCase(c.id) },
+      ic(c.reply ? "message-square-text" : "reply", "icon-sm"), t("dash.details"))))));
+  I18N.icons();
   $("cases-table").hidden = cases.length === 0;
   $("cases-state").hidden = cases.length > 0;
   $("cases-state").textContent = t(filtered ? "dash.casesFilteredEmpty" : "dash.casesEmpty");
 }
+
+/* ---------- Case details + reply to the user ---------- */
+let casesById = {};
+let openCaseId = null;
+async function openCase(id) {
+  const c = casesById[id];
+  if (!c) return;
+  openCaseId = id;
+  $("cd-ref").textContent = c.reference;
+  $("cd-error").hidden = true;
+  $("cd-text").value = c.reply || "";
+  $("cd-send").textContent = t(c.reply ? "detail.update" : "detail.send");
+  renderCase(c, null);
+  if (!$("case-detail").open) $("case-detail").showModal();
+  $("cd-text").focus();
+  try {
+    const log = await api(`/api/audit-log?target_id=${encodeURIComponent(id)}`);
+    if (openCaseId === id) renderCase(casesById[id], log);
+  } catch (err) {
+    if (err.message === "auth") return authFailed();
+    if (openCaseId === id) renderCase(casesById[id], "error");
+  }
+}
+
+function renderCase(c, log) {
+  const fact = (label, value, attrs = {}) => h("div", {}, h("dt", { class: "caption" }, label), h("dd", attrs, value));
+  const cat = c.category || "inquiry";
+  const history = log === "error" ? h("p", { class: "muted" }, t("detail.loadError"))
+    : log === null ? h("p", { class: "muted" }, t("dash.loading"))
+    : h("ol", { class: "case-log" },
+      ...[...log].reverse().map((e) => h("li", {},
+        h("span", {}, t(`action.${e.action}`), " · ", e.actor || t("audit.unknown")),
+        h("span", { class: "muted" }, relative(e.at)))),
+      h("li", {}, h("span", {}, t("detail.logReceived")), h("span", { class: "muted" }, relative(c.created_at))));
+  if (Array.isArray(log)) history.prepend(history.lastChild); // oldest first: received, then actions
+  $("cd-body").replaceChildren(...[
+    h("dl", { class: "detail-grid" },
+      fact(t("detail.type"), h("span", { class: `tag cat-${cat}` }, t(`cat.${cat}`))),
+      fact(t("detail.status"), h("span", { class: "tag-row" }, t(`status.${c.status}`),
+        c.overdue ? h("span", { class: "tag tag-overdue" }, t("dash.overdue")) : null)),
+      fact(t("detail.date"), relative(c.created_at)),
+      fact(t("detail.due"), relative(c.due_at)),
+      fact(t("detail.contact"), c.contact || t("dash.noContact"), { dir: "auto" }),
+      fact(t("detail.tier"), tierNames[c.tier_id]?.[I18N.lang] || "—"),
+      fact(t("detail.lang"), t(`detail.lang.${c.language}`))),
+    h("section", { class: "detail-block" }, h("h3", {}, t("detail.text")), h("p", { dir: "auto" }, c.question)),
+    c.summary && c.summary !== c.question
+      ? h("section", { class: "detail-block" }, h("h3", {}, t("detail.summary")), h("p", { dir: "auto" }, c.summary)) : null,
+    c.reply ? h("section", { class: "detail-block team-reply" }, h("h3", {}, t("detail.lastReply")),
+      h("p", { dir: "auto" }, c.reply),
+      h("span", { class: "caption" }, t("detail.replyBy", { actor: c.replied_by || t("audit.unknown"), when: relative(c.replied_at) }))) : null,
+    h("section", { class: "detail-block" }, h("h3", {}, t("detail.log")), history)].filter(Boolean));
+  I18N.icons();
+}
+
+$("cd-reply").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const id = openCaseId;
+  const text = $("cd-text").value.trim();
+  const btn = $("cd-send");
+  $("cd-error").hidden = true;
+  if (text.length < 2) { formError("cd-error", "detail.needReply"); $("cd-text").focus(); return; }
+  btn.disabled = true; btn.textContent = t("detail.sending");
+  try {
+    const updated = await api(`/api/support-cases/${id}/reply`, { method: "POST", body: JSON.stringify({ reply: text }) });
+    casesById[id] = updated;
+    toast(t("detail.sent"));
+    loadAlerts().catch(() => {});
+    loadCases().catch(() => {});
+    await openCase(id);
+  } catch (err) {
+    if (err.message === "auth") return authFailed();
+    formError("cd-error", isOffline(err) ? "detail.offline" : "detail.error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = t(casesById[id]?.reply ? "detail.update" : "detail.send");
+  }
+});
+$("case-detail").addEventListener("close", () => { openCaseId = null; });
+
 $("filter-category").addEventListener("change", route);
 $("filter-status").addEventListener("change", route);
 
@@ -678,6 +835,9 @@ $("auth").addEventListener("submit", (e) => {
 $("logout").addEventListener("click", () => { setToken(""); route(); });
 
 window.addEventListener("hashchange", route);
-document.addEventListener("langchange", () => { if (token()) route(); else show(currentView()); });
+document.addEventListener("langchange", () => {
+  if (token()) route(); else show(currentView());
+  if (openCaseId) openCase(openCaseId);
+});
 I18N.apply();
 route();

@@ -5,6 +5,7 @@ I18N.add({
   ar: {
     "page.title": "SuperCX | الأسئلة الشائعة",
     "faq.newChat": "محادثة جديدة",
+    "faq.myRequests": "طلباتي",
     "faq.title": "الأسئلة الشائعة",
     "faq.sub": "إجابات موثوقة في مكان واحد · محتوى تجريبي",
     "faq.searchLabel": "البحث في الأسئلة",
@@ -23,6 +24,7 @@ I18N.add({
   en: {
     "page.title": "SuperCX | FAQ",
     "faq.newChat": "New chat",
+    "faq.myRequests": "My requests",
     "faq.title": "Frequently asked questions",
     "faq.sub": "Reliable answers in one place · demo content",
     "faq.searchLabel": "Search questions",

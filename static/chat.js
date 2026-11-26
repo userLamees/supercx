@@ -81,8 +81,6 @@ I18N.add({
     "state.request": "تحويل لفريق الجمعية",
     "state.sending": "جارٍ الإرسال",
     "state.sendingBody": "نرسل طلبك إلى فريق الدعم، لحظات من فضلك.",
-    "state.sent": "تم الإرسال",
-    "state.sentBody": "تم استلام طلبك، ورقم الحالة {ref}.",
     "state.failed": "تعذّر الإرسال",
     "state.failedBody": "لم يصل طلبك إلى النظام. لم نحفظ شيئًا، يمكنك المحاولة مرة أخرى.",
     "state.offline": "لا يوجد اتصال",
@@ -102,19 +100,8 @@ I18N.add({
     "consent.needSummary": "يلزم الموافقة على إرسال الملخص قبل الإرسال.",
     "consent.needContact": "أدخل بريدًا إلكترونيًا صحيحًا أو رقم جوال سعوديًا (05XXXXXXXX)، أو ألغِ الموافقة على التواصل.",
     "consent.sending": "جارٍ الإرسال…",
-    "state.viewCase": "عرض تفاصيل الطلب",
     "consent.declined": "لن نرسل شيئًا. يمكنك متابعة أسئلتك هنا.",
 
-    "confirm.title": "تم استلام طلبك",
-    "confirm.caseNo": "رقم الحالة",
-    "confirm.received": "تم الاستلام",
-    "confirm.review": "قيد المراجعة من فريق الدعم",
-    "confirm.reply": "الرد عليك",
-    "confirm.update": "تحديث المحتوى المعتمد",
-    "confirm.next": "الخطوة التالية",
-    "confirm.nextContact": "سيراجع الفريق طلبك ويتواصل معك عبر الوسيلة التي زوّدتنا بها. موعد الرد بانتظار تأكيد الجمعية.",
-    "confirm.nextAnon": "سيراجع الفريق سؤالك لتحسين الإجابات. لم تترك وسيلة تواصل، لذلك لن يصلك رد مباشر.",
-    "confirm.back": "العودة للمحادثة",
 
     "statusPrompt": "لعرض حالة عضويتك أحتاج أولًا إلى التحقق من رقم جوالك.",
     "statusPrompt.btn": "التحقق من الجوال",
@@ -252,8 +239,6 @@ I18N.add({
     "state.request": "Handed to the association's team",
     "state.sending": "Sending",
     "state.sendingBody": "Sending your request to the support team, one moment please.",
-    "state.sent": "Sent",
-    "state.sentBody": "Your request was received. Case number {ref}.",
     "state.failed": "Couldn't send",
     "state.failedBody": "Your request didn't reach our system. Nothing was saved; you can try again.",
     "state.offline": "No connection",
@@ -273,19 +258,8 @@ I18N.add({
     "consent.needSummary": "Please agree to send the summary first.",
     "consent.needContact": "Enter a valid email or a Saudi mobile number (05XXXXXXXX), or untick the contact consent.",
     "consent.sending": "Sending…",
-    "state.viewCase": "View request details",
     "consent.declined": "Nothing was sent. You can keep asking here.",
 
-    "confirm.title": "We received your request",
-    "confirm.caseNo": "Case number",
-    "confirm.received": "Received",
-    "confirm.review": "Under review by the support team",
-    "confirm.reply": "Reply to you",
-    "confirm.update": "Approved content updated",
-    "confirm.next": "Next step",
-    "confirm.nextContact": "The team will review your request and contact you using the method you provided. Response time awaits the association's confirmation.",
-    "confirm.nextAnon": "The team will review your question to improve answers. You didn't leave contact details, so you won't get a direct reply.",
-    "confirm.back": "Back to chat",
 
     "statusPrompt": "To show your membership status I first need to verify your mobile number.",
     "statusPrompt.btn": "Verify mobile number",
@@ -360,7 +334,6 @@ let tiersById = {};
 let busy = false;
 let quizActive = false;
 let lastStatus = null;
-let lastCase = null;
 
 /* ---------- DOM helpers ---------- */
 function h(tag, props = {}, ...kids) {
@@ -564,9 +537,10 @@ function consentCard(question, reply, notice) {
   const contactInput = h("input", { class: "input", id: `ci-${uid}`, type: "text", inputmode: "email", autocomplete: "email", maxlength: "200", dir: "auto", placeholder: tl("consent.contactPh"), "aria-describedby": `ce-${uid}` });
   const contactField = h("div", { class: "field", hidden: true },
     h("label", { class: "label", for: `ci-${uid}` }, tl("consent.contactLabel")), contactInput);
-  const categorySelect = h("select", { class: "select", id: `ct-${uid}` },
-    ...["inquiry", "complaint", "suggestion", "service"].map((c) => new Option(tl(`cat.${c}`), c)));
-  if (reply.category) categorySelect.value = reply.category;  // the agent recognized a request
+  // A question the assistant couldn't answer is filed as "unanswered" unless the visitor picks a request type.
+  const types = reply.category ? ["inquiry", "complaint", "suggestion", "service"] : ["unanswered", "inquiry", "complaint", "suggestion", "service"];
+  const categorySelect = h("select", { class: "select", id: `ct-${uid}` }, ...types.map((c) => new Option(tl(`cat.${c}`), c)));
+  categorySelect.value = reply.category || "unanswered";  // the agent recognized a request, or not
   const error = h("p", { class: "form-error", id: `ce-${uid}`, role: "alert", hidden: true });
   const status = h("div", { class: "consent-status" });
   const sendButton = h("button", { class: "btn btn-primary btn-block", type: "submit" }, tl("consent.send"));
@@ -627,10 +601,13 @@ function consentCard(question, reply, notice) {
       }
       if (!res.ok) throw new Error(String(res.status));
       const data = await res.json(); // success is shown only after the server confirms
-      lastCase = { reference: data.reference, hasContact: Boolean(contact) };
-      wrap.replaceWith(stateCard("success", tl("state.sent"), tl("state.sentBody", { ref: data.reference }),
-        { label: tl("state.viewCase"), onClick: () => { location.hash = "#case"; } }, ui));
-      location.hash = "#case";
+      // The conversation stays open: the confirmation replaces the form in place.
+      const saved = Requests.remember(data.reference, data.tracking_code);
+      const card = Requests.confirmCard(data, ui, saved);
+      wrap.replaceWith(card);
+      I18N.icons();
+      card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      Requests.updateDot();
     } catch (err) {
       const offline = isOffline(err);
       status.replaceChildren(stateCard("error", tl(offline ? "state.offline" : "state.failed"),
@@ -643,28 +620,6 @@ function consentCard(question, reply, notice) {
     }
   });
   add(wrap);
-}
-
-/* 05 Confirmation (its own page, #case) */
-function renderCase() {
-  const c = lastCase;
-  if (!c) return;
-  const tl = (k, v) => t(k, v);
-  const step = (cls, text, glyph) => h("li", { class: cls }, h("span", { class: "dot" }, glyph ? ic(glyph) : null), h("span", {}, text));
-  document.getElementById("case-body").replaceChildren(h("section", { class: "card card-white confirm" },
-    h("div", { class: "confirm-head" },
-      h("div", { class: "check-circle" }, ic("check")),
-      h("h1", {}, tl("confirm.title")),
-      h("span", { class: "caption" }, tl("confirm.caseNo")),
-      h("strong", { class: "case-number" }, c.reference)),
-    h("ol", { class: "timeline" },
-      step("done", tl("confirm.received"), "check"),
-      step("current", tl("confirm.review")),
-      step("", tl(c.hasContact ? "confirm.reply" : "confirm.update"))),
-    h("div", { class: "next-step" }, h("span", { class: "caption" }, tl("confirm.next")),
-      h("p", {}, tl(c.hasContact ? "confirm.nextContact" : "confirm.nextAnon"))),
-    h("a", { class: "btn btn-primary btn-block", href: "#chat" }, tl("confirm.back"))));
-  I18N.icons();
 }
 
 /* ---------- 02 Recommendation questions ---------- */
@@ -1083,10 +1038,14 @@ contactForm.addEventListener("submit", async (e) => {
     if (res.status === 422 && contact) { contactStatus.replaceChildren(); showError(contactError, "consent.needContact"); return; }
     if (!res.ok) throw new Error(String(res.status));
     const data = await res.json();
-    lastCase = { reference: data.reference, hasContact: Boolean(contact) };
     contactForm.reset(); contactStatus.replaceChildren();
     document.getElementById("contact-reply-field").hidden = true;
-    location.hash = "#case";
+    // Back to the conversation, with the confirmation as its latest message.
+    const saved = Requests.remember(data.reference, data.tracking_code);
+    hideStart();
+    add(Requests.confirmCard(data, I18N.lang, saved));
+    Requests.updateDot();
+    location.hash = "#chat";
   } catch (err) {
     const offline = isOffline(err);
     contactStatus.replaceChildren(stateCard("error", t(offline ? "state.offline" : "state.failed"),
@@ -1128,15 +1087,14 @@ function renderStatus() {
 }
 
 /* ---------- Views (hash routing) ---------- */
-const views = { chat: "view-chat", verify: "view-verify", status: "view-status", case: "view-case", contact: "view-contact" };
+const views = { chat: "view-chat", verify: "view-verify", status: "view-status", contact: "view-contact", requests: "view-requests" };
 function route() {
   let name = location.hash.slice(1) || "chat";
   if (!views[name]) name = "chat";
   if (name === "status" && !lastStatus) { location.replace("#verify"); return; }
-  if (name === "case" && !lastCase) { location.replace("#chat"); return; }
   for (const [key, id] of Object.entries(views)) document.getElementById(id).hidden = key !== name;
   if (name === "status") renderStatus();
-  if (name === "case") renderCase();
+  if (name === "requests") Requests.render();
   if (name === "chat") { // back to the conversation where it left off
     window.scrollTo(0, document.body.scrollHeight);
     input.focus({ preventScroll: true });
@@ -1150,7 +1108,7 @@ document.addEventListener("langchange", () => {
   applyChannel();
   if (pending) codeSent.textContent = t(pending.demo ? "verify.codeSentDemo" : pending.channel === "email" ? "verify.codeSentEmail" : "verify.codeSentWhatsapp", { to: pending.display });
   renderStatus();
-  renderCase();
+  if (!document.getElementById("view-requests").hidden) Requests.render(false);
 });
 
 I18N.apply();
@@ -1158,4 +1116,5 @@ renderSuggestions();
 setPlaceholder();
 loadChannels();
 initVoice();
+Requests.init();
 loadTiers().then(route);

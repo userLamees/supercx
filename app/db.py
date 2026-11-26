@@ -26,7 +26,11 @@ class SupportCase(SQLModel, table=True):
     tier_id: Optional[str] = Field(default=None, index=True)
     summary: Optional[str] = None
     status: CaseStatus = Field(default=CaseStatus.new, index=True)
-    category: str = Field(default="inquiry", index=True)  # inquiry | complaint | suggestion | service
+    category: str = Field(default="inquiry", index=True)  # unanswered | inquiry | complaint | suggestion | service
+    tracking_hash: str = ""                 # salted hash of the visitor's tracking code (code shown once)
+    reply: Optional[str] = None             # the team's reply, visible to the visitor
+    replied_at: Optional[datetime] = None
+    replied_by: Optional[str] = None        # staff name, shown to staff only
 
 
 class UnansweredQuestion(SQLModel, table=True):
@@ -105,7 +109,8 @@ engine = create_engine(DATABASE_URL, connect_args=_connect_args)
 # tables, so these are added here (SQLite and Postgres both support ADD COLUMN).
 _ADDED_COLUMNS = {
     "faq_items": {"source_title_en": "VARCHAR"},
-    "support_cases": {"category": "VARCHAR DEFAULT 'inquiry'"},
+    "support_cases": {"category": "VARCHAR DEFAULT 'inquiry'", "tracking_hash": "VARCHAR DEFAULT ''",
+                      "reply": "VARCHAR", "replied_at": "TIMESTAMP", "replied_by": "VARCHAR"},
 }
 
 

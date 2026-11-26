@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/tokens.css?v=4">
-  <link rel="stylesheet" href="/static/styles.css?v=4">
+  <link rel="stylesheet" href="/static/tokens.css?v=5">
+  <link rel="stylesheet" href="/static/styles.css?v=5">
 </head>
 <body>
   <div class="dash">
@@ -118,6 +118,7 @@
                 <label class="sr-only" for="filter-category" data-i18n="dash.filterCategory">نوع الطلب</label>
                 <select class="select" id="filter-category">
                   <option value="" data-i18n="dash.allTypes">كل الأنواع</option>
+                  <option value="unanswered" data-i18n="cat.unanswered">سؤال غير مجاب</option>
                   <option value="inquiry" data-i18n="cat.inquiry">استفسار</option>
                   <option value="complaint" data-i18n="cat.complaint">شكوى</option>
                   <option value="suggestion" data-i18n="cat.suggestion">مقترح</option>
@@ -128,6 +129,7 @@
                   <option value="" data-i18n="dash.allStatuses">كل الحالات</option>
                   <option value="new" data-i18n="status.new">جديدة</option>
                   <option value="in_progress" data-i18n="status.in_progress">قيد المعالجة</option>
+                  <option value="replied" data-i18n="status.replied">تم الرد</option>
                   <option value="closed" data-i18n="status.closed">مغلقة</option>
                 </select>
               </div>
@@ -143,6 +145,7 @@
                 <th scope="col" data-i18n="dash.colTier">العضوية</th>
                 <th scope="col" data-i18n="dash.colContact">التواصل</th>
                 <th scope="col" data-i18n="dash.colStatus">الحالة</th>
+                <th scope="col"><span class="sr-only" data-i18n="dash.colAction">الإجراء</span></th>
               </tr></thead>
               <tbody id="cases-rows"></tbody>
             </table>
@@ -308,10 +311,33 @@
     </form>
   </dialog>
 
+  <!-- Case details: side panel on laptop, full sheet on mobile -->
+  <dialog class="modal drawer" id="case-detail" aria-labelledby="cd-title">
+    <div class="drawer-inner">
+      <div class="modal-head">
+        <div>
+          <h2 id="cd-title" data-i18n="detail.title">تفاصيل الحالة</h2>
+          <p class="case-number" id="cd-ref" dir="ltr"></p>
+        </div>
+        <button class="icon-btn" type="button" data-close data-i18n-aria="modal.close"><i data-lucide="x" class="icon"></i></button>
+      </div>
+      <div id="cd-body"></div>
+      <form class="reply-form" id="cd-reply" novalidate>
+        <div class="field">
+          <label class="label" for="cd-text" data-i18n="detail.replyLabel">الرد على المستخدم</label>
+          <textarea class="textarea" id="cd-text" dir="auto" maxlength="4000" rows="5" data-i18n-ph="detail.replyPh"></textarea>
+          <span class="help" data-i18n="detail.replyHelp">يظهر الرد للمستخدم في «طلباتي» وعند متابعة طلبه برقم الحالة. لا يظهر له اسمك.</span>
+        </div>
+        <p class="form-error" id="cd-error" role="alert" hidden></p>
+        <button class="btn btn-primary btn-block" type="submit" id="cd-send" data-i18n="detail.send">إرسال الرد</button>
+      </form>
+    </div>
+  </dialog>
+
   <div class="toast" id="toast" role="status" hidden></div>
 
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-  <script src="/static/i18n.js?v=4"></script>
-  <script src="/static/support.js?v=4"></script>
+  <script src="/static/i18n.js?v=5"></script>
+  <script src="/static/support.js?v=5"></script>
 </body>
 </html>

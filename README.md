@@ -141,16 +141,21 @@ every run, real rows untouched) so the overview chart has data.
 
 ## Brand and assistant
 
-- Colors follow the association's website (cxa.sa): green `#102E1A` nav bar and staff sidebar,
-  blue `#3040D0` buttons and links, `#5A62F5` badges. Defined once in `static/tokens.css`, with a
-  dark mode (`#05030F` background, `#121826` cards) that follows the system setting. Text/background
-  pairs meet WCAG AA.
-- SuperCX logo (`static/brand.js`, `static/favicon.svg`): original mark, not the association's logo.
+- Design v3: always light (no dark mode). Blue `#3040D0` buttons, links and the user's bubble,
+  `#5A62F5` badges and the recommended card, `#ECEEFC` soft backgrounds, text `#14152B`. Defined
+  once in `static/tokens.css`. Fonts: IBM Plex Sans Arabic for text, Inter for numbers and the logo.
+- SuperCX logo: temporary text logo ("Super" + blue "CX") made by one function, `Brand.logo()` in
+  `static/brand.js`; pages hold a `data-brand-logo` placeholder, so swapping the logo is one edit.
+  Favicon: `static/favicon.svg`.
+- The assistant's photo is `static/img/mishari.png`, shown by `Brand.avatar()` (96px on the start
+  screen, 32px beside messages on phones, 40px on laptops).
 - The assistant is called **مشاري / Mishari**; the persona is only the name and avatar, the agent's
   wording is unchanged. Change it with `ASSISTANT_NAME_AR` / `ASSISTANT_NAME_EN`.
 - Membership questions that compare tiers (or replies naming two or more) show three cards built
   in the browser from `/api/memberships` only, matched by `tier_id`: "Most popular" on the tier the
-  API marks `is_most_common`, and "Best for you" with a frame on the recommended tier.
+  API marks `is_most_common`, and "Best for you" with a frame on the recommended tier. Phones
+  scroll the cards sideways with position dots; laptops show three columns.
+- Screenshots: `docs/screenshots/`.
 
 ## Staff overview
 

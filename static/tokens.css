@@ -1,45 +1,42 @@
-/* SuperCX design tokens. Brand colors follow the association's website (cxa.sa);
-   the rest comes from Figma "Screens v2". Use variables only.
+/* SuperCX design tokens (v3). Use variables only.
+   The interface is always light: there is no dark mode.
    Text/background pairs are checked for WCAG AA (4.5:1 text, 3:1 large text and icons). */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap');
 
 :root {
-  /* Brand (cxa.sa) */
-  --c-green: #102E1A;       /* nav bar, main headings, staff sidebar (white text 14.7:1) */
-  --c-green-soft: #E8EFEA;  /* light backgrounds tied to the green */
-  --c-blue: #3040D0;        /* primary buttons, links, send (white text 7.6:1) */
-  --c-blue-bright: #5A62F5; /* badges, selection, recommended card (white text 4.7:1) */
-  --c-blue-soft: #ECEEFC;   /* secondary buttons, light badges (blue text 6.6:1) */
-  --c-indigo: #1A2390;      /* logo gradient, featured cards */
-  --c-ink: #05030F;         /* dark-mode background */
-  --c-gray-dark: #414144;
-  --c-gray-mid: #6B6B70;    /* end of the "affiliate" card gradient */
-  --c-indigo-dark: #262C58; /* end of the "supporter" card gradient */
+  /* Brand */
+  --c-blue: #3040D0;        /* primary buttons, links, user bubble, send (white text 7.6:1) */
+  --c-blue-bright: #5A62F5; /* badges, recommended card border, new-reply dot (white text 4.7:1) */
+  --c-blue-soft: #ECEEFC;   /* icon tiles, secondary buttons, the assistant photo (blue text 6.6:1) */
+  --c-indigo: #1A2390;      /* card header gradients */
+  --c-gray-dark: #414144;   /* start of the "Affiliate" card gradient */
+  --c-gray-mid: #6B6B70;    /* end of the "Affiliate" card gradient */
+  --c-indigo-dark: #262C58; /* end of the "Supporter" card gradient */
   --c-chart-total: var(--c-blue);
   --c-chart-resolved: #2E7D4F;
 
-  /* Roles (switch in dark mode) */
-  --c-primary: var(--c-blue);           /* filled buttons and marks */
+  /* Roles */
+  --c-primary: var(--c-blue);
   --c-primary-hover: #2633B0;
-  --c-primary-soft: var(--c-blue-soft); /* secondary button / chip background */
-  --c-link: var(--c-blue);              /* text in the accent color */
-  --c-heading: var(--c-green);          /* page and section titles */
-  --c-nav: var(--c-green);              /* nav bar and staff sidebar */
-  --c-on-nav: #FFFFFF;
-  --c-on-nav-soft: rgba(255, 255, 255, 0.78);
-  --c-nav-active: rgba(255, 255, 255, 0.14);
-  --c-tag: var(--c-green-soft);
-  --c-on-tag: var(--c-green);
+  --c-primary-soft: var(--c-blue-soft);
+  --c-link: var(--c-blue);
+  --c-heading: var(--c-text);
+  --c-tag: var(--c-blue-soft);
+  --c-on-tag: var(--c-blue);
 
   /* Neutrals */
   --c-bg: #FFFFFF;
-  --c-surface: #F2F2F7;     /* cards, input, bubbles */
-  --c-surface-2: #FAFAFC;
-  --c-separator: #E5E5EA;
-  --c-border: #C7C7CC;
-  --c-text: #1C1C1E;
-  --c-text-2: #3A3A3C;
-  --c-muted: #6E6E73;       /* 5.1:1 on white, 4.5:1 on cards (was #8E8E93, below AA) */
+  --c-surface: #FAFBFD;     /* chat area and page backgrounds */
+  --c-surface-2: #F4F5FA;   /* icon buttons, inputs, table headers */
+  --c-text: #14152B;
+  --c-text-2: #5B5E73;      /* 6.4:1 on white */
+  --c-muted: #8A8DA3;       /* 3.3:1: hints, captions and icons only, never body text */
+  --c-meta: #6B6E85;        /* sources line (5.1:1 on white) */
+  --c-border: #E6E8F0;
+  --c-line: #EEF0F6;
+  --c-separator: var(--c-line);
+  --c-bubble-border: #E9EBF2;
+  --c-pill-border: #DCDFEA;
+  --c-input-border: #E1E4EE;
 
   /* Status */
   --c-success: #1F8A5B;
@@ -48,28 +45,31 @@
   --c-danger-soft: #FBEAE8;
   --c-warning: #B45309;     /* 5.0:1 on white */
   --c-warning-soft: #FDF3E7;
-  --c-success-fill: #1F8A5B; /* behind white text, same in both modes */
+  --c-success-fill: #1F8A5B;
   --c-danger-fill: #C0392B;
 
   /* Type */
-  --font: 'Noto Sans Arabic', system-ui, sans-serif;
+  --font: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --font-latin: 'Inter', 'IBM Plex Sans Arabic', system-ui, sans-serif;  /* numbers, Latin names */
   --fs-caption: 12px;
   --fs-footnote: 13px;
+  --fs-small: 14px;
   --fs-sub: 15px;
-  --fs-body: 17px;
-  --fs-title3: 20px;
-  --fs-title2: 24px;
-  --fs-title1: 28px;
+  --fs-body: 16px;
+  --fs-title3: 18px;
+  --fs-title2: 22px;
+  --fs-title1: 26px;
   --fs-large: 30px;
   --lh: 1.5;
-  --lh-message: 1.65;
+  --lh-message: 1.75;
 
   /* Radius */
   --r-sm: 10px;
-  --r-md: 14px;
+  --r-md: 12px;
   --r-card: 16px;
+  --r-bubble: 18px;
+  --r-tail: 6px;
   --r-lg: 20px;
-  --r-input: 26px;
   --r-pill: 999px;
 
   /* Spacing */
@@ -79,71 +79,50 @@
   --s-4: 16px;
   --s-5: 20px;
   --s-6: 24px;
-
-  /* Elevation */
-  --shadow-card: 0 8px 24px rgba(16, 46, 26, 0.14);
-
-  /* Layout */
-  --content-max: 720px;     /* chat column on laptop */
-  --gutter: 20px;           /* mobile side padding (from 390 frames) */
-
-  /* ---- Derived (not in the Figma export) ---- */
-  --c-on-primary: #FFFFFF;
-  --c-overlay: rgba(28, 28, 30, 0.45);
-  --c-focus: var(--c-blue-bright);
-
-  --bw: 1px;                /* hairline borders */
-  --bw-accent: 3px;         /* status message accent bar */
-  --bw-focus: 3px;
   --s-8: 32px;
   --s-10: 40px;
   --s-12: 48px;
-  --tap: 44px;              /* minimum touch target */
+
+  /* Elevation */
+  --shadow-card: 0 8px 24px rgba(48, 64, 208, 0.14);
+  --shadow-soft: 0 4px 16px rgba(20, 21, 43, 0.06);
+
+  /* Layout */
+  --content-max: 720px;     /* pages on laptop */
+  --chat-max: 820px;        /* chat column on laptop */
+  --gutter: 16px;
+  --nav-h: 60px;
+  --composer-h: 54px;
+
+  --c-on-primary: #FFFFFF;
+  --c-overlay: rgba(20, 21, 43, 0.45);
+  --c-focus: var(--c-blue-bright);
+
+  --bw: 1px;
+  --bw-accent: 3px;
+  --bw-focus: 3px;
+  --tap: 44px;
   --icon: 20px;
   --icon-sm: 16px;
   --icon-lg: 28px;
-  --logo: 56px;
   --check-lg: 56px;
   --otp-cell: 56px;
   --progress-h: 6px;
   --step-w: 20px;
   --dot: 20px;
-  --sidebar-w: 240px;
+  --sidebar-w: 248px;
   --dash-max: 1200px;
   --modal-max: 560px;
   --bubble-max: 85%;
-  --bp-tablet: 768px;       /* reference only; media queries use the literal */
   --dur: 0.18s;
-  --avatar-sm: 28px;
-  --avatar-lg: 72px;
+  --avatar-sm: 32px;
+  --avatar-lg: 96px;
 }
 
-/* Dark mode: ink background, #121826 cards, white text. Accent text gets a lighter blue so it
-   stays readable (9.4:1 on ink); filled buttons keep the brand blue with white text. */
-@media (prefers-color-scheme: dark) {
+@media (min-width: 768px) {
   :root {
-    --c-bg: var(--c-ink);
-    --c-surface: #121826;
-    --c-surface-2: #0B0F1C;
-    --c-separator: #232A3B;
-    --c-border: #3A4256;
-    --c-text: #FFFFFF;
-    --c-text-2: #D6D9E0;
-    --c-muted: #9AA1B2;        /* 6.9:1 on cards */
-    --c-link: #A3A9FF;
-    --c-heading: #FFFFFF;
-    --c-primary-soft: #1E2547;
-    --c-tag: #16301F;
-    --c-on-tag: #D7E6DC;
-    --c-success: #5FD39A;
-    --c-success-soft: #12301F;
-    --c-danger: #FF8A7A;
-    --c-danger-soft: #3A1714;
-    --c-warning: #F0B357;
-    --c-warning-soft: #2E2210;
-    --c-overlay: rgba(0, 0, 0, 0.6);
-    --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.5);
-    --c-chart-total: #7C86FF;      /* validated against #121826 */
-    --c-chart-resolved: #3FA46A;
+    --nav-h: 68px;
+    --composer-h: 58px;
+    --avatar-sm: 40px;
   }
 }

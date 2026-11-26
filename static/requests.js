@@ -162,6 +162,12 @@ window.Requests = (function () {
     const any = load().some(hasNew);
     btn.querySelector(".dot-badge").hidden = !any;
     btn.setAttribute("aria-label", t(any ? "req.navNew" : "req.nav"));
+    // Laptop nav link "My requests" carries the same dot.
+    const link = document.querySelector('.nav-links [data-nav="requests"]');
+    if (link) {
+      link.querySelector(".dot-badge").hidden = !any;
+      link.setAttribute("aria-label", t(any ? "req.navNew" : "req.nav"));
+    }
   }
   function markSeen() {
     save(load().map((it) => { const r = cache[it.ref]; return r && r.replied_at ? { ...it, seen: r.replied_at } : it; }));

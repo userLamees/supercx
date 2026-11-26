@@ -9,19 +9,22 @@
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/tokens.css?v=8">
-  <link rel="stylesheet" href="/static/styles.css?v=8">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/tokens.css?v=9">
+  <link rel="stylesheet" href="/static/styles.css?v=9">
 </head>
 <body>
   <div class="chat-page">
     <header class="nav">
-      <div class="container nav-inner">
-        <div class="nav-start">
-          <button class="icon-btn" type="button" id="new-chat" data-i18n-aria="chat.new"><i data-lucide="square-pen" class="icon"></i></button>
-        </div>
-        <a class="brand" href="/" aria-label="SuperCX"><svg class="brand-mark" aria-hidden="true"><use href="#sx-mark-white"></use></svg><span>SuperCX</span></a>
+      <div class="nav-inner">
+        <a class="brand" href="#chat" data-brand-logo aria-label="SuperCX"></a>
+        <nav class="nav-links" data-i18n-aria="nav.main">
+          <a href="#chat" data-nav="chat" data-i18n="nav.chat">المحادثة</a>
+          <a href="/faq" data-nav="faq" data-i18n="nav.faq">الأسئلة الشائعة</a>
+          <a href="#requests" data-nav="requests"><span data-i18n="req.nav">طلباتي</span><span class="dot-badge" hidden></span></a>
+        </nav>
         <div class="nav-end">
+          <button class="new-chat-btn" type="button" id="new-chat" data-i18n-aria="chat.new"><i data-lucide="square-pen" class="icon icon-sm"></i><span data-i18n="chat.new">محادثة جديدة</span></button>
           <a class="icon-btn has-badge" href="#requests" id="requests-btn" data-i18n-aria="req.nav"><i data-lucide="inbox" class="icon"></i><span class="dot-badge" hidden></span></a>
           <button class="lang-btn" type="button" data-lang-toggle data-i18n="lang.toggle" data-i18n-aria="lang.toggleAria">EN</button>
         </div>
@@ -29,29 +32,26 @@
     </header>
 
     <!-- Chat -->
-    <main class="view" id="view-chat">
-      <div class="log container" id="log" aria-live="polite">
+    <main class="view chat-view" id="view-chat">
+      <div class="log container chat-col" id="log" aria-live="polite">
         <section class="hero" id="hero">
           <span class="hero-avatar" id="hero-avatar"></span>
           <h1 data-i18n="hero.title"></h1>
-          <p class="hero-sub" data-i18n="hero.sub">أجيبك من المحتوى المعتمد للجمعية، وأحوّل سؤالك للفريق إذا لم أجد الإجابة.</p>
-          <p class="privacy"><i data-lucide="shield-check" class="icon icon-sm"></i><span data-i18n="hero.privacy">لا نطلب بياناتك الشخصية إلا عند تحويل سؤالك للدعم، وبموافقتك.</span></p>
-          <div class="quick-links">
-            <a class="chip" href="#verify"><i data-lucide="badge-check" class="icon icon-sm"></i><span data-i18n="hero.status">حالة عضويتي</span></a>
-            <a class="chip" href="/faq"><i data-lucide="circle-help" class="icon icon-sm"></i><span data-i18n="hero.faq">الأسئلة الشائعة</span></a>
-            <a class="chip" href="#contact"><i data-lucide="message-square" class="icon icon-sm"></i><span data-i18n="hero.contact">تواصل مع الفريق</span></a>
-          </div>
+          <p class="hero-sub" data-i18n="hero.sub">مساعدك في جمعية تجربة العميل</p>
+          <h2 class="start-label" data-i18n="hero.start">ابدأ بسؤال</h2>
+          <div class="start-grid" id="start-grid"></div>
+          <p class="privacy"><i data-lucide="lock" class="icon icon-sm"></i><span data-i18n="hero.privacy">لا نطلب بياناتك الشخصية إلا بموافقتك</span></p>
         </section>
-        <ul class="suggestions" id="suggestions"></ul>
       </div>
       <div class="composer-wrap">
-        <div class="container">
+        <div class="container chat-col">
           <form class="composer" id="composer">
             <input id="input" dir="auto" autocomplete="off" required maxlength="2000"
                    data-i18n-ph="composer.ph" data-i18n-aria="composer.aria">
             <button class="mic-btn" id="mic" type="button" hidden data-i18n-aria="voice.record"><i data-lucide="mic" class="icon"></i></button>
             <button class="send-btn" id="send" type="submit" data-i18n-aria="composer.send"><i data-lucide="arrow-up" class="icon"></i></button>
           </form>
+          <p class="composer-note" data-i18n="composer.note">{assistant} يجيب من المحتوى المعتمد للجمعية فقط، وما لا يعرفه يحوّله للفريق.</p>
         </div>
       </div>
     </main>
@@ -171,6 +171,7 @@
           <p class="help" id="track-status" role="status"></p>
           <button class="btn btn-primary btn-block" type="submit" id="track-submit" data-i18n="track.submit">متابعة الطلب</button>
         </form>
+        <a class="ask-cta ask-cta-quiet" href="#contact"><span data-i18n="req.contact">تفضّل التواصل مع الفريق مباشرة؟</span><i data-lucide="message-square" class="icon"></i></a>
       </div>
     </main>
 
@@ -188,10 +189,10 @@
   </div>
 
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-  <script src="/static/brand.js?v=8"></script>
-  <script src="/static/i18n.js?v=8"></script>
-  <script src="/static/requests.js?v=8"></script>
-  <script src="/static/tiers.js?v=8"></script>
-  <script src="/static/chat.js?v=8"></script>
+  <script src="/static/brand.js?v=9"></script>
+  <script src="/static/i18n.js?v=9"></script>
+  <script src="/static/requests.js?v=9"></script>
+  <script src="/static/tiers.js?v=9"></script>
+  <script src="/static/chat.js?v=9"></script>
 </body>
 </html>

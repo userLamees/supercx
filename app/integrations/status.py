@@ -49,6 +49,12 @@ def report(session: Session) -> list[dict]:
                        ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_WHATSAPP_FROM", "TWILIO_REPLY_TEMPLATE_SID"],
                        ("template" if config.TWILIO_REPLY_TEMPLATE_SID else "no_template") if whatsapp else "simulated"))
 
+    assistant_on = config.WHATSAPP_ASSISTANT
+    items.append(_item("whatsapp_assistant", "off" if not assistant_on else "live" if whatsapp else "demo",
+                       ["WHATSAPP_ASSISTANT", "TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_WHATSAPP_FROM"],
+                       "webhook" if whatsapp else "simulator",
+                       webhook=f"{config.PUBLIC_BASE_URL or ''}/api/whatsapp/webhook"))
+
     items.append(_item("notifications", "off" if not config.NOTIFY_ON_REPLY else
                        "live" if (email or whatsapp) else "demo", ["NOTIFY_ON_REPLY", "PUBLIC_BASE_URL"],
                        "base_url" if config.PUBLIC_BASE_URL else "no_base_url"))

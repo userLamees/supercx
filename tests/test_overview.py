@@ -44,7 +44,7 @@ def test_chat_records_an_event_without_the_message_text(client):
     dumped = str(rows[0].model_dump())
     assert "سري" not in dumped and "0551234567" not in dumped
     assert set(ChatEvent.model_fields) == {"id", "at", "lang", "action", "from_faq", "sourced", "tier_id",
-                                           "register_clicked", "case_created", "demo"}
+                                           "register_clicked", "case_created", "channel", "demo"}
 
 
 def test_recommendation_and_register_click(client):

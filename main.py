@@ -10,9 +10,10 @@ from html import escape
 
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
 from sqlmodel import Session, func, select
 
-from app import audit, cases, config, notify, otp, overview, speech, staff as staff_accounts
+from app import audit, cases, config, notify, otp, overview, speech, staff as staff_accounts, whatsapp
 from app.agent import run_agent
 from app.cases import case_reference
 from app.config import (ALERT_CASE_AGE_HOURS, ALERT_COMPLAINTS_PER_WEEK, HIGH_FREQUENCY_THRESHOLD,
@@ -32,6 +33,7 @@ from app.schemas import (Alert, AuditOut, CaseSyncOut, NotificationOut, CaseCate
                          MembershipStatus, Overview, SpeechRequest, SupportCaseCreate, SupportCaseOut, SupportCaseReply,
                          SupportCaseUpdate, Tier, TrackRequest, TrackResponse, UnansweredOut,
                          UnansweredStats, VerifyChannel, VerifyCheck, VerifySend)
+from app.chatlog import record_chat_event, record_unanswered
 from app.integrations import case_sync
 from app.integrations.members import RegistryUnavailable
 from app.verify import lookup, normalize_code, normalize_email, normalize_phone, valid_code
@@ -43,6 +45,7 @@ async def lifespan(_: FastAPI):
     staff_accounts.ensure_first_admin()
     with Session(engine) as session:
         seed_faq(session)  # first start only: loads data/faq.json into the DB
+        whatsapp.forget_expired(session)  # WhatsApp context older than the session window
     refresh_index()  # agent's search index follows the FAQ table
     from app.preflight import problems
     for problem in problems():  # shows in Replit's console; details: python -m app.preflight
@@ -256,33 +259,6 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def record_unanswered(session: Session, message: str) -> None:
-    question = redact(message)[:500]
-    key = normalize_key(question)
-    if not key:
-        return
-    row = session.exec(select(UnansweredQuestion).where(UnansweredQuestion.key == key)).first()
-    if row:
-        row.count += 1
-        row.last_seen = _now()
-        row.resolved = False
-    else:
-        row = UnansweredQuestion(key=key, question=question)
-    session.add(row)
-    session.commit()
-
-
-def record_chat_event(session: Session, reply: ChatResponse) -> str:
-    """Overview numbers. Stores what the agent did, never the message text."""
-    titles = overview.faq_source_titles(session) if reply.sources else set()
-    event = ChatEvent(lang=reply.lang, action=reply.action.value, tier_id=reply.tier_id,
-                      sourced=bool(reply.sources) and reply.action != ChatAction.escalate,
-                      from_faq=any(src.title in titles for src in reply.sources))
-    session.add(event)
-    session.commit()
-    return event.id
-
-
 @app.post("/api/chat", response_model=ChatResponse)
 def chat(request: ChatRequest, session: Session = Depends(get_session)) -> ChatResponse:
     reply = run_agent(request.message, request.history)
@@ -306,6 +282,56 @@ def chat_register_click(event_id: str, session: Session = Depends(get_session)) 
         session.add(event)
         session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ---------- WhatsApp assistant (idea 39) ----------
+WHATSAPP_PATH = "/api/whatsapp/webhook"
+
+
+def twilio_signature(url: str, params: dict, token: str) -> str:
+    """Twilio's X-Twilio-Signature: base64(HMAC-SHA1(token, url + sorted key/value pairs))."""
+    import base64
+    import hashlib
+    import hmac
+    data = url + "".join(f"{k}{params[k]}" for k in sorted(params))
+    return base64.b64encode(hmac.new(token.encode(), data.encode(), hashlib.sha1).digest()).decode()
+
+
+def twiml(messages: list[str]) -> Response:
+    body = "".join(f"<Message>{escape(m, quote=False)}</Message>" for m in messages)
+    return Response(f'<?xml version="1.0" encoding="UTF-8"?><Response>{body}</Response>', media_type="application/xml")
+
+
+@app.post(WHATSAPP_PATH, include_in_schema=False)
+async def whatsapp_webhook(request: Request, background: BackgroundTasks, session: Session = Depends(get_session)):
+    """Twilio calls this for every WhatsApp message. The signature proves it is Twilio."""
+    if not (config.WHATSAPP_ASSISTANT and otp.whatsapp_configured()):
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "whatsapp_not_configured")
+    from urllib.parse import parse_qsl  # Twilio posts application/x-www-form-urlencoded
+    params = dict(parse_qsl((await request.body()).decode("utf-8"), keep_blank_values=True))
+    url = f"{config.PUBLIC_BASE_URL}{WHATSAPP_PATH}" if config.PUBLIC_BASE_URL else str(request.url)
+    given = request.headers.get("X-Twilio-Signature", "")
+    if not secrets.compare_digest(given, twilio_signature(url, params, config.TWILIO_AUTH_TOKEN)):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "bad_signature")
+    result = whatsapp.handle(session, params.get("From", ""), params.get("Body", ""))
+    for task in result.tasks:
+        background.add_task(task)
+    return twiml(result.messages)
+
+
+class WhatsAppSimulate(BaseModel):
+    phone: str = Field(min_length=9, max_length=20)
+    text: str = Field(min_length=1, max_length=2000)
+
+
+@app.post("/api/whatsapp/simulate", dependencies=[Depends(require_support_token)])
+def whatsapp_simulate(payload: WhatsAppSimulate, background: BackgroundTasks, session: Session = Depends(get_session)):
+    """Staff demo: the same conversation as WhatsApp, without Twilio. Requests it creates are
+    marked demo. Returns the messages WhatsApp would send back."""
+    result = whatsapp.handle(session, payload.phone, payload.text, demo=True)
+    for task in result.tasks:
+        background.add_task(task)
+    return {"messages": result.messages}
 
 
 # ---------- Voice (speech-to-text and text-to-speech) ----------

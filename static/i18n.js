@@ -54,6 +54,7 @@
     minute: { ar: ["دقيقة واحدة", "دقيقتين", "{n} دقائق", "{n} دقيقة"], en: ["1 minute", "{n} minutes"] },
     second: { ar: ["ثانية واحدة", "ثانيتين", "{n} ثوانٍ", "{n} ثانية"], en: ["1 second", "{n} seconds"] },
     attempt: { ar: ["محاولة واحدة", "محاولتان", "{n} محاولات", "{n} محاولة"], en: ["1 attempt", "{n} attempts"] },
+    time: { ar: ["مرة واحدة", "مرتين", "{n} مرات", "{n} مرة"], en: ["once", "{n} times"] },
   };
   function count(n, noun, l = lang) {
     const f = NOUNS[noun][l];

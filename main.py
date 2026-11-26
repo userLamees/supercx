@@ -9,12 +9,13 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, func, select
 
-from app import audit, cases, otp, speech
+from app import audit, cases, otp, overview, speech
 from app.agent import run_agent
 from app.cases import case_reference
 from app.config import (ALERT_CASE_AGE_HOURS, ALERT_COMPLAINTS_PER_WEEK, HIGH_FREQUENCY_THRESHOLD,
                         REPLY_BUSINESS_DAYS, SUPPORT_TOKEN)
-from app.db import FaqItem as FaqItemRow, SupportCase, UnansweredQuestion, engine, get_session, init_db
+from app.db import (ChatEvent, FaqItem as FaqItemRow, SupportCase, UnansweredQuestion, engine, get_session,
+                    init_db)
 from app.export import LABELS, csv_response, local_time
 from app.knowledge import refresh_index
 from app.faq import (add_approved, admin_items, approved_count, category_ids, get_faq, question_text,
@@ -23,7 +24,7 @@ from app.memberships import data_origin, get_tier, get_tiers
 from app.redact import normalize_key, redact
 from app.schemas import (Alert, AuditOut, CaseCategory, CaseStatus, ChatAction, ChatRequest,
                          ChatResponse, FaqCategory, FaqCreate, FaqItemAdmin, FaqItemWrite,
-                         MembershipStatus, SpeechRequest, SupportCaseCreate, SupportCaseOut, SupportCaseReply,
+                         MembershipStatus, Overview, SpeechRequest, SupportCaseCreate, SupportCaseOut, SupportCaseReply,
                          SupportCaseUpdate, Tier, TrackRequest, TrackResponse, UnansweredOut,
                          UnansweredStats, VerifyChannel, VerifyCheck, VerifySend)
 from app.verify import lookup, normalize_code, normalize_email, normalize_phone, valid_code
@@ -86,6 +87,17 @@ def record_unanswered(session: Session, message: str) -> None:
     session.commit()
 
 
+def record_chat_event(session: Session, reply: ChatResponse) -> str:
+    """Overview numbers. Stores what the agent did, never the message text."""
+    titles = overview.faq_source_titles(session) if reply.sources else set()
+    event = ChatEvent(lang=reply.lang, action=reply.action.value, tier_id=reply.tier_id,
+                      sourced=bool(reply.sources) and reply.action != ChatAction.escalate,
+                      from_faq=any(src.title in titles for src in reply.sources))
+    session.add(event)
+    session.commit()
+    return event.id
+
+
 @app.post("/api/chat", response_model=ChatResponse)
 def chat(request: ChatRequest, session: Session = Depends(get_session)) -> ChatResponse:
     reply = run_agent(request.message, request.history)
@@ -93,7 +105,22 @@ def chat(request: ChatRequest, session: Session = Depends(get_session)) -> ChatR
         # Questions with no answer feed the FAQ learning list; requests (complaints,
         # suggestions, services) are not knowledge gaps, so they are not logged there.
         record_unanswered(session, request.message)
+    try:
+        reply.chat_event_id = record_chat_event(session, reply)
+    except Exception:  # noqa: BLE001 - the overview must never break the chat
+        session.rollback()
     return reply
+
+
+@app.post("/api/chat-events/{event_id}/register", status_code=status.HTTP_204_NO_CONTENT)
+def chat_register_click(event_id: str, session: Session = Depends(get_session)) -> Response:
+    """The visitor opened the registration page from a recommendation. Only flips a flag."""
+    event = session.get(ChatEvent, event_id)
+    if event is not None and event.action == ChatAction.recommend.value and not event.register_clicked:
+        event.register_clicked = True
+        session.add(event)
+        session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 # ---------- Voice (speech-to-text and text-to-speech) ----------
@@ -141,7 +168,7 @@ def speech_synthesize(payload: SpeechRequest):
 def create_case(payload: SupportCaseCreate, session: Session = Depends(get_session)) -> dict:
     if payload.tier_id and get_tier(payload.tier_id) is None:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Unknown tier_id")
-    data = payload.model_dump(exclude={"anonymous"})
+    data = payload.model_dump(exclude={"anonymous", "chat_event_id"})
     data["category"] = payload.category.value
     data["contact"] = data["contact"] or ""  # anonymous: summary only, no reply channel
     data["question"] = redact(data["question"])  # phone numbers/emails only in `contact`, with consent
@@ -150,6 +177,11 @@ def create_case(payload: SupportCaseCreate, session: Session = Depends(get_sessi
     code = cases.new_tracking_code()
     case = SupportCase(**data, tracking_hash=cases.hash_code(code))
     session.add(case)
+    if payload.chat_event_id:  # "successful handoff" on the overview
+        event = session.get(ChatEvent, payload.chat_event_id)
+        if event is not None and event.action == ChatAction.escalate.value:
+            event.case_created = True
+            session.add(event)
     session.commit()
     # Visitors only get their own case number and tracking code, never other cases or member data.
     # The tracking code is returned this once; only its hash is stored.
@@ -172,7 +204,7 @@ def case_out(case: SupportCase) -> SupportCaseOut:
         contact=case.contact, tier_id=case.tier_id, summary=case.summary, status=case.status,
         category=case.category or "inquiry", reply=case.reply, replied_at=_iso(case.replied_at),
         replied_by=case.replied_by, due_at=_iso(cases.due_at(case.created_at)),
-        overdue=cases.is_overdue(case.created_at, case.status))
+        overdue=cases.is_overdue(case.created_at, case.status), demo=bool(case.demo))
 
 
 @app.post("/api/track", response_model=TrackResponse)
@@ -203,8 +235,9 @@ def track_case(payload: TrackRequest, request: Request, session: Session = Depen
 @app.get("/api/support-cases", response_model=list[SupportCaseOut],
          dependencies=[Depends(require_support_token)])
 def list_cases(case_status: Optional[CaseStatus] = None, category: Optional[CaseCategory] = None,
+               p: overview.Period = Depends(overview.period),
                session: Session = Depends(get_session)) -> list[SupportCaseOut]:
-    query = select(SupportCase).order_by(SupportCase.created_at.desc())
+    query = select(SupportCase).where(*p.where(SupportCase.created_at)).order_by(SupportCase.created_at.desc())
     if case_status:
         query = query.where(SupportCase.status == case_status)
     if category:
@@ -213,9 +246,16 @@ def list_cases(case_status: Optional[CaseStatus] = None, category: Optional[Case
 
 
 @app.get("/api/support-cases/export.csv", dependencies=[Depends(require_support_token)])
-def export_cases(lang: Literal["ar", "en"] = "ar", actor: str = Depends(audit.staff_name),
+def export_cases(lang: Literal["ar", "en"] = "ar", case_status: Optional[CaseStatus] = None,
+                 category: Optional[CaseCategory] = None, p: overview.Period = Depends(overview.period),
+                 actor: str = Depends(audit.staff_name),
                  session: Session = Depends(get_session)) -> Response:
-    cases = session.exec(select(SupportCase).order_by(SupportCase.created_at.desc())).all()
+    query = select(SupportCase).where(*p.where(SupportCase.created_at)).order_by(SupportCase.created_at.desc())
+    if case_status:
+        query = query.where(SupportCase.status == case_status)
+    if category:
+        query = query.where(SupportCase.category == category.value)
+    cases = session.exec(query).all()
     names = {t.id: getattr(t.name, lang) for t in get_tiers()}
     labels = LABELS[lang]
     rows = [[case_reference(c.id), local_time(c.created_at), labels.get(c.category or "inquiry", c.category),
@@ -286,10 +326,12 @@ def faq(session: Session = Depends(get_session)) -> list[FaqCategory]:
 
 @app.get("/api/unanswered", response_model=list[UnansweredOut],
          dependencies=[Depends(require_support_token)])
-def list_unanswered(sort: str = "count", session: Session = Depends(get_session)) -> list[UnansweredOut]:
+def list_unanswered(sort: str = "count", p: overview.Period = Depends(overview.period),
+                    session: Session = Depends(get_session)) -> list[UnansweredOut]:
     order = (UnansweredQuestion.last_seen.desc(),) if sort == "recent" else \
         (UnansweredQuestion.count.desc(), UnansweredQuestion.last_seen.desc())
-    rows = session.exec(select(UnansweredQuestion).where(UnansweredQuestion.resolved == False)  # noqa: E712
+    rows = session.exec(select(UnansweredQuestion).where(UnansweredQuestion.resolved == False,  # noqa: E712
+                                                         *p.where(UnansweredQuestion.last_seen))
                         .order_by(*order))
     return [UnansweredOut(id=r.id, question=r.question, count=r.count,
                           last_seen=r.last_seen.isoformat()) for r in rows]
@@ -297,9 +339,11 @@ def list_unanswered(sort: str = "count", session: Session = Depends(get_session)
 
 @app.get("/api/unanswered/export.csv", dependencies=[Depends(require_support_token)])
 def export_unanswered(lang: Literal["ar", "en"] = "ar", include_resolved: bool = True,
+                      p: overview.Period = Depends(overview.period),
                       actor: str = Depends(audit.staff_name),
                       session: Session = Depends(get_session)) -> Response:
-    query = select(UnansweredQuestion).order_by(UnansweredQuestion.count.desc(), UnansweredQuestion.last_seen.desc())
+    query = select(UnansweredQuestion).where(*p.where(UnansweredQuestion.last_seen)) \
+        .order_by(UnansweredQuestion.count.desc(), UnansweredQuestion.last_seen.desc())
     if not include_resolved:
         query = query.where(UnansweredQuestion.resolved == False)  # noqa: E712
     labels = LABELS[lang]
@@ -312,9 +356,11 @@ def export_unanswered(lang: Literal["ar", "en"] = "ar", include_resolved: bool =
 
 @app.get("/api/unanswered/stats", response_model=UnansweredStats,
          dependencies=[Depends(require_support_token)])
-def unanswered_stats(session: Session = Depends(get_session)) -> UnansweredStats:
+def unanswered_stats(p: overview.Period = Depends(overview.period),
+                     session: Session = Depends(get_session)) -> UnansweredStats:
     counts = session.exec(select(UnansweredQuestion.count)
-                          .where(UnansweredQuestion.resolved == False)).all()  # noqa: E712
+                          .where(UnansweredQuestion.resolved == False,  # noqa: E712
+                                 *p.where(UnansweredQuestion.last_seen))).all()
     return UnansweredStats(pending=len(counts),
                            high_frequency=sum(c >= HIGH_FREQUENCY_THRESHOLD for c in counts),
                            approved_answers=approved_count(session),
@@ -399,6 +445,22 @@ def staff_delete_faq(item_id: str, actor: str = Depends(audit.staff_name),
 def audit_log(target_id: Optional[str] = None, limit: int = 100,
               session: Session = Depends(get_session)) -> list[AuditOut]:
     return audit.entries(session, target_id, min(max(limit, 1), 500))
+
+
+# ---------- Staff overview ----------
+@app.get("/api/overview", response_model=Overview, dependencies=[Depends(require_support_token)])
+def staff_overview(p: overview.Period = Depends(overview.period),
+                   session: Session = Depends(get_session)) -> Overview:
+    """Defaults to the last 7 days when no dates are given."""
+    return overview.build(session, p)
+
+
+@app.get("/api/staff/counts", dependencies=[Depends(require_support_token)])
+def staff_counts(session: Session = Depends(get_session)) -> dict:
+    """Small numbers for the sidebar badges."""
+    new = session.exec(select(func.count()).select_from(SupportCase)
+                       .where(SupportCase.status == CaseStatus.new)).one()
+    return {"new_cases": new}
 
 
 # ---------- Smart alerts (idea 62) ----------

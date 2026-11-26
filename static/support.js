@@ -62,6 +62,21 @@ I18N.add({
     "status.new": "جديدة",
     "status.in_progress": "قيد المعالجة",
     "status.replied": "تم الرد",
+    "period.label": "الفترة",
+    "period.all": "كل الفترات",
+    "period.today": "اليوم",
+    "period.7d": "آخر 7 أيام",
+    "period.30d": "آخر 30 يومًا",
+    "period.custom": "مدة مخصصة",
+    "period.from": "من",
+    "period.to": "إلى",
+    "period.apply": "تطبيق",
+    "period.range": "من {from} إلى {to}",
+    "period.allRange": "كل البيانات منذ البداية",
+    "period.needDates": "اختر تاريخ البداية والنهاية، وأن تكون البداية قبل النهاية.",
+    "badge.newCases": "{n} طلبات جديدة",
+    "dash.emptyPeriod": "لا توجد أسئلة غير مجابة في هذه الفترة. وسّع الفترة أو اختر «كل الفترات» من الأعلى.",
+    "dash.casesEmptyPeriod": "لا توجد حالات في هذه الفترة. وسّع الفترة أو اختر «كل الفترات» من الأعلى.",
     "status.closed": "مغلقة",
     "cat.unanswered": "سؤال غير مجاب",
     "dash.overdue": "رد جديد مطلوب",
@@ -242,6 +257,21 @@ I18N.add({
     "status.new": "New",
     "status.in_progress": "In progress",
     "status.replied": "Replied",
+    "period.label": "Period",
+    "period.all": "All time",
+    "period.today": "Today",
+    "period.7d": "Last 7 days",
+    "period.30d": "Last 30 days",
+    "period.custom": "Custom range",
+    "period.from": "From",
+    "period.to": "To",
+    "period.apply": "Apply",
+    "period.range": "{from} to {to}",
+    "period.allRange": "All data since the start",
+    "period.needDates": "Choose a start and an end date, with the start before the end.",
+    "badge.newCases": "{n} new requests",
+    "dash.emptyPeriod": "No unanswered questions in this period. Widen the period or choose “All time” above.",
+    "dash.casesEmptyPeriod": "No cases in this period. Widen the period or choose “All time” above.",
     "status.closed": "Closed",
     "cat.unanswered": "Unanswered question",
     "dash.overdue": "Reply needed",
@@ -431,8 +461,106 @@ function relative(iso) {
 const ref = (id) => `CX-${id.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
 
 /* ---------- Views ---------- */
-const VIEWS = ["unanswered", "cases", "faq"];
-function currentView() { const v = location.hash.slice(1).split("?")[0]; return VIEWS.includes(v) ? v : "unanswered"; }
+const VIEWS = ["overview", "cases", "unanswered", "faq"];
+const PERIOD_VIEWS = ["overview", "cases", "unanswered"];
+function currentView() { const v = location.hash.slice(1).split("?")[0]; return VIEWS.includes(v) ? v : "overview"; }
+const hashParams = () => new URLSearchParams(location.hash.split("?")[1] || "");
+
+/* ---------- Date period (kept in the hash: #view?period=7d or ?period=custom&from=..&to=..) ---------- */
+const riyadhToday = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Riyadh" });
+function shiftDay(iso, days) {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+function currentPeriod(view = currentView()) {
+  const p = hashParams();
+  let kind = p.get("period") || (view === "overview" ? "7d" : "all");
+  if (kind === "all" && view === "overview") kind = "7d";  // the overview always covers a range
+  const today = riyadhToday();
+  if (kind === "today") return { kind, from: today, to: today };
+  if (kind === "7d") return { kind, from: shiftDay(today, -6), to: today };
+  if (kind === "30d") return { kind, from: shiftDay(today, -29), to: today };
+  if (kind === "custom") {
+    const from = p.get("from"), to = p.get("to");
+    if (ISO_DAY.test(from || "") && ISO_DAY.test(to || "") && from <= to) return { kind, from, to };
+  }
+  return { kind: "all", from: null, to: null };
+}
+/* Query string for the API (date_from/date_to), "" for all time. */
+function periodQuery(view) {
+  const p = currentPeriod(view);
+  return p.from ? `date_from=${p.from}&date_to=${p.to}` : "";
+}
+/* The period part of the hash, carried over when moving between views. */
+function periodHash() {
+  const p = hashParams();
+  const keep = new URLSearchParams();
+  for (const k of ["period", "from", "to"]) if (p.get(k)) keep.set(k, p.get(k));
+  return keep.toString();
+}
+function setHash(view, extra = {}) {
+  const params = new URLSearchParams(periodHash());
+  for (const [k, v] of Object.entries(extra)) { if (v) params.set(k, v); else params.delete(k); }
+  const qs = params.toString();
+  const next = `#${view}${qs ? `?${qs}` : ""}`;
+  if (location.hash !== next) location.hash = next; else route();
+}
+const shortDay = (iso) => new Intl.DateTimeFormat(locale(), { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
+  .format(new Date(`${iso}T00:00:00Z`));
+function syncPeriodBar(view) {
+  const bar = $("period-bar");
+  bar.hidden = !token() || !PERIOD_VIEWS.includes(view);
+  if (bar.hidden) return;
+  const p = currentPeriod(view);
+  $("period").querySelector('option[value="all"]').hidden = view === "overview";
+  $("period").value = p.kind;
+  $("period-custom").hidden = p.kind !== "custom";
+  if (p.kind === "custom") { $("period-from").value = p.from || ""; $("period-to").value = p.to || ""; }
+  $("period-range").textContent = !p.from ? t("period.allRange")
+    : p.from === p.to ? shortDay(p.from) : t("period.range", { from: shortDay(p.from), to: shortDay(p.to) });
+  // Sidebar and tab links keep the chosen period.
+  const qs = periodHash();
+  document.querySelectorAll("[data-view]").forEach((a) => {
+    a.setAttribute("href", `#${a.dataset.view}${qs && PERIOD_VIEWS.includes(a.dataset.view) ? `?${qs}` : ""}`);
+  });
+}
+$("period").addEventListener("change", () => {
+  const kind = $("period").value;
+  $("period-error").hidden = true;
+  if (kind === "custom") {
+    $("period-custom").hidden = false;
+    const p = currentPeriod();
+    $("period-from").value = p.from || shiftDay(riyadhToday(), -13);
+    $("period-to").value = p.to || riyadhToday();
+    $("period-from").focus();
+    return;
+  }
+  const params = new URLSearchParams(hashParams());
+  params.delete("from"); params.delete("to");
+  if (kind === "all") params.delete("period"); else params.set("period", kind);
+  location.hash = `#${currentView()}${params.toString() ? `?${params}` : ""}`;
+});
+$("period-custom").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const from = $("period-from").value, to = $("period-to").value;
+  if (!ISO_DAY.test(from) || !ISO_DAY.test(to) || from > to) { formError("period-error", "period.needDates"); return; }
+  $("period-error").hidden = true;
+  const params = new URLSearchParams(hashParams());
+  params.set("period", "custom"); params.set("from", from); params.set("to", to);
+  location.hash = `#${currentView()}?${params}`;
+});
+
+/* ---------- Sidebar badge: new requests ---------- */
+async function loadCounts() {
+  const { new_cases: n } = await api("/api/staff/counts");
+  document.querySelectorAll('[data-badge="new-cases"]').forEach((b) => {
+    b.hidden = !n;
+    b.textContent = n > 99 ? "99+" : I18N.formatNumber(n);
+    b.setAttribute("aria-label", t("badge.newCases", { n: I18N.formatNumber(n) }));
+  });
+}
 
 function show(view) {
   const authed = Boolean(token());
@@ -446,16 +574,27 @@ function show(view) {
   $("side-name").textContent = authed && staffName() ? staffName() : t("dash.team");
 }
 
-const STATE = { unanswered: ["unanswered-state", "unanswered-table"], cases: ["cases-state", "cases-table"], faq: ["faq-state", "faq-table"] };
+const STATE = { overview: ["overview-state", "overview-body"], unanswered: ["unanswered-state", "unanswered-table"],
+                cases: ["cases-state", "cases-table"], faq: ["faq-state", "faq-table"] };
+const LOADERS = { overview: () => Overview.load(periodQuery("overview")), unanswered: () => loadUnanswered(),
+                  cases: () => loadCases(), faq: () => loadFaq() };
 async function route() {
   const view = currentView();
   show(view);
+  syncPeriodBar(view);
   if (!token()) { (staffName() ? $("token") : $("staff-name")).focus(); return; }
   const [stateId, tableId] = STATE[view];
   $(stateId).textContent = t("dash.loading"); $(stateId).hidden = false; $(tableId).hidden = true;
   if (view === "unanswered") $("pager").hidden = true;
+  if (view === "cases") {  // filters can come from the hash (links from the overview)
+    const p = hashParams();
+    if (p.has("status")) $("filter-status").value = p.get("status");
+    if (p.has("category")) $("filter-category").value = p.get("category");
+  }
   try {
-    await Promise.all([loadAlerts(), view === "unanswered" ? loadUnanswered() : view === "cases" ? loadCases() : loadFaq()]);
+    await Promise.all([loadAlerts(), loadCounts(), LOADERS[view]()]);
+    $(stateId).hidden = view !== "overview" ? $(stateId).hidden : true;
+    $(tableId).hidden = view === "overview" ? false : $(tableId).hidden;
   } catch (e) {
     if (e.message === "auth") return authFailed();
     $(stateId).textContent = t(isOffline(e) ? "dash.offline" : "dash.loadError"); $(stateId).hidden = false;
@@ -469,9 +608,9 @@ function showAuthError() { $("auth-error").textContent = t("dash.badToken"); $("
 
 /* ---------- Smart alerts (idea 62) ---------- */
 const ALERT_ACTION = {
-  high_frequency_unanswered: ["alert.action.unanswered", () => { $("sort").value = "count"; location.hash = "#unanswered"; route(); }],
-  stale_cases: ["alert.action.cases", () => { $("filter-status").value = "new"; $("filter-category").value = ""; location.hash = "#cases"; route(); }],
-  complaints_spike: ["alert.action.complaints", () => { $("filter-category").value = "complaint"; $("filter-status").value = ""; location.hash = "#cases"; route(); }],
+  high_frequency_unanswered: ["alert.action.unanswered", () => { $("sort").value = "count"; setHash("unanswered"); }],
+  stale_cases: ["alert.action.cases", () => { setHash("cases", { status: "new", category: "" }); }],
+  complaints_spike: ["alert.action.complaints", () => { setHash("cases", { category: "complaint", status: "" }); }],
 };
 async function loadAlerts() {
   const list = await api("/api/alerts");
@@ -492,7 +631,13 @@ document.querySelectorAll("[data-export]").forEach((btn) => btn.addEventListener
   try {
     if (!navigator.onLine) throw new TypeError("offline");
     const path = kind === "cases" ? "/api/support-cases/export.csv" : "/api/unanswered/export.csv";
-    const res = await fetch(`${path}?lang=${I18N.lang}`, { headers: staffHeaders() });
+    const params = new URLSearchParams(periodQuery(kind));  // the export follows the filters on screen
+    params.set("lang", I18N.lang);
+    if (kind === "cases") {
+      if ($("filter-status").value) params.set("case_status", $("filter-status").value);
+      if ($("filter-category").value) params.set("category", $("filter-category").value);
+    }
+    const res = await fetch(`${path}?${params}`, { headers: staffHeaders() });
     if (res.status === 401) return authFailed();
     if (!res.ok) throw new Error(String(res.status));
     const name = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") || "")?.[1] || `supercx-${kind}.csv`;
@@ -511,7 +656,8 @@ document.querySelectorAll("[data-export]").forEach((btn) => btn.addEventListener
 /* ---------- Unanswered questions ---------- */
 async function loadUnanswered() {
   const [rows, stats, faq] = await Promise.all([
-    api(`/api/unanswered?sort=${$("sort").value}`), api("/api/unanswered/stats"), fetch("/api/faq").then((r) => r.json()),
+    api(`/api/unanswered?sort=${$("sort").value}&${periodQuery("unanswered")}`),
+    api(`/api/unanswered/stats?${periodQuery("unanswered")}`), fetch("/api/faq").then((r) => r.json()),
   ]);
   unanswered = rows;
   categories = faq;
@@ -535,7 +681,7 @@ function renderUnanswered() {
   $("unanswered-table").hidden = empty;
   $("pager").hidden = empty;
   $("unanswered-state").hidden = !empty;
-  $("unanswered-state").textContent = t("dash.empty");
+  $("unanswered-state").textContent = t(periodQuery("unanswered") ? "dash.emptyPeriod" : "dash.empty");
   $("pager-text").textContent = t("dash.pager", { shown: I18N.formatNumber(slice.length), total: I18N.formatNumber(unanswered.length) });
   $("prev").disabled = page === 0;
   $("next").disabled = start + PAGE_SIZE >= unanswered.length;
@@ -582,7 +728,7 @@ $("promote-form").addEventListener("submit", async (e) => {
     });
     $("promote").close();
     toast(t("modal.done"));
-    await Promise.all([loadUnanswered(), loadAlerts()]);
+    await Promise.all([currentView() === "overview" ? LOADERS.overview() : loadUnanswered(), loadAlerts()]);
   } catch (err) {
     if (err.message === "auth") return authFailed();
     formError("m-error", isOffline(err) ? "modal.offline" : "modal.error");
@@ -599,7 +745,7 @@ function statusSelect(c) {
     select.disabled = true;
     try {
       await api(`/api/support-cases/${c.id}`, { method: "PATCH", body: JSON.stringify({ status: select.value }) });
-      c.status = select.value; toast(t("dash.statusSaved")); loadAlerts().catch(() => {}); loadCases().catch(() => {});
+      c.status = select.value; toast(t("dash.statusSaved")); loadAlerts().catch(() => {}); loadCounts().catch(() => {}); loadCases().catch(() => {});
     } catch (err) {
       if (err.message === "auth") return authFailed();
       select.value = c.status; toast(t(isOffline(err) ? "dash.offline" : "dash.statusSaveError"));
@@ -612,13 +758,15 @@ async function loadCases() {
   const params = new URLSearchParams();
   if ($("filter-category").value) params.set("category", $("filter-category").value);
   if ($("filter-status").value) params.set("case_status", $("filter-status").value);
+  const filtered = params.toString() !== "";
+  for (const [k, v] of new URLSearchParams(periodQuery("cases"))) params.set(k, v);
   const [cases, tiers] = await Promise.all([api(`/api/support-cases?${params}`), fetch("/api/memberships").then((r) => r.json())]);
   tierNames = Object.fromEntries(tiers.map((tier) => [tier.id, tier.name]));
-  const filtered = params.toString() !== "";
   casesById = Object.fromEntries(cases.map((c) => [c.id, c]));
   $("cases-rows").replaceChildren(...cases.map((c) => h("tr", { class: c.overdue ? "overdue" : null },
     h("td", { class: "q", dir: "ltr" }, h("span", { class: "tag-row" }, ref(c.id),
-      c.overdue ? h("span", { class: "tag tag-overdue", title: t("dash.overdueHint"), dir: "auto" }, ic("clock-alert", "icon-sm"), t("dash.overdue")) : null)),
+      c.overdue ? h("span", { class: "tag tag-overdue", title: t("dash.overdueHint"), dir: "auto" }, ic("clock-alert", "icon-sm"), t("dash.overdue")) : null,
+      c.demo ? h("span", { class: "tag" }, t("demo")) : null)),
     h("td", { "data-label": t("dash.colDate"), class: "muted" }, relative(c.created_at)),
     h("td", { "data-label": t("dash.colType") }, h("span", { class: `tag cat-${c.category || "inquiry"}` }, t(`cat.${c.category || "inquiry"}`))),
     h("td", { "data-label": t("dash.colQuestion"), dir: "auto" }, c.question,
@@ -631,15 +779,24 @@ async function loadCases() {
   I18N.icons();
   $("cases-table").hidden = cases.length === 0;
   $("cases-state").hidden = cases.length > 0;
-  $("cases-state").textContent = t(filtered ? "dash.casesFilteredEmpty" : "dash.casesEmpty");
+  $("cases-state").textContent = t(filtered ? "dash.casesFilteredEmpty" : periodQuery("cases") ? "dash.casesEmptyPeriod" : "dash.casesEmpty");
 }
 
 /* ---------- Case details + reply to the user ---------- */
 let casesById = {};
 let openCaseId = null;
 async function openCase(id) {
+  if (!Object.keys(tierNames).length) {
+    fetch("/api/memberships").then((r) => r.json())
+      .then((tiers) => { tierNames = Object.fromEntries(tiers.map((tier) => [tier.id, tier.name])); }).catch(() => {});
+  }
+  if (!casesById[id]) {  // opened from the overview
+    try { casesById[id] = await api(`/api/support-cases/${encodeURIComponent(id)}`); } catch (err) {
+      if (err.message === "auth") return authFailed();
+      toast(t(isOffline(err) ? "dash.offline" : "dash.loadError")); return;
+    }
+  }
   const c = casesById[id];
-  if (!c) return;
   openCaseId = id;
   $("cd-ref").textContent = c.reference;
   $("cd-error").hidden = true;
@@ -701,7 +858,8 @@ $("cd-reply").addEventListener("submit", async (e) => {
     casesById[id] = updated;
     toast(t("detail.sent"));
     loadAlerts().catch(() => {});
-    loadCases().catch(() => {});
+    loadCounts().catch(() => {});
+    (currentView() === "overview" ? LOADERS.overview() : loadCases()).catch(() => {});
     await openCase(id);
   } catch (err) {
     if (err.message === "auth") return authFailed();
@@ -713,8 +871,8 @@ $("cd-reply").addEventListener("submit", async (e) => {
 });
 $("case-detail").addEventListener("close", () => { openCaseId = null; });
 
-$("filter-category").addEventListener("change", route);
-$("filter-status").addEventListener("change", route);
+$("filter-category").addEventListener("change", () => setHash("cases", { category: $("filter-category").value, status: $("filter-status").value }));
+$("filter-status").addEventListener("change", () => setHash("cases", { category: $("filter-category").value, status: $("filter-status").value }));
 
 /* ---------- FAQ management (idea 68) ---------- */
 async function loadFaq() {

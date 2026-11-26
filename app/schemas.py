@@ -380,3 +380,50 @@ class Overview(BaseModel):
     handoff_success: Metric        # escalations sent on as a support case / escalations
     register_after_recommend: Metric  # recommendations followed by a registration click / recommendations
     demo_events: int               # rows from app.seed_demo in the period
+
+
+# ---------- Staff accounts ----------
+class StaffLogin(BaseModel):
+    email: Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=200)]
+    password: Annotated[str, StringConstraints(min_length=1, max_length=200)]
+
+
+class StaffOut(BaseModel):
+    id: Optional[str] = None
+    email: str = ""
+    name: str
+    role: Literal["admin", "staff"]
+    active: bool = True
+    must_change_password: bool = False
+    via: Literal["account", "token"] = "account"
+    created_at: Optional[str] = None
+    last_login_at: Optional[str] = None
+    demo: bool = False
+
+
+class StaffLoginOut(BaseModel):
+    token: str
+    expires_at: str
+    user: StaffOut
+
+
+class StaffPasswordChange(BaseModel):
+    current_password: Annotated[str, StringConstraints(min_length=1, max_length=200)]
+    new_password: Annotated[str, StringConstraints(min_length=1, max_length=200)]
+
+
+class StaffCreate(BaseModel):
+    email: Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=200)]
+    name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=80)]
+    role: Literal["admin", "staff"] = "staff"
+    password: Annotated[str, StringConstraints(min_length=1, max_length=200)]  # temporary; changed at first sign-in
+
+
+class StaffUpdate(BaseModel):
+    name: Optional[Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=80)]] = None
+    role: Optional[Literal["admin", "staff"]] = None
+    active: Optional[bool] = None
+
+
+class StaffPasswordReset(BaseModel):
+    password: Annotated[str, StringConstraints(min_length=1, max_length=200)]

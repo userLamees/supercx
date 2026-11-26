@@ -1,24 +1,28 @@
-"""Staff action log (idea 66). The dashboard uses one shared token, so `actor` is the
-name the staff member typed at sign-in; it identifies, it does not authenticate."""
-import re
-
-from fastapi import Header
+"""Staff action log (idea 66). `actor` is the signed-in staff account (its name, plus its id),
+or, with the shared SUPPORT_TOKEN, the name typed at sign-in."""
+from fastapi import Depends
 from sqlmodel import Session, select
 
+from . import staff as staff_accounts
 from .db import AuditEntry
 from .schemas import AuditOut
 
 
-def staff_name(x_staff_name: str = Header(default="")) -> str:
-    # Header values are latin-1; the dashboard sends the name URI-encoded.
-    from urllib.parse import unquote
-    return re.sub(r"[\x00-\x1f]", "", unquote(x_staff_name)).strip()[:80]
+class Actor(str):
+    """The staff name as a string (used as "replied by"), carrying the account id for the log."""
+    id: str | None = None
+
+
+def staff_name(who: staff_accounts.Staff = Depends(staff_accounts.current)) -> Actor:
+    actor = Actor(who.name)
+    actor.id = who.id
+    return actor
 
 
 def log(session: Session, actor: str, action: str, target_type: str = "", target_id: str = "",
         summary: str = "") -> None:
-    session.add(AuditEntry(actor=actor, action=action, target_type=target_type,
-                           target_id=target_id, summary=summary[:300]))
+    session.add(AuditEntry(actor=str(actor), actor_id=getattr(actor, "id", None), action=action,
+                           target_type=target_type, target_id=target_id, summary=summary[:300]))
 
 
 def entries(session: Session, target_id: str | None = None, limit: int = 100) -> list[AuditOut]:

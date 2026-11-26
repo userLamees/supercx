@@ -60,6 +60,15 @@ PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
 # (variables: 1 = case number, 2 = link); without it a plain message is sent (sandbox / within 24h).
 TWILIO_REPLY_TEMPLATE_SID = os.getenv("TWILIO_REPLY_TEMPLATE_SID", "")
 
+# Staff accounts. The first admin is created at startup from these when no account exists yet.
+STAFF_ADMIN_EMAIL = os.getenv("STAFF_ADMIN_EMAIL", "").strip().lower()
+STAFF_ADMIN_PASSWORD = os.getenv("STAFF_ADMIN_PASSWORD", "")
+STAFF_ADMIN_NAME = os.getenv("STAFF_ADMIN_NAME", "مدير النظام")
+STAFF_SESSION_HOURS = int(os.getenv("STAFF_SESSION_HOURS", "12"))
+STAFF_MIN_PASSWORD = int(os.getenv("STAFF_MIN_PASSWORD", "10"))
+# SUPPORT_TOKEN still works as an admin key (scripts, first setup). Set to false to allow accounts only.
+ALLOW_SUPPORT_TOKEN = os.getenv("ALLOW_SUPPORT_TOKEN", "true").lower() == "true"
+
 # Member registry used after verification (demo file by default).
 MEMBERS_FILE = os.getenv("MEMBERS_FILE", "")
 

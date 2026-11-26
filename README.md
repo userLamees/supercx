@@ -10,19 +10,41 @@ Locally (SQLite is created automatically; the FAQ seed loads on first start):
 pip install -r requirements.txt
 export SUPPORT_TOKEN=demo-support-token   # any value; there is no default in code
 uvicorn main:app --reload --port 8000
-python -m app.seed_demo                   # optional: sample unanswered questions for the dashboard
+python -m app.seed_demo                   # optional: demo questions, requests and two demo staff accounts
 ```
 
 On Replit: add **Replit Postgres** (sets `DATABASE_URL`; `postgres://` URLs are
-converted to `postgresql://` automatically) and set `SUPPORT_TOKEN` in **Secrets**,
-then press Run. `psycopg2-binary` is in `requirements.txt`.
+converted to `postgresql://` automatically) and set `SUPPORT_TOKEN`, `STAFF_ADMIN_EMAIL` and
+`STAFF_ADMIN_PASSWORD` in **Secrets**, then press Run. `psycopg2-binary` is in `requirements.txt`.
 
 ### Staff access for testing
 
-There are no staff accounts. The dashboard at `/support` asks for the shared
-`SUPPORT_TOKEN`: enter the same value you set in the environment
-(`demo-support-token` in the example above). Every staff endpoint checks it on the
-server; if `SUPPORT_TOKEN` is not set, all staff requests get 401.
+Each staff member signs in at `/support` with their own email and password
+(`app/staff.py`). Every staff endpoint resolves the signed-in person on the server, so the
+action log and "replied by" show who really did it.
+
+- **First admin:** set `STAFF_ADMIN_EMAIL` and `STAFF_ADMIN_PASSWORD`; the account is created at
+  startup when no account exists yet, and must change its password at first sign-in.
+- **Demo accounts:** `python -m app.seed_demo` creates `admin@example.com` (admin) and
+  `staff@example.com` (staff) once. The password is `DEMO_STAFF_PASSWORD`, or a random one printed
+  by the command; no password is written in the code.
+- **Team page** (admins): add accounts with a temporary password, change role, deactivate
+  (signs the person out), or set a new temporary password. The last admin is protected.
+- **Passwords:** scrypt hashes; at least `STAFF_MIN_PASSWORD` characters (default 10) mixing
+  letters with digits or symbols. Sessions are random tokens stored as hashes, expire after
+  `STAFF_SESSION_HOURS` (default 12), and are revoked on sign-out or password change. Failed
+  sign-ins are limited (5 per email, 20 per IP, per 15 minutes).
+- **Shared token:** `SUPPORT_TOKEN` still works as an admin key (first setup, scripts) from
+  "الدخول برمز الفريق" on the sign-in page, with the typed name in the log. Set
+  `ALLOW_SUPPORT_TOKEN=false` to allow personal accounts only.
+
+| Endpoint | Access | Purpose |
+|---|---|---|
+| `POST /api/staff/login` | public, attempt-limited | `{email, password}` → `{token, expires_at, user}`; send `Authorization: Bearer <token>` |
+| `POST /api/staff/logout` | session | Revokes the session |
+| `GET /api/staff/me` | session or token | Who is signed in (name, role, must change password) |
+| `POST /api/staff/me/password` | session | `{current_password, new_password}`; signs out other devices |
+| `GET/POST /api/staff/users`, `PATCH /api/staff/users/{id}`, `POST /api/staff/users/{id}/password` | admin | Manage accounts |
 
 ### Demo data (simulated, no real people)
 
@@ -63,7 +85,12 @@ to its path. The association's real member registry is not connected yet.
 | Variable | Default | Purpose |
 |---|---|---|
 | `DATABASE_URL` | `sqlite:///./supercx.db` | Set automatically by Replit Postgres |
-| `SUPPORT_TOKEN` | *(none)* | Staff dashboard token. **Required**; unset = staff endpoints return 401 |
+| `SUPPORT_TOKEN` | *(none)* | Shared admin key (first setup, scripts). Unset = only personal accounts work |
+| `ALLOW_SUPPORT_TOKEN` | `true` | `false` turns the shared token off |
+| `STAFF_ADMIN_EMAIL`, `STAFF_ADMIN_PASSWORD`, `STAFF_ADMIN_NAME` | *(none)*, *(none)*, `مدير النظام` | First admin, created at startup when there is no account |
+| `STAFF_SESSION_HOURS` | `12` | How long a staff sign-in lasts |
+| `STAFF_MIN_PASSWORD` | `10` | Minimum staff password length |
+| `DEMO_STAFF_PASSWORD` | random | Password of the demo accounts made by `app.seed_demo` |
 | `MEMBERSHIP_API_URL` | `https://cxa.sa/api/MemberShip/public` | Live tier data |
 | `MEMBERSHIP_CACHE_SECONDS` | `3600` | Tier cache lifetime |
 | `HIGH_FREQUENCY_THRESHOLD` | `10` | Times asked before a question counts as "high frequency" |
@@ -268,5 +295,5 @@ Available helpers: `get_tiers()`, `get_tier(id)`. The UI creates the support cas
 - Approved FAQ content and sources from the association; replace the demo answers.
 - Send support cases to the association's system and confirm response times.
 - Choose the email/WhatsApp provider and get the WhatsApp reply template approved by Meta (notifications run in the demo outbox until then).
-- Staff accounts per person (currently one shared token; the action log uses the name typed at sign-in).
+- Sign in with the association's identity provider (SSO), if they have one; today staff accounts live in this app.
 - Database migrations (tables are created with `create_all`; schema changes need a migration tool).

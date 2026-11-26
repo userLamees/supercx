@@ -19,6 +19,7 @@ I18N.add({
     "dash.token": "رمز فريق الدعم",
     "dash.signIn": "دخول",
     "dash.badToken": "الرمز غير صحيح. تحقق منه وأعد المحاولة.",
+    "dash.sessionEnded": "انتهت جلستك. سجّل الدخول مرة أخرى.",
     "dash.title": "لوحة الموظف",
     "dash.sub": "راجع الأسئلة المتكررة وحدّث قاعدة المعرفة.",
     "dash.statPending": "سؤالًا بانتظار الإجابة",
@@ -44,6 +45,72 @@ I18N.add({
     "dash.loading": "جارٍ تحميل البيانات…",
     "dash.statusSaved": "تم حفظ الحالة.",
     "dash.signingIn": "جارٍ الدخول…",
+    "login.email": "البريد الإلكتروني",
+    "login.password": "كلمة المرور",
+    "login.help": "نسيت كلمة المرور؟ اطلب من مدير النظام تعيين كلمة مؤقتة.",
+    "login.tokenToggle": "الدخول برمز الفريق (للإدارة)",
+    "login.tokenSubmit": "دخول بالرمز",
+    "login.bad": "البريد أو كلمة المرور غير صحيحة.",
+    "login.need": "اكتب بريدك وكلمة المرور.",
+    "login.tooMany": "محاولات كثيرة. حاول بعد {time}.",
+    "login.viaToken": "دخول برمز الفريق",
+    "role.admin": "مدير",
+    "role.staff": "موظف",
+    "pw.change": "تغيير كلمة المرور",
+    "pw.title": "تغيير كلمة المرور",
+    "pw.required": "كلمة المرور الحالية مؤقتة. اختر كلمة جديدة لتكمل.",
+    "pw.optional": "اختر كلمة مرور جديدة. ستخرج الأجهزة الأخرى من حسابك.",
+    "pw.current": "كلمة المرور الحالية",
+    "pw.new": "كلمة المرور الجديدة",
+    "pw.confirm": "تأكيد كلمة المرور الجديدة",
+    "pw.rule": "10 أحرف على الأقل، وتجمع بين الحروف والأرقام أو الرموز.",
+    "pw.save": "حفظ كلمة المرور",
+    "pw.saved": "تم تغيير كلمة المرور.",
+    "pw.mismatch": "كلمتا المرور غير متطابقتين.",
+    "pw.e.wrong_password": "كلمة المرور الحالية غير صحيحة.",
+    "pw.e.too_short": "كلمة المرور قصيرة: 10 أحرف على الأقل.",
+    "pw.e.too_simple": "اجمع بين الحروف والأرقام أو الرموز.",
+    "pw.e.same_password": "اختر كلمة مختلفة عن الحالية.",
+    "pw.e.failed": "تعذّر حفظ كلمة المرور. حاول مرة أخرى.",
+    "team.nav": "الفريق",
+    "team.title": "حسابات الفريق",
+    "team.sub": "لكل موظف حساب باسمه، فيظهر اسمه في السجل وفي «تم الرد بواسطة». المدير وحده يضيف الحسابات ويعدّلها.",
+    "team.tempHelp": "سلّمها للموظف بطريقة آمنة؛ سيُطلب منه تغييرها عند أول دخول.",
+    "team.add": "إضافة حساب",
+    "team.name": "الاسم",
+    "team.role": "الصلاحية",
+    "team.status": "الحالة",
+    "team.lastLogin": "آخر دخول",
+    "team.temp": "كلمة مرور مؤقتة",
+    "team.generate": "توليد",
+    "team.create": "إضافة الحساب",
+    "team.created": "أُضيف الحساب. سلّم كلمة المرور المؤقتة للموظف.",
+    "team.active": "نشط",
+    "team.inactive": "موقوف",
+    "team.mustChange": "بانتظار تغيير كلمة المرور",
+    "team.never": "لم يدخل بعد",
+    "team.you": "أنت",
+    "team.makeAdmin": "اجعله مديرًا",
+    "team.makeStaff": "اجعله موظفًا",
+    "team.deactivate": "إيقاف",
+    "team.activate": "تفعيل",
+    "team.reset": "كلمة مؤقتة",
+    "team.resetDone": "كلمة المرور المؤقتة لـ {name}:",
+    "team.copy": "نسخ",
+    "team.copied": "نُسخت.",
+    "team.saved": "حُفظ التعديل.",
+    "team.empty": "لا توجد حسابات بعد. أضف أول حساب من النموذج أعلاه.",
+    "team.need": "اكتب الاسم والبريد وكلمة المرور المؤقتة.",
+    "team.e.email_taken": "يوجد حساب بهذا البريد.",
+    "team.e.invalid_email": "البريد غير صحيح.",
+    "team.e.last_admin": "لا يمكن إيقاف آخر مدير أو تحويله إلى موظف.",
+    "team.e.cannot_deactivate_self": "لا يمكنك إيقاف حسابك.",
+    "team.e.failed": "تعذّر الحفظ. حاول مرة أخرى.",
+    "action.staff.login": "سجّل الدخول",
+    "action.staff.password": "غيّر كلمة المرور",
+    "action.staff.create": "أضاف حسابًا",
+    "action.staff.update": "عدّل حسابًا",
+    "action.staff.reset_password": "عيّن كلمة مؤقتة",
     "modal.approving": "جارٍ الاعتماد…",
     "modal.offline": "لا يوجد اتصال. لم يُحفظ شيء، أعد المحاولة.",
     "dash.today": "اليوم، {time}",
@@ -233,6 +300,7 @@ I18N.add({
     "dash.token": "Support team token",
     "dash.signIn": "Sign in",
     "dash.badToken": "Incorrect token. Check it and try again.",
+    "dash.sessionEnded": "Your session ended. Please sign in again.",
     "dash.title": "Staff dashboard",
     "dash.sub": "Review frequent questions and update the knowledge base.",
     "dash.statPending": "questions awaiting an answer",
@@ -258,6 +326,72 @@ I18N.add({
     "dash.loading": "Loading data…",
     "dash.statusSaved": "Status saved.",
     "dash.signingIn": "Signing in…",
+    "login.email": "Email",
+    "login.password": "Password",
+    "login.help": "Forgot your password? Ask an admin to set a temporary one.",
+    "login.tokenToggle": "Sign in with the team token (admins)",
+    "login.tokenSubmit": "Sign in with token",
+    "login.bad": "Incorrect email or password.",
+    "login.need": "Enter your email and password.",
+    "login.tooMany": "Too many attempts. Try again in {time}.",
+    "login.viaToken": "Signed in with the team token",
+    "role.admin": "Admin",
+    "role.staff": "Staff",
+    "pw.change": "Change password",
+    "pw.title": "Change password",
+    "pw.required": "Your current password is temporary. Choose a new one to continue.",
+    "pw.optional": "Choose a new password. Your other devices will be signed out.",
+    "pw.current": "Current password",
+    "pw.new": "New password",
+    "pw.confirm": "Confirm new password",
+    "pw.rule": "At least 10 characters, mixing letters with digits or symbols.",
+    "pw.save": "Save password",
+    "pw.saved": "Password changed.",
+    "pw.mismatch": "The passwords don't match.",
+    "pw.e.wrong_password": "The current password is incorrect.",
+    "pw.e.too_short": "Too short: at least 10 characters.",
+    "pw.e.too_simple": "Mix letters with digits or symbols.",
+    "pw.e.same_password": "Choose a password different from the current one.",
+    "pw.e.failed": "Couldn't save the password. Please try again.",
+    "team.nav": "Team",
+    "team.title": "Team accounts",
+    "team.sub": "Each staff member has their own account, so their name appears in the log and as the replier. Only admins add and edit accounts.",
+    "team.tempHelp": "Give it to the staff member safely; they must change it at first sign-in.",
+    "team.add": "Add an account",
+    "team.name": "Name",
+    "team.role": "Role",
+    "team.status": "Status",
+    "team.lastLogin": "Last sign-in",
+    "team.temp": "Temporary password",
+    "team.generate": "Generate",
+    "team.create": "Add account",
+    "team.created": "Account added. Give the temporary password to the staff member.",
+    "team.active": "Active",
+    "team.inactive": "Deactivated",
+    "team.mustChange": "Must change password",
+    "team.never": "Not signed in yet",
+    "team.you": "You",
+    "team.makeAdmin": "Make admin",
+    "team.makeStaff": "Make staff",
+    "team.deactivate": "Deactivate",
+    "team.activate": "Activate",
+    "team.reset": "Temporary password",
+    "team.resetDone": "Temporary password for {name}:",
+    "team.copy": "Copy",
+    "team.copied": "Copied.",
+    "team.saved": "Saved.",
+    "team.empty": "No accounts yet. Add the first one with the form above.",
+    "team.need": "Enter the name, email and temporary password.",
+    "team.e.email_taken": "An account with this email already exists.",
+    "team.e.invalid_email": "The email is not valid.",
+    "team.e.last_admin": "The last admin can't be deactivated or made staff.",
+    "team.e.cannot_deactivate_self": "You can't deactivate your own account.",
+    "team.e.failed": "Couldn't save. Please try again.",
+    "action.staff.login": "Signed in",
+    "action.staff.password": "Changed password",
+    "action.staff.create": "Added an account",
+    "action.staff.update": "Edited an account",
+    "action.staff.reset_password": "Set a temporary password",
     "modal.approving": "Approving…",
     "modal.offline": "No connection. Nothing was saved; please try again.",
     "dash.today": "Today, {time}",
@@ -460,18 +594,33 @@ const store = {
   get: (k) => { try { return sessionStorage.getItem(k) || ""; } catch { return ""; } },
   set: (k, v) => { try { v ? sessionStorage.setItem(k, v) : sessionStorage.removeItem(k); } catch { /* ignore */ } },
 };
-const token = () => store.get("supportToken");
+const token = () => store.get("supportToken");          // shared team token (admin key)
 const setToken = (v) => store.set("supportToken", v);
 const staffName = () => store.get("staffName");
+const sessionToken = () => store.get("staffSession");   // personal account session
+const setSessionToken = (v) => store.set("staffSession", v);
+const isAuthed = () => Boolean(sessionToken() || token());
+let me = null;          // the signed-in staff member (GET /api/staff/me)
+let pwOptional = false; // password panel opened from the sidebar (can be cancelled)
 
 const isOffline = (err) => !navigator.onLine || err instanceof TypeError;
-const staffHeaders = () => ({ "X-Support-Token": token(), "X-Staff-Name": encodeURIComponent(staffName()) });
+const staffHeaders = () => (sessionToken()
+  ? { Authorization: `Bearer ${sessionToken()}` }
+  : { "X-Support-Token": token(), "X-Staff-Name": encodeURIComponent(staffName()) });
 
 async function api(path, options = {}) {
   if (!navigator.onLine) throw new TypeError("offline");
   const res = await fetch(path, { ...options, headers: { "Content-Type": "application/json", ...staffHeaders(), ...(options.headers || {}) } });
   if (res.status === 401) throw new Error("auth");
-  if (!res.ok) throw new Error(String(res.status));
+  if (!res.ok) {
+    let detail = "";
+    try { detail = (await res.json()).detail; } catch { /* no body */ }
+    if (detail === "password_change_required") throw new Error("pwchange");
+    const err = new Error(String(res.status));
+    err.detail = typeof detail === "string" ? detail : "";
+    err.status = res.status;
+    throw err;
+  }
   return res.status === 204 ? null : res.json();
 }
 
@@ -482,7 +631,8 @@ function toast(text) {
   toast.timer = setTimeout(() => { el.hidden = true; }, 3500);
 }
 
-function authFailed() { setToken(""); document.querySelectorAll("dialog[open]").forEach((d) => d.close()); show(currentView()); showAuthError(); }
+function signOutLocal() { setToken(""); setSessionToken(""); me = null; pwOptional = false; }
+function authFailed() { signOutLocal(); document.querySelectorAll("dialog[open]").forEach((d) => d.close()); show(currentView()); showAuthError(); }
 
 const asUtc = (iso) => new Date(/[zZ]|[+-]\d\d:\d\d$/.test(iso) ? iso : `${iso}Z`);
 const locale = () => (I18N.lang === "ar" ? "ar-u-nu-latn" : "en-GB");
@@ -499,7 +649,7 @@ function relative(iso) {
 const ref = (id) => `CX-${id.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
 
 /* ---------- Views ---------- */
-const VIEWS = ["overview", "cases", "unanswered", "faq"];
+const VIEWS = ["overview", "cases", "unanswered", "faq", "team"];
 const PERIOD_VIEWS = ["overview", "cases", "unanswered"];
 function currentView() { const v = location.hash.slice(1).split("?")[0]; return VIEWS.includes(v) ? v : "overview"; }
 const hashParams = () => new URLSearchParams(location.hash.split("?")[1] || "");
@@ -549,7 +699,7 @@ const shortDay = (iso) => new Intl.DateTimeFormat(locale(), { day: "numeric", mo
   .format(new Date(`${iso}T00:00:00Z`));
 function syncPeriodBar(view) {
   const bar = $("period-bar");
-  bar.hidden = !token() || !PERIOD_VIEWS.includes(view);
+  bar.hidden = !isAuthed() || needsPassword() || !PERIOD_VIEWS.includes(view);
   if (bar.hidden) return;
   const p = currentPeriod(view);
   $("period").querySelector('option[value="all"]').hidden = view === "overview";
@@ -600,27 +750,47 @@ async function loadCounts() {
   });
 }
 
+const needsPassword = () => Boolean(me?.must_change_password) || pwOptional;
 function show(view) {
-  const authed = Boolean(token());
+  const authed = isAuthed();
+  const pw = authed && needsPassword();
   $("login").hidden = authed;
+  $("pw-panel").hidden = !pw;
   $("logout").hidden = !authed;
-  if (!authed) $("alerts").hidden = true;
-  VIEWS.forEach((v) => { $(`view-${v}`).hidden = !authed || v !== view; });
+  if (!authed || pw) { $("alerts").hidden = true; $("period-bar").hidden = true; }
+  VIEWS.forEach((v) => { $(`view-${v}`).hidden = !authed || pw || v !== view; });
   document.querySelectorAll("[data-view]").forEach((a) => {
     if (a.dataset.view === view) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
   });
-  $("side-name").textContent = authed && staffName() ? staffName() : t("dash.team");
+  document.querySelectorAll("[data-admin]").forEach((el) => { el.hidden = me?.role !== "admin"; });
+  const name = me ? (me.name || staffName()) : "";
+  $("side-name").textContent = authed && name ? name : t("dash.team");
+  $("side-role").textContent = !authed || !me ? "" : me.via === "token" ? t("login.viaToken") : t(`role.${me.role}`);
+  $("open-pw").hidden = !(authed && me?.via === "account") || pw;
+  if (pw) {
+    $("pw-why").textContent = t(me?.must_change_password ? "pw.required" : "pw.optional");
+    $("pw-cancel").hidden = Boolean(me?.must_change_password);
+    $("pw-user").value = me?.email || "";
+  }
 }
 
 const STATE = { overview: ["overview-state", "overview-body"], unanswered: ["unanswered-state", "unanswered-table"],
-                cases: ["cases-state", "cases-table"], faq: ["faq-state", "faq-table"] };
+                cases: ["cases-state", "cases-table"], faq: ["faq-state", "faq-table"], team: ["team-state", "team-table"] };
 const LOADERS = { overview: () => Overview.load(periodQuery("overview")), unanswered: () => loadUnanswered(),
-                  cases: () => loadCases(), faq: () => loadFaq() };
+                  cases: () => loadCases(), faq: () => loadFaq(), team: () => loadTeam() };
 async function route() {
-  const view = currentView();
+  let view = currentView();
+  if (!isAuthed()) { show(view); syncPeriodBar(view); $("login-email").focus(); return; }
+  if (!me) {
+    try { me = await api("/api/staff/me"); } catch (e) {
+      if (e.message === "auth") return authFailed();
+      show(view); $("overview-state").textContent = t(isOffline(e) ? "dash.offline" : "dash.loadError"); return;
+    } finally { resetSignInButtons(); }
+  }
+  if (view === "team" && me.role !== "admin") { location.replace("#overview"); return; }
   show(view);
+  if (needsPassword()) { $("pw-current").focus(); return; }
   syncPeriodBar(view);
-  if (!token()) { (staffName() ? $("token") : $("staff-name")).focus(); return; }
   const [stateId, tableId] = STATE[view];
   $(stateId).textContent = t("dash.loading"); $(stateId).hidden = false; $(tableId).hidden = true;
   if (view === "unanswered") $("pager").hidden = true;
@@ -635,14 +805,24 @@ async function route() {
     $(tableId).hidden = view === "overview" ? false : $(tableId).hidden;
   } catch (e) {
     if (e.message === "auth") return authFailed();
+    if (e.message === "pwchange") { me = { ...me, must_change_password: true }; return route(); }
     $(stateId).textContent = t(isOffline(e) ? "dash.offline" : "dash.loadError"); $(stateId).hidden = false;
   } finally {
-    const btn = $("auth").querySelector("button");
-    btn.disabled = false; btn.textContent = t("dash.signIn");
+    resetSignInButtons();
   }
 }
 
-function showAuthError() { $("auth-error").textContent = t("dash.badToken"); $("auth-error").hidden = false; }
+function resetSignInButtons() {
+  const a = $("auth").querySelector("button"), b = $("auth-token").querySelector("button");
+  a.disabled = false; a.textContent = t("dash.signIn");
+  b.disabled = false; b.textContent = t("login.tokenSubmit");
+}
+// A session that ended (expired, signed out elsewhere, or a wrong token).
+let lastSignIn = "account";  // which form was used last: account | token
+function showAuthError() {
+  if (lastSignIn === "token") { $("auth-token").closest("details").open = true; formError("auth-token-error", "dash.badToken"); }
+  else formError("auth-error", "dash.sessionEnded");
+}
 
 /* ---------- Smart alerts (idea 62) ---------- */
 const ALERT_ACTION = {
@@ -733,7 +913,7 @@ $("sort").addEventListener("change", () => { page = 0; route(); });
 document.querySelectorAll("dialog [data-close]").forEach((b) => b.addEventListener("click", () => b.closest("dialog").close()));
 const categoryOptions = (selected) => categories.map((c) => new Option(c.title[I18N.lang], c.id, false, c.id === selected));
 const val = (id) => $(id).value.trim();
-function formError(id, key) { $(id).textContent = t(key); $(id).hidden = false; }
+function formError(id, key, vars) { $(id).textContent = t(key, vars); $(id).hidden = false; }
 
 /* ---------- Convert to FAQ ---------- */
 function openPromote(q) {
@@ -1068,23 +1248,163 @@ $("faq-delete-form").addEventListener("submit", async (e) => {
   }
 });
 
-/* ---------- Auth ---------- */
+/* ---------- Auth: personal account, or the shared team token (admin key) ---------- */
 $("staff-name").value = staffName();
-$("auth").addEventListener("submit", (e) => {
+$("auth").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("auth-error").hidden = true;
+  const email = val("login-email"), password = $("login-password").value;
+  if (!email || !password) { formError("auth-error", "login.need"); return; }
   const btn = $("auth").querySelector("button");
   btn.disabled = true; btn.textContent = t("dash.signingIn");
+  try {
+    const res = await fetch("/api/staff/login", { method: "POST", headers: { "Content-Type": "application/json" },
+                                                 body: JSON.stringify({ email, password }) });
+    if (res.status === 429) {
+      const wait = Number(res.headers.get("Retry-After")) || 60;
+      formError("auth-error", "login.tooMany", { time: I18N.count(Math.ceil(wait / 60), "minute") }); return;
+    }
+    if (!res.ok) { formError("auth-error", res.status === 401 ? "login.bad" : "dash.loadError"); return; }
+    const data = await res.json();
+    setToken(""); setSessionToken(data.token); me = data.user; pwOptional = false; lastSignIn = "account";
+    $("login-password").value = "";
+    route();
+  } catch (err) {
+    formError("auth-error", isOffline(err) ? "dash.offline" : "dash.loadError");
+  } finally {
+    resetSignInButtons();
+  }
+});
+$("auth-token").addEventListener("submit", (e) => {
+  e.preventDefault();
+  $("auth-token-error").hidden = true;
+  const btn = $("auth-token").querySelector("button");
+  btn.disabled = true; btn.textContent = t("dash.signingIn");
   store.set("staffName", val("staff-name"));
+  lastSignIn = "token";
+  setSessionToken(""); me = null;
   setToken($("token").value);
   $("token").value = "";
   route();
 });
-$("logout").addEventListener("click", () => { setToken(""); route(); });
+$("logout").addEventListener("click", () => {
+  if (sessionToken()) fetch("/api/staff/logout", { method: "POST", headers: staffHeaders() }).catch(() => {});
+  signOutLocal();
+  route();
+});
 
+/* Change password: required after a temporary one, or chosen from the sidebar. */
+$("open-pw").addEventListener("click", () => { pwOptional = true; route(); });
+$("pw-cancel").addEventListener("click", () => { pwOptional = false; $("pw-form").reset(); route(); });
+$("pw-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("pw-error").hidden = true;
+  const current = $("pw-current").value, next = $("pw-new").value;
+  if (!current || !next) { formError("pw-error", "pw.e.too_short"); return; }
+  if (next !== $("pw-confirm").value) { formError("pw-error", "pw.mismatch"); $("pw-confirm").focus(); return; }
+  const btn = $("pw-save");
+  btn.disabled = true;
+  try {
+    me = { ...me, ...(await api("/api/staff/me/password", { method: "POST", body: JSON.stringify({ current_password: current, new_password: next }) })) };
+    pwOptional = false;
+    $("pw-form").reset();
+    toast(t("pw.saved"));
+    route();
+  } catch (err) {
+    if (err.message === "auth") return authFailed();
+    const known = ["wrong_password", "too_short", "too_simple", "same_password"];
+    formError("pw-error", isOffline(err) ? "dash.offline" : `pw.e.${known.includes(err.detail) ? err.detail : "failed"}`);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+/* ---------- Team accounts (admins) ---------- */
+let teamNotice = null;  // { name, password } after a reset, shown once above the table
+function genPassword() {
+  const abc = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ", num = "23456789";
+  const pick = (set, n) => Array.from(crypto.getRandomValues(new Uint32Array(n)), (x) => set[x % set.length]).join("");
+  return `${pick(abc, 4)}-${pick(num, 2)}${pick(abc, 2)}-${pick(abc + num, 4)}`;
+}
+async function loadTeam() {
+  const users = await api("/api/staff/users");
+  renderTeam(users);
+}
+function teamError(err) {
+  const known = ["email_taken", "invalid_email", "last_admin", "cannot_deactivate_self"];
+  if (["too_short", "too_simple"].includes(err.detail)) return `pw.e.${err.detail}`;
+  return `team.e.${known.includes(err.detail) ? err.detail : "failed"}`;
+}
+async function teamAction(path, body, method = "PATCH") {
+  try {
+    const updated = await api(path, { method, body: JSON.stringify(body) });
+    return updated;
+  } catch (err) {
+    if (err.message === "auth") { authFailed(); return null; }
+    toast(t(isOffline(err) ? "dash.offline" : teamError(err)));
+    return null;
+  }
+}
+function renderTeam(users) {
+  $("team-state").hidden = users.length > 0;
+  $("team-state").textContent = t("team.empty");
+  $("team-table").hidden = users.length === 0;
+  const notice = teamNotice ? h("tr", { class: "team-notice-row" }, h("td", { colspan: "5", class: "q" },
+    h("div", { class: "team-notice", role: "status" },
+      h("span", {}, t("team.resetDone", { name: teamNotice.name })),
+      h("code", { dir: "ltr" }, teamNotice.password),
+      h("button", { class: "btn btn-sm btn-secondary", type: "button", onclick: () => {
+        navigator.clipboard?.writeText(teamNotice.password).then(() => toast(t("team.copied")), () => {});
+      } }, ic("copy", "icon-sm"), t("team.copy"))))) : null;
+  $("team-rows").replaceChildren(...[notice, ...users.map((u) => {
+    const self = me && u.id === me.id;
+    return h("tr", { class: u.active ? "" : "row-muted" },
+      h("td", { class: "q", "data-label": t("team.name") },
+        h("span", { class: "tag-row" }, h("span", { dir: "auto" }, u.name), self ? h("span", { class: "tag" }, t("team.you")) : null),
+        h("span", { class: "case-summary", dir: "ltr" }, u.email)),
+      h("td", { "data-label": t("team.role") }, t(`role.${u.role}`)),
+      h("td", { "data-label": t("team.status") }, h("span", { class: "tag-row" },
+        h("span", { class: `tag ${u.active ? "badge-success" : "req-status"}` }, t(u.active ? "team.active" : "team.inactive")),
+        u.must_change_password && u.active ? h("span", { class: "tag tag-demo" }, t("team.mustChange")) : null)),
+      h("td", { "data-label": t("team.lastLogin") }, u.last_login_at ? relative(u.last_login_at) : h("span", { class: "muted" }, t("team.never"))),
+      h("td", { class: "act" }, h("div", { class: "row-actions" },
+        h("button", { class: "btn btn-sm btn-secondary", type: "button", onclick: async () => {
+          if (await teamAction(`/api/staff/users/${u.id}`, { role: u.role === "admin" ? "staff" : "admin" })) { toast(t("team.saved")); loadTeam(); }
+        } }, t(u.role === "admin" ? "team.makeStaff" : "team.makeAdmin")),
+        h("button", { class: "btn btn-sm btn-secondary", type: "button", onclick: async () => {
+          const password = genPassword();
+          if (await teamAction(`/api/staff/users/${u.id}/password`, { password }, "POST")) { teamNotice = { name: u.name, password }; loadTeam(); }
+        } }, ic("key-round", "icon-sm"), t("team.reset")),
+        self ? null : h("button", { class: `btn btn-sm ${u.active ? "btn-danger-text" : "btn-secondary"}`, type: "button", onclick: async () => {
+          if (await teamAction(`/api/staff/users/${u.id}`, { active: !u.active })) { toast(t("team.saved")); loadTeam(); }
+        } }, t(u.active ? "team.deactivate" : "team.activate")))));
+  })].filter(Boolean));
+  I18N.icons();
+}
+$("tm-generate").addEventListener("click", () => { $("tm-password").value = genPassword(); });
+$("team-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("tm-error").hidden = true;
+  const body = { name: val("tm-name"), email: val("tm-email"), role: $("tm-role").value, password: $("tm-password").value };
+  if (!body.name || !body.email || !body.password) { formError("tm-error", "team.need"); return; }
+  const btn = $("tm-save");
+  btn.disabled = true;
+  try {
+    await api("/api/staff/users", { method: "POST", body: JSON.stringify(body) });
+    teamNotice = { name: body.name, password: body.password };
+    $("team-form").reset();
+    toast(t("team.created"));
+    await loadTeam();
+  } catch (err) {
+    if (err.message === "auth") return authFailed();
+    formError("tm-error", isOffline(err) ? "dash.offline" : teamError(err));
+  } finally {
+    btn.disabled = false;
+  }
+});
 window.addEventListener("hashchange", route);
 document.addEventListener("langchange", () => {
-  if (token()) route(); else show(currentView());
+  if (isAuthed()) route(); else show(currentView());
   if (openCaseId) openCase(openCaseId);
 });
 I18N.apply();

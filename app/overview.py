@@ -105,13 +105,14 @@ def build(session: Session, p: Period) -> Overview:
 
     # 14-day chart ending on the last day of the period.
     chart = Period(last - timedelta(days=CHART_DAYS - 1), last)
-    days = {last - timedelta(days=i): [0, 0] for i in range(CHART_DAYS)}
+    days = {last - timedelta(days=i): [0, 0, 0] for i in range(CHART_DAYS)}
     for at, action in session.exec(select(ChatEvent.at, ChatEvent.action).where(*chart.where(ChatEvent.at))):
         bucket = days.get(local_day(at))
         if bucket:
             bucket[0] += 1
             bucket[1] += action == "escalate"
-    daily = [DayCount(date=d.isoformat(), total=v[0], escalated=v[1]) for d, v in sorted(days.items())]
+            bucket[2] += action in ("answer", "recommend")
+    daily = [DayCount(date=d.isoformat(), total=v[0], escalated=v[1], answered=v[2]) for d, v in sorted(days.items())]
 
     # Open requests are a "now" number: not limited by the period.
     open_rows = session.exec(select(SupportCase.created_at, SupportCase.status).where(

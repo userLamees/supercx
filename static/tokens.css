@@ -1,19 +1,37 @@
-/* SuperCX design tokens — from Figma "Screens v2" (design/tokens.css).
-   The block marked "Derived" adds tokens the code needs that the export
-   doesn't name; they reuse the same palette. Use variables only. */
+/* SuperCX design tokens. Brand colors follow the association's website (cxa.sa);
+   the rest comes from Figma "Screens v2". Use variables only.
+   Text/background pairs are checked for WCAG AA (4.5:1 text, 3:1 large text and icons). */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap');
 
 :root {
-  /* Brand */
-  --c-navy: #1E1A78;        /* headings, staff UI */
-  --c-violet: #3B33C4;      /* primary buttons, links, send */
-  --c-violet-soft: #EEEDF9; /* secondary button / chip background */
-  --c-gold: #C9A24A;        /* highlights, CTA on tier card */
-  --c-gold-soft: #F0D9A0;
-  --c-gold-bg: #F7F0DF;
-  --c-card-dark: #252536;
+  /* Brand (cxa.sa) */
+  --c-green: #102E1A;       /* nav bar, main headings, staff sidebar (white text 14.7:1) */
+  --c-green-soft: #E8EFEA;  /* light backgrounds tied to the green */
+  --c-blue: #3040D0;        /* primary buttons, links, send (white text 7.6:1) */
+  --c-blue-bright: #5A62F5; /* badges, selection, recommended card (white text 4.7:1) */
+  --c-blue-soft: #ECEEFC;   /* secondary buttons, light badges (blue text 6.6:1) */
+  --c-indigo: #1A2390;      /* logo gradient, featured cards */
+  --c-ink: #05030F;         /* dark-mode background */
+  --c-gray-dark: #414144;
+  --c-gray-mid: #6B6B70;    /* end of the "affiliate" card gradient */
+  --c-indigo-dark: #262C58; /* end of the "supporter" card gradient */
+  --c-chart-total: var(--c-blue);
+  --c-chart-resolved: #2E7D4F;
 
-  /* Neutrals (Apple-style) */
+  /* Roles (switch in dark mode) */
+  --c-primary: var(--c-blue);           /* filled buttons and marks */
+  --c-primary-hover: #2633B0;
+  --c-primary-soft: var(--c-blue-soft); /* secondary button / chip background */
+  --c-link: var(--c-blue);              /* text in the accent color */
+  --c-heading: var(--c-green);          /* page and section titles */
+  --c-nav: var(--c-green);              /* nav bar and staff sidebar */
+  --c-on-nav: #FFFFFF;
+  --c-on-nav-soft: rgba(255, 255, 255, 0.78);
+  --c-nav-active: rgba(255, 255, 255, 0.14);
+  --c-tag: var(--c-green-soft);
+  --c-on-tag: var(--c-green);
+
+  /* Neutrals */
   --c-bg: #FFFFFF;
   --c-surface: #F2F2F7;     /* cards, input, bubbles */
   --c-surface-2: #FAFAFC;
@@ -21,11 +39,17 @@
   --c-border: #C7C7CC;
   --c-text: #1C1C1E;
   --c-text-2: #3A3A3C;
-  --c-muted: #8E8E93;
+  --c-muted: #6E6E73;       /* 5.1:1 on white, 4.5:1 on cards (was #8E8E93, below AA) */
 
   /* Status */
   --c-success: #1F8A5B;
+  --c-success-soft: #E4F3EC;
   --c-danger: #C0392B;
+  --c-danger-soft: #FBEAE8;
+  --c-warning: #B45309;     /* 5.0:1 on white */
+  --c-warning-soft: #FDF3E7;
+  --c-success-fill: #1F8A5B; /* behind white text, same in both modes */
+  --c-danger-fill: #C0392B;
 
   /* Type */
   --font: 'Noto Sans Arabic', system-ui, sans-serif;
@@ -57,7 +81,7 @@
   --s-6: 24px;
 
   /* Elevation */
-  --shadow-card: 0 8px 24px rgba(30, 26, 120, 0.16);
+  --shadow-card: 0 8px 24px rgba(16, 46, 26, 0.14);
 
   /* Layout */
   --content-max: 720px;     /* chat column on laptop */
@@ -65,11 +89,8 @@
 
   /* ---- Derived (not in the Figma export) ---- */
   --c-on-primary: #FFFFFF;
-  --c-violet-hover: #2F28A8;
-  --c-success-soft: #E4F3EC;
-  --c-danger-soft: #FBEAE8;
   --c-overlay: rgba(28, 28, 30, 0.45);
-  --c-focus: var(--c-gold);
+  --c-focus: var(--c-blue-bright);
 
   --bw: 1px;                /* hairline borders */
   --bw-accent: 3px;         /* status message accent bar */
@@ -93,4 +114,36 @@
   --bubble-max: 85%;
   --bp-tablet: 768px;       /* reference only; media queries use the literal */
   --dur: 0.18s;
+  --avatar-sm: 28px;
+  --avatar-lg: 72px;
+}
+
+/* Dark mode: ink background, #121826 cards, white text. Accent text gets a lighter blue so it
+   stays readable (9.4:1 on ink); filled buttons keep the brand blue with white text. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-bg: var(--c-ink);
+    --c-surface: #121826;
+    --c-surface-2: #0B0F1C;
+    --c-separator: #232A3B;
+    --c-border: #3A4256;
+    --c-text: #FFFFFF;
+    --c-text-2: #D6D9E0;
+    --c-muted: #9AA1B2;        /* 6.9:1 on cards */
+    --c-link: #A3A9FF;
+    --c-heading: #FFFFFF;
+    --c-primary-soft: #1E2547;
+    --c-tag: #16301F;
+    --c-on-tag: #D7E6DC;
+    --c-success: #5FD39A;
+    --c-success-soft: #12301F;
+    --c-danger: #FF8A7A;
+    --c-danger-soft: #3A1714;
+    --c-warning: #F0B357;
+    --c-warning-soft: #2E2210;
+    --c-overlay: rgba(0, 0, 0, 0.6);
+    --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --c-chart-total: #7C86FF;      /* validated against #121826 */
+    --c-chart-resolved: #3FA46A;
+  }
 }

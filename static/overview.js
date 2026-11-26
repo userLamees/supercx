@@ -21,13 +21,14 @@ window.Overview = (function () {
       "ov.overdueHow": "طلبات جديدة مضى عليها أكثر من يومي عمل بلا رد.",
       "ov.overdueAction": "عرض الطلبات الجديدة",
       "ov.chartTitle": "الأسئلة خلال آخر 14 يومًا",
-      "ov.chartHow": "عدد رسائل المحادثة يوميًا، ومنها ما حُوّل للدعم. تنتهي الأيام بآخر يوم في الفترة.",
+      "ov.chartHow": "عدد رسائل المحادثة يوميًا، ومنها ما أجاب عنه المساعد. تنتهي الأيام بآخر يوم في الفترة.",
       "ov.total": "إجمالي الأسئلة",
+      "ov.resolvedSeries": "أجاب عنها المساعد",
       "ov.escalatedSeries": "المحوّلة للدعم",
       "ov.showTable": "عرض كجدول",
       "ov.showChart": "عرض كرسم",
       "ov.colDay": "اليوم",
-      "ov.tip": "{date}: {total} · المحوّلة {esc}",
+      "ov.tip": "{date}: {total} · أجاب عنها {res} · المحوّلة {esc}",
       "ov.chartEmpty": "لا توجد محادثات في هذه الأيام. اختر فترة أخرى من أعلى الصفحة.",
       "ov.topTitle": "أكثر الأسئلة غير المجابة تكرارًا",
       "ov.topHow": "أسئلة لم يجد لها المساعد إجابة، ظهرت في الفترة، مرتبة بعدد مرات التكرار.",
@@ -66,13 +67,14 @@ window.Overview = (function () {
       "ov.overdueHow": "New requests with no reply after more than two business days.",
       "ov.overdueAction": "View new requests",
       "ov.chartTitle": "Questions over the last 14 days",
-      "ov.chartHow": "Chat messages per day, and how many were passed to support. The days end on the last day of the period.",
+      "ov.chartHow": "Chat messages per day, and how many the assistant answered. The days end on the last day of the period.",
       "ov.total": "All questions",
+      "ov.resolvedSeries": "Answered by the assistant",
       "ov.escalatedSeries": "Passed to support",
       "ov.showTable": "Show as table",
       "ov.showChart": "Show as chart",
       "ov.colDay": "Day",
-      "ov.tip": "{date}: {total} · passed on {esc}",
+      "ov.tip": "{date}: {total} · answered {res} · passed on {esc}",
       "ov.chartEmpty": "No conversations on these days. Choose another period at the top of the page.",
       "ov.topTitle": "Most frequent unanswered questions",
       "ov.topHow": "Questions the assistant couldn't answer, seen in the period, by times asked.",
@@ -119,11 +121,11 @@ window.Overview = (function () {
     const empty = daily.every((d) => d.total === 0);
     const cols = daily.map((d) => {
       const full = dayLabel(d.date, { day: "numeric", month: "long" });
-      const tip = t("ov.tip", { date: full, total: num(d.total), esc: num(d.escalated) });
+      const tip = t("ov.tip", { date: full, total: num(d.total), res: num(d.answered), esc: num(d.escalated) });
       return h("div", { class: "bar-col", tabindex: "0", role: "img", "aria-label": tip },
         h("div", { class: "bar-pair" },
           h("span", { class: "bar bar-total", style: `height:${(100 * d.total) / top}%` }),
-          h("span", { class: "bar bar-esc", style: `height:${(100 * d.escalated) / top}%` })),
+          h("span", { class: "bar bar-resolved", style: `height:${(100 * d.answered) / top}%` })),
         h("span", { class: "bar-label" }, dayLabel(d.date, { day: "numeric" })),
         h("span", { class: "bar-tip", role: "presentation" }, tip));
     });
@@ -134,10 +136,11 @@ window.Overview = (function () {
       empty ? h("p", { class: "chart-empty" }, t("ov.chartEmpty")) : null);
     const table = h("table", { class: "data-table chart-table", hidden: true },
       h("thead", {}, h("tr", {}, h("th", { scope: "col" }, t("ov.colDay")), h("th", { scope: "col" }, t("ov.total")),
-        h("th", { scope: "col" }, t("ov.escalatedSeries")))),
+        h("th", { scope: "col" }, t("ov.resolvedSeries")), h("th", { scope: "col" }, t("ov.escalatedSeries")))),
       h("tbody", {}, ...daily.map((d) => h("tr", {},
         h("td", { class: "q" }, dayLabel(d.date, { day: "numeric", month: "long" })),
         h("td", { "data-label": t("ov.total") }, num(d.total)),
+        h("td", { "data-label": t("ov.resolvedSeries") }, num(d.answered)),
         h("td", { "data-label": t("ov.escalatedSeries") }, num(d.escalated))))));
     const toggle = h("button", { class: "btn btn-sm btn-text", type: "button" }, ic("table", "icon-sm"), t("ov.showTable"));
     toggle.addEventListener("click", () => {
@@ -152,7 +155,7 @@ window.Overview = (function () {
         toggle),
       h("div", { class: "legend" },
         h("span", {}, h("i", { class: "swatch swatch-total" }), t("ov.total")),
-        h("span", {}, h("i", { class: "swatch swatch-esc" }), t("ov.escalatedSeries"))),
+        h("span", {}, h("i", { class: "swatch swatch-resolved" }), t("ov.resolvedSeries"))),
       plot, table);
   }
 

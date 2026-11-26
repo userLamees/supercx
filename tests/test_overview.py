@@ -84,7 +84,7 @@ def test_overview_numbers(client):
     assert o["handoff_success"] == {"value": 33.3, "numerator": 1, "denominator": 3}
     assert o["register_after_recommend"] == {"value": 50.0, "numerator": 1, "denominator": 2}
     assert o["open_cases"] == 3 and o["overdue_cases"] == 1
-    assert len(o["daily"]) == 14 and o["daily"][-1] == {"date": day(), "total": 9, "escalated": 3}
+    assert len(o["daily"]) == 14 and o["daily"][-1] == {"date": day(), "total": 9, "answered": 5, "escalated": 3}
     assert len(o["recent_cases"]) == 4
 
 

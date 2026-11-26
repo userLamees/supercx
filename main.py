@@ -5,11 +5,13 @@ from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response, status
-from fastapi.responses import FileResponse, JSONResponse
+from html import escape
+
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, func, select
 
-from app import audit, cases, otp, overview, speech
+from app import audit, cases, config, otp, overview, speech
 from app.agent import run_agent
 from app.cases import case_reference
 from app.config import (ALERT_CASE_AGE_HOURS, ALERT_COMPLAINTS_PER_WEEK, HIGH_FREQUENCY_THRESHOLD,
@@ -541,8 +543,18 @@ def verify_check(payload: VerifyCheck, session: Session = Depends(get_session)):
 
 
 @app.get("/", include_in_schema=False)
-def chat_page() -> FileResponse:
-    return FileResponse("static/index.html")
+def chat_page() -> HTMLResponse:
+    """The assistant's name comes from config (ASSISTANT_NAME_AR / _EN), written into the page once."""
+    with open("static/index.html", encoding="utf-8") as f:
+        page = f.read()
+    page = page.replace("__ASSISTANT_NAME_AR__", escape(config.ASSISTANT_NAME_AR, quote=True)) \
+               .replace("__ASSISTANT_NAME_EN__", escape(config.ASSISTANT_NAME_EN, quote=True))
+    return HTMLResponse(page)
+
+
+@app.get("/api/config")
+def public_config() -> dict:
+    return {"assistant_name": {"ar": config.ASSISTANT_NAME_AR, "en": config.ASSISTANT_NAME_EN}}
 
 
 @app.get("/support", include_in_schema=False)

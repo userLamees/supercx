@@ -4,11 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>SuperCX | مساعد جمعية تجربة العميل</title>
+  <meta name="supercx:assistant-ar" content="__ASSISTANT_NAME_AR__">
+  <meta name="supercx:assistant-en" content="__ASSISTANT_NAME_EN__">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/tokens.css?v=6">
-  <link rel="stylesheet" href="/static/styles.css?v=6">
+  <link rel="stylesheet" href="/static/tokens.css?v=8">
+  <link rel="stylesheet" href="/static/styles.css?v=8">
 </head>
 <body>
   <div class="chat-page">
@@ -17,7 +20,7 @@
         <div class="nav-start">
           <button class="icon-btn" type="button" id="new-chat" data-i18n-aria="chat.new"><i data-lucide="square-pen" class="icon"></i></button>
         </div>
-        <a class="nav-title" href="/">SuperCX</a>
+        <a class="brand" href="/" aria-label="SuperCX"><svg class="brand-mark" aria-hidden="true"><use href="#sx-mark-white"></use></svg><span>SuperCX</span></a>
         <div class="nav-end">
           <a class="icon-btn has-badge" href="#requests" id="requests-btn" data-i18n-aria="req.nav"><i data-lucide="inbox" class="icon"></i><span class="dot-badge" hidden></span></a>
           <button class="lang-btn" type="button" data-lang-toggle data-i18n="lang.toggle" data-i18n-aria="lang.toggleAria">EN</button>
@@ -29,9 +32,9 @@
     <main class="view" id="view-chat">
       <div class="log container" id="log" aria-live="polite">
         <section class="hero" id="hero">
-          <div class="logo" aria-hidden="true">S</div>
-          <h1 data-i18n="hero.title">كيف يمكنني مساعدتك؟</h1>
-          <p class="hero-sub" data-i18n="hero.sub">اسأل عن العضويات واحصل على توصية موثّقة بمصدرها.</p>
+          <span class="hero-avatar" id="hero-avatar"></span>
+          <h1 data-i18n="hero.title"></h1>
+          <p class="hero-sub" data-i18n="hero.sub">أجيبك من المحتوى المعتمد للجمعية، وأحوّل سؤالك للفريق إذا لم أجد الإجابة.</p>
           <p class="privacy"><i data-lucide="shield-check" class="icon icon-sm"></i><span data-i18n="hero.privacy">لا نطلب بياناتك الشخصية إلا عند تحويل سؤالك للدعم، وبموافقتك.</span></p>
           <div class="quick-links">
             <a class="chip" href="#verify"><i data-lucide="badge-check" class="icon icon-sm"></i><span data-i18n="hero.status">حالة عضويتي</span></a>
@@ -185,8 +188,10 @@
   </div>
 
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-  <script src="/static/i18n.js?v=7"></script>
-  <script src="/static/requests.js?v=6"></script>
-  <script src="/static/chat.js?v=6"></script>
+  <script src="/static/brand.js?v=8"></script>
+  <script src="/static/i18n.js?v=8"></script>
+  <script src="/static/requests.js?v=8"></script>
+  <script src="/static/tiers.js?v=8"></script>
+  <script src="/static/chat.js?v=8"></script>
 </body>
 </html>

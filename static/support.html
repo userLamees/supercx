@@ -4,17 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>SuperCX | لوحة الموظف</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/tokens.css?v=6">
-  <link rel="stylesheet" href="/static/styles.css?v=6">
+  <link rel="stylesheet" href="/static/tokens.css?v=8">
+  <link rel="stylesheet" href="/static/styles.css?v=8">
 </head>
 <body>
   <div class="dash">
     <!-- Sidebar (laptop). No "sources" or "review log" items, per the design changes. -->
     <aside class="side">
-      <div class="side-brand"><strong>SuperCX</strong><span data-i18n="dash.org">جمعية تجربة العميل</span></div>
+      <div class="side-brand"><a class="brand" href="#overview" aria-label="SuperCX"><svg class="brand-mark" aria-hidden="true"><use href="#sx-mark-white"></use></svg><span>SuperCX</span></a><span data-i18n="dash.org">جمعية تجربة العميل</span></div>
       <nav data-i18n-aria="dash.navAria">
         <a class="tab" href="#overview" data-view="overview"><i data-lucide="layout-dashboard" class="icon icon-sm"></i><span data-i18n="ov.title">نظرة عامة</span></a>
         <a class="tab" href="#cases" data-view="cases"><i data-lucide="inbox" class="icon icon-sm"></i><span data-i18n="dash.cases">حالات الدعم</span><span class="nav-badge" data-badge="new-cases" hidden></span></a>
@@ -26,6 +27,7 @@
 
     <div class="dash-main">
       <header class="dash-bar">
+        <a class="brand" href="#overview" aria-label="SuperCX"><svg class="brand-mark" aria-hidden="true"><use href="#sx-mark"></use></svg></a>
         <h1 data-i18n="dash.workspace">مساحة عمل الجمعية</h1>
         <div class="actions">
           <button class="btn btn-sm btn-text" type="button" data-lang-toggle data-i18n="dash.langToggle">English</button>
@@ -109,7 +111,7 @@
           </div>
           <div class="stats">
             <div class="stat"><strong id="stat-pending">—</strong><span data-i18n="dash.statPending">سؤالًا بانتظار الإجابة</span></div>
-            <div class="stat gold"><strong id="stat-high">—</strong><span id="stat-high-label" data-i18n="dash.statHigh">أسئلة عالية التكرار</span></div>
+            <div class="stat accent"><strong id="stat-high">—</strong><span id="stat-high-label" data-i18n="dash.statHigh">أسئلة عالية التكرار</span></div>
             <div class="stat"><strong id="stat-approved">—</strong><span data-i18n="dash.statApproved">إجابة معتمدة</span></div>
           </div>
           <section class="panel">
@@ -377,8 +379,9 @@
   <div class="toast" id="toast" role="status" hidden></div>
 
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-  <script src="/static/i18n.js?v=7"></script>
-  <script src="/static/overview.js?v=6"></script>
-  <script src="/static/support.js?v=6"></script>
+  <script src="/static/brand.js?v=8"></script>
+  <script src="/static/i18n.js?v=8"></script>
+  <script src="/static/overview.js?v=8"></script>
+  <script src="/static/support.js?v=8"></script>
 </body>
 </html>

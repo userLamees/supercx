@@ -927,3 +927,13 @@ dialog.drawer {
 @media (max-width: 767px) { .dash-bar .brand { display: inline-flex; } }
 .side-brand { display: grid; gap: var(--s-1); justify-items: start; }
 .side-brand .logo { font-size: 20px; }
+
+/* Staff: notification to the user (email, WhatsApp or demo outbox) */
+.notify-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-3); }
+.notify-item { display: grid; gap: var(--s-1); padding: var(--s-3); border: var(--bw) solid var(--c-border); border-radius: var(--r-md); }
+.notify-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-2); }
+.notify-chan { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-2); font-size: var(--fs-footnote); font-weight: 600; }
+.notify-body { font-size: var(--fs-footnote); color: var(--c-text-2); white-space: pre-line; overflow-wrap: anywhere; }
+.notify-error { color: var(--c-danger); }
+.tag-demo { background: var(--c-warning-soft); color: var(--c-warning); }
+.detail-block > .btn { justify-self: start; }

@@ -113,6 +113,25 @@ I18N.add({
     "action.case.status": "غيّر الحالة",
     "action.case.reply": "ردّ على المستخدم",
     "action.case.reply_update": "حدّث الرد",
+    "action.case.notify": "أعاد إرسال الإشعار",
+    "notify.title": "إشعار المستخدم",
+    "notify.none": "يصل الإشعار بعد إرسال الرد إذا ترك المستخدم وسيلة تواصل.",
+    "notify.email": "بريد إلكتروني",
+    "notify.whatsapp": "واتساب",
+    "notify.s.pending": "قيد الإرسال",
+    "notify.s.sent": "أُرسل",
+    "notify.s.simulated": "تجريبي: لم يُرسل فعليًا",
+    "notify.s.failed": "تعذّر الإرسال",
+    "notify.s.skipped": "لم يُرسل",
+    "notify.e.no_contact": "لم يترك المستخدم وسيلة تواصل؛ يقرأ الرد في «طلباتي» أو برقم الحالة.",
+    "notify.e.unsupported_contact": "وسيلة التواصل ليست بريدًا ولا جوالًا سعوديًا.",
+    "notify.demoHint": "لا يوجد مزوّد بريد أو واتساب مضبوط، فحُفظت الرسالة في صندوق الإرسال التجريبي.",
+    "notify.preview": "نص الرسالة",
+    "notify.update": "تحديث",
+    "notify.resend": "إعادة الإرسال",
+    "notify.resent": "أُعيد إرسال الإشعار.",
+    "notify.resendError": "تعذّر إعادة الإرسال. حاول مرة أخرى.",
+    "notify.attempts": "{n} محاولات",
     "modal.title": "تحويل إلى سؤال شائع",
     "modal.sub": "أضف إجابة واضحة وأرفق مصدرها قبل الاعتماد.",
     "modal.close": "إغلاق",
@@ -308,6 +327,25 @@ I18N.add({
     "action.case.status": "Changed status",
     "action.case.reply": "Replied to the user",
     "action.case.reply_update": "Updated the reply",
+    "action.case.notify": "Resent the notification",
+    "notify.title": "User notification",
+    "notify.none": "Sent after you reply, if the user left contact details.",
+    "notify.email": "Email",
+    "notify.whatsapp": "WhatsApp",
+    "notify.s.pending": "Sending",
+    "notify.s.sent": "Sent",
+    "notify.s.simulated": "Demo: not actually sent",
+    "notify.s.failed": "Failed",
+    "notify.s.skipped": "Not sent",
+    "notify.e.no_contact": "The user left no contact details; they read the reply in My requests or by case number.",
+    "notify.e.unsupported_contact": "The contact is neither an email nor a Saudi mobile number.",
+    "notify.demoHint": "No email or WhatsApp provider is set up, so the message was kept in the demo outbox.",
+    "notify.preview": "Message text",
+    "notify.update": "Update",
+    "notify.resend": "Send again",
+    "notify.resent": "Notification sent again.",
+    "notify.resendError": "Couldn't send it again. Please try again.",
+    "notify.attempts": "{n} attempts",
     "modal.title": "Convert to FAQ",
     "modal.sub": "Add a clear answer and its source before approving.",
     "modal.close": "Close",
@@ -806,11 +844,62 @@ async function openCase(id) {
   if (!$("case-detail").open) $("case-detail").showModal();
   $("cd-text").focus();
   try {
-    const log = await api(`/api/audit-log?target_id=${encodeURIComponent(id)}`);
+    const [log, notes] = await Promise.all([
+      api(`/api/audit-log?target_id=${encodeURIComponent(id)}`),
+      api(`/api/support-cases/${encodeURIComponent(id)}/notifications`).catch((err) => { if (err.message === "auth") throw err; return null; }),
+    ]);
+    caseNotes[id] = notes;
     if (openCaseId === id) renderCase(casesById[id], log);
+    // Sending runs right after the reply is saved: look again once if it is still going.
+    if (notes?.some((n) => n.status === "pending")) setTimeout(() => { if (openCaseId === id) openCase(id); }, 1500);
   } catch (err) {
     if (err.message === "auth") return authFailed();
     if (openCaseId === id) renderCase(casesById[id], "error");
+  }
+}
+
+/* The message to the user about the reply: email, WhatsApp, or the demo outbox. */
+const caseNotes = {};
+const NOTE_TAG = { sent: "badge-success", simulated: "tag-demo", failed: "badge-danger", skipped: "req-status", pending: "req-new" };
+function notificationBlock(c) {
+  const notes = caseNotes[c.id];
+  if (notes === undefined) return null;
+  const head = h("h3", {}, t("notify.title"));
+  if (!notes || !notes.length) {
+    return h("section", { class: "detail-block" }, head, h("p", { class: "muted" }, t(notes === null ? "detail.loadError" : "notify.none")));
+  }
+  const items = notes.map((n, i) => h("li", { class: "notify-item" },
+    h("div", { class: "notify-row" },
+      h("span", { class: "notify-chan" },
+        ic(n.channel === "whatsapp" ? "message-circle" : n.channel === "email" ? "mail" : "bell-off", "icon-sm"),
+        n.channel === "none" ? t("notify.s.skipped") : t(`notify.${n.channel}`),
+        n.recipient ? h("span", { class: "muted", dir: "ltr" }, n.recipient) : null,
+        n.kind === "case.reply_update" ? h("span", { class: "muted" }, `· ${t("notify.update")}`) : null),
+      h("span", { class: `tag ${NOTE_TAG[n.status] || ""}` }, t(`notify.s.${n.status}`))),
+    h("span", { class: "caption" }, relative(n.sent_at || n.created_at),
+      n.attempts > 1 ? ` · ${t("notify.attempts", { n: n.attempts })}` : ""),
+    n.error && n.status === "skipped" ? h("p", { class: "caption" }, t(`notify.e.${n.error}`)) : null,
+    n.status === "failed" ? h("p", { class: "caption notify-error" }, n.error) : null,
+    n.status === "simulated" && i === 0 ? h("p", { class: "caption" }, t("notify.demoHint")) : null,
+    n.body ? h("details", { class: "translation" }, h("summary", {}, t("notify.preview")),
+      n.subject ? h("strong", { dir: "auto" }, n.subject) : null,
+      h("p", { class: "notify-body", dir: "auto" }, n.body)) : null));
+  const canResend = c.reply && c.contact && notes[0].status !== "pending";
+  return h("section", { class: "detail-block" }, head, h("ol", { class: "notify-list" }, ...items),
+    canResend ? h("button", { class: `btn btn-sm ${notes[0].status === "failed" ? "btn-primary" : "btn-secondary"}`, type: "button",
+      onclick: (e) => resendNotification(c.id, e.currentTarget) }, ic("send", "icon-sm"), t("notify.resend")) : null);
+}
+
+async function resendNotification(id, btn) {
+  btn.disabled = true;
+  try {
+    await api(`/api/support-cases/${encodeURIComponent(id)}/notify`, { method: "POST" });
+    toast(t("notify.resent"));
+    await openCase(id);
+  } catch (err) {
+    if (err.message === "auth") return authFailed();
+    toast(t(isOffline(err) ? "dash.offline" : "notify.resendError"));
+    btn.disabled = false;
   }
 }
 
@@ -841,6 +930,7 @@ function renderCase(c, log) {
     c.reply ? h("section", { class: "detail-block team-reply" }, h("h3", {}, t("detail.lastReply")),
       h("p", { dir: "auto" }, c.reply),
       h("span", { class: "caption" }, t("detail.replyBy", { actor: c.replied_by || t("audit.unknown"), when: relative(c.replied_at) }))) : null,
+    notificationBlock(c),
     h("section", { class: "detail-block" }, h("h3", {}, t("detail.log")), history)].filter(Boolean));
   I18N.icons();
 }

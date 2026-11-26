@@ -69,7 +69,10 @@ to its path. The association's real member registry is not connected yet.
 | `HIGH_FREQUENCY_THRESHOLD` | `10` | Times asked before a question counts as "high frequency" |
 | `FIXTURE_CHECKED_AT` | `2026-11-11` | "Last verified" date shown when the bundled tier copy is used |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_SSL` | *(none)* | Email verification codes. `SMTP_SSL=true` for port 465 |
-| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_FROM` | *(none)* | WhatsApp verification codes |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_FROM` | *(none)* | WhatsApp verification codes and reply notifications |
+| `NOTIFY_ON_REPLY` | `true` | Tell the visitor (email/WhatsApp) when the team replies |
+| `PUBLIC_BASE_URL` | address of the staff request | Public address used in the notification link, e.g. `https://supercx.replit.app` |
+| `TWILIO_REPLY_TEMPLATE_SID` | *(none)* | Meta-approved WhatsApp template (Twilio Content SID; variables 1 = case number, 2 = link). Needed to message outside the 24-hour window |
 | `OTP_SECRET` | random per start | Key for hashing codes and addresses |
 | `MEMBERS_FILE` | `data/members_demo.json` | Member registry used after verification |
 | `ALERT_CASE_AGE_HOURS` | `48` | Alert when "new" requests wait longer than this |
@@ -198,13 +201,25 @@ exports, and kept in the URL hash (`#cases?period=7d`) so it survives a reload.
 3. Staff open a case's details (side panel), see the full text, contact, summary and history,
    and send a reply; the status becomes "تم الرد". New cases past `REPLY_BUSINESS_DAYS` are
    flagged "رد جديد مطلوب".
+4. **Notification** (`app/notify.py`): if the visitor left contact details, they are told a reply
+   is ready, by email (SMTP) or WhatsApp (Twilio), in the case's language. The message holds the
+   case number and a link `/?track=CX-…#requests` that opens "تابع طلبك" with the number filled
+   in; the visitor still enters the tracking code. The reply text and the tracking code are never
+   in the message. Sending runs after the response, so a provider failure never undoes the reply.
+   - Without a provider, the message goes to a **demo outbox**: status "تجريبي: لم يُرسل فعليًا",
+     and staff can read the exact text in the case panel. Setting the SMTP or Twilio secrets
+     switches to real sending with no code change.
+   - Each attempt is a `notifications` row (sent, simulated, failed, skipped), shown in the case
+     panel with the masked recipient; "إعادة الإرسال" retries a failure (logged in the history).
 
 | Endpoint | Access | Purpose |
 |---|---|---|
 | `POST /api/support-cases` | public | Returns `reference`, `tracking_code` (once), `next_step`, `due_at` |
 | `POST /api/track` | public, attempt-limited | `{reference, code}` → status, dates and reply only. No request text, contact or staff name. Wrong code and unknown case both give 404; too many → 429 |
 | `GET /api/support-cases/{id}` | support token | Case details (no tracking hash) |
-| `POST /api/support-cases/{id}/reply` | support token | `{reply}` → saves reply, time and staff name (staff-only), status `replied` |
+| `POST /api/support-cases/{id}/reply` | support token | `{reply}` → saves reply, time and staff name (staff-only), status `replied`, and notifies the visitor |
+| `GET /api/support-cases/{id}/notifications` | support token | Messages for the case, newest first (recipient masked) |
+| `POST /api/support-cases/{id}/notify` | support token | Send again (retries a failed attempt, or sends a reminder); 409 if no reply yet or notifications are off |
 
 Case types: `unanswered` (a question the assistant couldn't answer), `inquiry`, `complaint`,
 `suggestion`, `service`. Statuses: `new`, `in_progress`, `replied`, `closed`.
@@ -238,7 +253,8 @@ Available helpers: `get_tiers()`, `get_tier(id)`. The UI creates the support cas
 | Membership tiers (names, prices, benefits) | **Live** | Public API `cxa.sa/api/MemberShip/public`, read only; falls back to the bundled copy |
 | Registration / renewal | **Link only** | Buttons open `cxa.sa/membership`; no enrollment or payment here (Track 2) |
 | Support cases | **Live in this app** | Stored in this app's database, not yet in the association's system |
-| Staff reply and tracking | **Live in this app** | Visitors read the reply in "طلباتي" or by tracking code; no email/WhatsApp notification of the reply yet |
+| Staff reply and tracking | **Live in this app** | Visitors read the reply in "طلباتي" or by tracking code |
+| Reply notifications | **Live when configured** | Email via SMTP, WhatsApp via Twilio; demo outbox (readable by staff) until a provider is set |
 | Reply time ("within two business days") | **Assumption** | `REPLY_BUSINESS_DAYS`, labeled as an estimate until the association confirms it |
 | Unanswered questions, FAQ | **Live in this app** | Database tables; FAQ content itself is demo (marked "تجريبي") until approved |
 | Verification codes (OTP) | **Live when configured** | Email via SMTP, WhatsApp via Twilio; labeled simulation until a provider is set |
@@ -251,6 +267,6 @@ Available helpers: `get_tiers()`, `get_tier(id)`. The UI creates the support cas
 - WhatsApp Business sender approval for production WhatsApp codes.
 - Approved FAQ content and sources from the association; replace the demo answers.
 - Send support cases to the association's system and confirm response times.
-- Notify the visitor by email/WhatsApp when the team replies (today the reply shows in "طلباتي" and tracking only).
+- Choose the email/WhatsApp provider and get the WhatsApp reply template approved by Meta (notifications run in the demo outbox until then).
 - Staff accounts per person (currently one shared token; the action log uses the name typed at sign-in).
 - Database migrations (tables are created with `create_all`; schema changes need a migration tool).

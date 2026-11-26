@@ -50,6 +50,16 @@ TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
 TWILIO_WHATSAPP_FROM = os.getenv("TWILIO_WHATSAPP_FROM", "")  # e.g. whatsapp:+14155238886
 
+# Notifications to the visitor when the team replies (same SMTP / Twilio settings as above).
+# Without a provider, messages go to a demo outbox that staff can read; nothing is sent.
+NOTIFY_ON_REPLY = os.getenv("NOTIFY_ON_REPLY", "true").lower() == "true"
+# Public address of the app, used in the link inside the message (e.g. https://supercx.replit.app).
+# If unset, the address of the staff request that saved the reply is used.
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
+# WhatsApp outside the 24-hour window needs a template approved by Meta. Set its Twilio Content SID
+# (variables: 1 = case number, 2 = link); without it a plain message is sent (sandbox / within 24h).
+TWILIO_REPLY_TEMPLATE_SID = os.getenv("TWILIO_REPLY_TEMPLATE_SID", "")
+
 # Member registry used after verification (demo file by default).
 MEMBERS_FILE = os.getenv("MEMBERS_FILE", "")
 

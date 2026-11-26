@@ -135,6 +135,22 @@ class SupportCaseReply(BaseModel):
     reply: Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=4000)]
 
 
+class NotificationOut(BaseModel):
+    """A message to the visitor, as staff see it (recipient masked)."""
+    id: str
+    created_at: str
+    kind: str
+    channel: str               # email | whatsapp | none
+    recipient: str
+    status: str                # pending | sent | simulated | failed | skipped
+    subject: str
+    body: str
+    error: Optional[str] = None
+    sent_at: Optional[str] = None
+    attempts: int
+    demo: bool
+
+
 class SupportCaseOut(BaseModel):
     """A case as staff see it. The tracking-code hash never leaves the server."""
     id: str

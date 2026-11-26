@@ -300,8 +300,22 @@ window.Requests = (function () {
     });
   }
 
+  /* The link in the reply notification is /?track=CX-XXXXXX#requests: fill in the case number
+     and ask only for the tracking code (which the message never contains). */
+  function prefillFromLink() {
+    let ref = null;
+    try { ref = new URLSearchParams(location.search).get("track"); } catch { /* old browser */ }
+    if (!ref || !/^CX-[A-Z0-9]{4,12}$/i.test(ref)) return;
+    window.history.replaceState(null, "", `${location.pathname}#requests`);  // chat.js has its own `history`
+    const refInput = document.getElementById("track-ref");
+    const codeInput = document.getElementById("track-code");
+    refInput.value = ref.toUpperCase();
+    setTimeout(() => { codeInput.scrollIntoView({ block: "center" }); codeInput.focus({ preventScroll: true }); }, 200);
+  }
+
   function init() {
     wireTrackForm();
+    prefillFromLink();
     load();
     if (!storageOk) return;
     refresh().catch(() => {});

@@ -4,14 +4,14 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response, status
+from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, Request, Response, status
 from html import escape
 
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, func, select
 
-from app import audit, cases, config, otp, overview, speech
+from app import audit, cases, config, notify, otp, overview, speech
 from app.agent import run_agent
 from app.cases import case_reference
 from app.config import (ALERT_CASE_AGE_HOURS, ALERT_COMPLAINTS_PER_WEEK, HIGH_FREQUENCY_THRESHOLD,
@@ -24,7 +24,7 @@ from app.faq import (add_approved, admin_items, approved_count, category_ids, ge
                      seed_faq, write_item)
 from app.memberships import data_origin, get_tier, get_tiers
 from app.redact import normalize_key, redact
-from app.schemas import (Alert, AuditOut, CaseCategory, CaseStatus, ChatAction, ChatRequest,
+from app.schemas import (Alert, AuditOut, NotificationOut, CaseCategory, CaseStatus, ChatAction, ChatRequest,
                          ChatResponse, FaqCategory, FaqCreate, FaqItemAdmin, FaqItemWrite,
                          MembershipStatus, Overview, SpeechRequest, SupportCaseCreate, SupportCaseOut, SupportCaseReply,
                          SupportCaseUpdate, Tier, TrackRequest, TrackResponse, UnansweredOut,
@@ -281,9 +281,10 @@ def get_case(case_id: str, session: Session = Depends(get_session)) -> SupportCa
 
 @app.post("/api/support-cases/{case_id}/reply", response_model=SupportCaseOut,
           dependencies=[Depends(require_support_token)])
-def reply_case(case_id: str, payload: SupportCaseReply, actor: str = Depends(audit.staff_name),
-               session: Session = Depends(get_session)) -> SupportCaseOut:
-    """The reply is shown to the visitor through tracking; the staff name is kept for staff only."""
+def reply_case(case_id: str, payload: SupportCaseReply, request: Request, background: BackgroundTasks,
+               actor: str = Depends(audit.staff_name), session: Session = Depends(get_session)) -> SupportCaseOut:
+    """The reply is shown to the visitor through tracking; the staff name is kept for staff only.
+    If the visitor left contact details, they are told a reply is ready (sent after the response)."""
     case = session.get(SupportCase, case_id)
     if case is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Case not found")
@@ -297,9 +298,48 @@ def reply_case(case_id: str, payload: SupportCaseReply, actor: str = Depends(aud
     session.add(case)
     audit.log(session, actor, "case.reply" if first else "case.reply_update", "case", case.id,
               f"{case_reference(case.id)}: {payload.reply}")
+    note = notify.queue_reply(session, case, str(request.base_url), update=not first)
     session.commit()
+    if note is not None and note.status == "pending":
+        background.add_task(notify.deliver, note.id)
     session.refresh(case)
     return case_out(case)
+
+
+def notification_out(n) -> NotificationOut:
+    return NotificationOut(id=n.id, created_at=_iso(n.created_at), kind=n.kind, channel=n.channel,
+                           recipient=n.recipient, status=n.status, subject=n.subject, body=n.body,
+                           error=n.error, sent_at=_iso(n.sent_at), attempts=n.attempts, demo=bool(n.demo))
+
+
+@app.get("/api/support-cases/{case_id}/notifications", response_model=list[NotificationOut],
+         dependencies=[Depends(require_support_token)])
+def case_notifications(case_id: str, session: Session = Depends(get_session)) -> list[NotificationOut]:
+    """Messages sent (or kept in the demo outbox) for one case, newest first."""
+    if session.get(SupportCase, case_id) is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Case not found")
+    return [notification_out(n) for n in notify.for_case(session, case_id)]
+
+
+@app.post("/api/support-cases/{case_id}/notify", response_model=NotificationOut,
+          dependencies=[Depends(require_support_token)])
+def resend_notification(case_id: str, request: Request, background: BackgroundTasks,
+                        actor: str = Depends(audit.staff_name), session: Session = Depends(get_session)):
+    """Staff "send again" after a failure (or to remind the visitor). Only for replied cases."""
+    case = session.get(SupportCase, case_id)
+    if case is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Case not found")
+    if not case.reply:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Case has no reply yet")
+    note = notify.retry(session, case, str(request.base_url))
+    if note is None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Notifications are turned off")
+    audit.log(session, actor, "case.notify", "case", case.id, f"{case_reference(case.id)}: {note.channel}")
+    session.commit()
+    session.refresh(note)
+    if note.status == "pending":
+        background.add_task(notify.deliver, note.id)
+    return notification_out(note)
 
 
 @app.patch("/api/support-cases/{case_id}", response_model=SupportCaseOut,

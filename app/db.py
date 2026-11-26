@@ -128,13 +128,42 @@ class OtpChallenge(SQLModel, table=True):
     attempts: int = 0
 
 
+class StaffUser(SQLModel, table=True):
+    """A staff account. Passwords are stored as scrypt hashes only."""
+    __tablename__ = "staff_users"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    created_at: datetime = Field(default_factory=_now)
+    email: str = Field(index=True, unique=True)   # lower-case
+    name: str                                    # shown in the action log and as "replied by" (staff only)
+    role: str = "staff"                          # admin (also manages accounts) | staff
+    password_hash: str = ""
+    active: bool = True
+    must_change_password: bool = False           # set when an admin creates or resets the password
+    last_login_at: Optional[datetime] = None
+    demo: bool = False                           # created by app.seed_demo
+
+
+class StaffSession(SQLModel, table=True):
+    """A signed-in browser. Only a hash of the session token is stored."""
+    __tablename__ = "staff_sessions"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    token_hash: str = Field(index=True, unique=True)
+    user_id: str = Field(index=True)
+    created_at: datetime = Field(default_factory=_now)
+    expires_at: datetime
+    revoked: bool = False
+
+
 class AuditEntry(SQLModel, table=True):
     """Who did what and when in the staff dashboard (idea 66)."""
     __tablename__ = "audit_log"
 
     id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
     at: datetime = Field(default_factory=_now, index=True)
-    actor: str = ""                      # name the staff member entered at sign-in (shared token)
+    actor: str = ""                      # staff account name (or the name typed with the shared token)
+    actor_id: Optional[str] = Field(default=None, index=True)  # staff account id; empty for the shared token
     action: str = Field(index=True)      # e.g. faq.promote, faq.update, faq.delete, case.status, export.cases
     target_type: str = ""
     target_id: str = Field(default="", index=True)
@@ -149,6 +178,7 @@ engine = create_engine(DATABASE_URL, connect_args=_connect_args)
 # tables, so these are added here (SQLite and Postgres both support ADD COLUMN).
 _ADDED_COLUMNS = {
     "faq_items": {"source_title_en": "VARCHAR"},
+    "audit_log": {"actor_id": "VARCHAR"},
     "support_cases": {"category": "VARCHAR DEFAULT 'inquiry'", "tracking_hash": "VARCHAR DEFAULT ''",
                       "reply": "VARCHAR", "replied_at": "TIMESTAMP", "replied_by": "VARCHAR",
                       "demo": "BOOLEAN DEFAULT FALSE"},

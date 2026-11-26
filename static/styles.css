@@ -937,3 +937,19 @@ dialog.drawer {
 .notify-error { color: var(--c-danger); }
 .tag-demo { background: var(--c-warning-soft); color: var(--c-warning); }
 .detail-block > .btn { justify-self: start; }
+
+/* Staff accounts: sign-in, password, team */
+.token-login { margin-top: var(--s-2); }
+.token-login form { display: grid; gap: var(--s-3); }
+.side-pw { justify-self: start; padding-inline: 0; margin-top: var(--s-1); }
+.team-form { display: grid; gap: var(--s-3); }
+.input-row { display: flex; gap: var(--s-2); align-items: center; }
+.input-row .input { flex: 1; min-width: 0; }
+.team-notice { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-3); padding: var(--s-3); border-radius: var(--r-md); background: var(--c-blue-soft); font-size: var(--fs-footnote); font-weight: 400; }
+.team-notice code { font-family: var(--font-latin); font-size: var(--fs-sub); font-weight: 700; color: var(--c-blue); letter-spacing: 0.04em; }
+.row-muted td { color: var(--c-meta); }
+@media (min-width: 768px) {
+  .team-form { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .team-form .form-error, .team-form > .btn { grid-column: 1 / -1; justify-self: start; }
+}
+.side-foot { display: grid; gap: 2px; justify-items: start; }

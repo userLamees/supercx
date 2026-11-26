@@ -11,12 +11,12 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, func, select
 
-from app import audit, cases, config, notify, otp, overview, speech
+from app import audit, cases, config, notify, otp, overview, speech, staff as staff_accounts
 from app.agent import run_agent
 from app.cases import case_reference
 from app.config import (ALERT_CASE_AGE_HOURS, ALERT_COMPLAINTS_PER_WEEK, HIGH_FREQUENCY_THRESHOLD,
                         REPLY_BUSINESS_DAYS, SUPPORT_TOKEN)
-from app.db import (ChatEvent, FaqItem as FaqItemRow, SupportCase, UnansweredQuestion, engine, get_session,
+from app.db import (StaffSession, StaffUser, ChatEvent, FaqItem as FaqItemRow, SupportCase, UnansweredQuestion, engine, get_session,
                     init_db)
 from app.export import LABELS, csv_response, local_time
 from app.knowledge import refresh_index
@@ -24,6 +24,8 @@ from app.faq import (add_approved, admin_items, approved_count, category_ids, ge
                      seed_faq, write_item)
 from app.memberships import data_origin, get_tier, get_tiers
 from app.redact import normalize_key, redact
+from app.schemas import (StaffCreate, StaffLogin, StaffLoginOut, StaffOut, StaffPasswordChange,
+                         StaffPasswordReset, StaffUpdate)
 from app.schemas import (Alert, AuditOut, NotificationOut, CaseCategory, CaseStatus, ChatAction, ChatRequest,
                          ChatResponse, FaqCategory, FaqCreate, FaqItemAdmin, FaqItemWrite,
                          MembershipStatus, Overview, SpeechRequest, SupportCaseCreate, SupportCaseOut, SupportCaseReply,
@@ -35,6 +37,7 @@ from app.verify import lookup, normalize_code, normalize_email, normalize_phone,
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()
+    staff_accounts.ensure_first_admin()
     with Session(engine) as session:
         seed_faq(session)  # first start only: loads data/faq.json into the DB
     refresh_index()  # agent's search index follows the FAQ table
@@ -53,10 +56,177 @@ async def revalidate_pages(request, call_next):
     return response
 
 
-def require_support_token(x_support_token: str = Header(default="")) -> None:
-    """Server-side check for every staff endpoint. An unset token rejects everyone."""
-    if not SUPPORT_TOKEN or not secrets.compare_digest(x_support_token.encode(), SUPPORT_TOKEN.encode()):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid support token")
+def require_support_token(who: staff_accounts.Staff = Depends(staff_accounts.current)) -> None:
+    """Server-side check for every staff endpoint: a signed-in staff account (or the shared
+    SUPPORT_TOKEN, as an admin key). An account with a temporary password must change it first."""
+    if who.must_change_password:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "password_change_required")
+
+
+def require_admin(who: staff_accounts.Staff = Depends(staff_accounts.admin)) -> staff_accounts.Staff:
+    if who.must_change_password:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "password_change_required")
+    return who
+
+
+# ---------- Staff accounts ----------
+def staff_out(u) -> StaffOut:
+    if isinstance(u, staff_accounts.Staff):
+        return StaffOut(id=u.id, email=u.email, name=u.name or "", role=u.role, via=u.via,
+                        must_change_password=u.must_change_password)
+    return StaffOut(id=u.id, email=u.email, name=u.name, role=u.role, active=u.active,
+                    must_change_password=u.must_change_password, created_at=_iso(u.created_at),
+                    last_login_at=_iso(u.last_login_at), demo=bool(u.demo))
+
+
+def _client_ip(request: Request) -> str:
+    return request.client.host if request.client else "unknown"
+
+
+@app.post("/api/staff/login", response_model=StaffLoginOut)
+def staff_login(payload: StaffLogin, request: Request, session: Session = Depends(get_session)):
+    """Email + password -> a session token. Wrong email and wrong password get the same answer."""
+    email = staff_accounts.normalize_email(payload.email) or payload.email.strip().lower()
+    ip = _client_ip(request)
+    wait = staff_accounts.limiter.retry_after(ip, email)
+    if wait:
+        return JSONResponse({"detail": "too_many_attempts", "retry_after": wait}, status_code=429,
+                            headers={"Retry-After": str(wait)})
+    user = staff_accounts.authenticate(session, email, payload.password)
+    if user is None:
+        staff_accounts.limiter.fail(ip, email)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "invalid_credentials")
+    staff_accounts.limiter.clear(email)
+    token, expires = staff_accounts.start_session(session, user)
+    actor = audit.Actor(user.name)
+    actor.id = user.id
+    audit.log(session, actor, "staff.login", "staff", user.id)
+    session.commit()
+    session.refresh(user)
+    return StaffLoginOut(token=token, expires_at=_iso(expires), user=staff_out(user))
+
+
+@app.post("/api/staff/logout", status_code=status.HTTP_204_NO_CONTENT)
+def staff_logout(authorization: str = Header(default=""), session: Session = Depends(get_session)):
+    token = staff_accounts._bearer(authorization)
+    if token:
+        staff_accounts.end_session(session, token)
+        session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.get("/api/staff/me", response_model=StaffOut)
+def staff_me(who: staff_accounts.Staff = Depends(staff_accounts.current)) -> StaffOut:
+    return staff_out(who)
+
+
+@app.post("/api/staff/me/password", response_model=StaffOut)
+def staff_change_password(payload: StaffPasswordChange, authorization: str = Header(default=""),
+                          who: staff_accounts.Staff = Depends(staff_accounts.current),
+                          session: Session = Depends(get_session)) -> StaffOut:
+    """Own password. Other signed-in browsers of this account are signed out."""
+    if who.id is None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "shared_token_has_no_password")
+    user = session.get(StaffUser, who.id)
+    if not staff_accounts.check_password(payload.current_password, user.password_hash):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "wrong_password")
+    problem = staff_accounts.password_problem(payload.new_password)
+    if problem or payload.new_password == payload.current_password:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, problem or "same_password")
+    user.password_hash = staff_accounts.hash_password(payload.new_password)
+    user.must_change_password = False
+    session.add(user)
+    keep = staff_accounts._token_hash(staff_accounts._bearer(authorization))
+    for row in session.exec(select(StaffSession).where(StaffSession.user_id == user.id, StaffSession.revoked == False)):  # noqa: E712
+        if row.token_hash != keep:
+            row.revoked = True
+            session.add(row)
+    actor = audit.Actor(user.name)
+    actor.id = user.id
+    audit.log(session, actor, "staff.password", "staff", user.id)
+    session.commit()
+    session.refresh(user)
+    return staff_out(user)
+
+
+def _active_admins(session: Session) -> int:
+    return len(session.exec(select(StaffUser).where(StaffUser.role == "admin", StaffUser.active == True)).all())  # noqa: E712
+
+
+@app.get("/api/staff/users", response_model=list[StaffOut], dependencies=[Depends(require_admin)])
+def staff_users(session: Session = Depends(get_session)) -> list[StaffOut]:
+    rows = session.exec(select(StaffUser).order_by(StaffUser.created_at)).all()
+    return [staff_out(u) for u in rows]
+
+
+@app.post("/api/staff/users", response_model=StaffOut, status_code=status.HTTP_201_CREATED)
+def staff_create(payload: StaffCreate, who: staff_accounts.Staff = Depends(require_admin),
+                 actor: str = Depends(audit.staff_name), session: Session = Depends(get_session)) -> StaffOut:
+    """New account with a temporary password; the person must change it at first sign-in."""
+    email = staff_accounts.normalize_email(payload.email)
+    if not email:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid_email")
+    if session.exec(select(StaffUser).where(StaffUser.email == email)).first() is not None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "email_taken")
+    problem = staff_accounts.password_problem(payload.password)
+    if problem:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, problem)
+    user = StaffUser(email=email, name=payload.name, role=payload.role, must_change_password=True,
+                     password_hash=staff_accounts.hash_password(payload.password))
+    session.add(user)
+    audit.log(session, actor, "staff.create", "staff", user.id, f"{payload.name} ({payload.role})")
+    session.commit()
+    session.refresh(user)
+    return staff_out(user)
+
+
+@app.patch("/api/staff/users/{user_id}", response_model=StaffOut)
+def staff_update(user_id: str, payload: StaffUpdate, who: staff_accounts.Staff = Depends(require_admin),
+                 actor: str = Depends(audit.staff_name), session: Session = Depends(get_session)) -> StaffOut:
+    """Name, role, or active. The last active admin can't be removed or demoted, and nobody
+    can deactivate their own account."""
+    user = session.get(StaffUser, user_id)
+    if user is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Account not found")
+    losing_admin = user.role == "admin" and user.active and (payload.role == "staff" or payload.active is False)
+    if losing_admin and _active_admins(session) <= 1:
+        raise HTTPException(status.HTTP_409_CONFLICT, "last_admin")
+    if payload.active is False and user.id == who.id:
+        raise HTTPException(status.HTTP_409_CONFLICT, "cannot_deactivate_self")
+    changes = []
+    for field in ("name", "role", "active"):
+        value = getattr(payload, field)
+        if value is not None and value != getattr(user, field):
+            setattr(user, field, value)
+            changes.append(f"{field}={value}")
+    if payload.active is False:
+        staff_accounts.end_all_sessions(session, user.id)
+    session.add(user)
+    if changes:
+        audit.log(session, actor, "staff.update", "staff", user.id, f"{user.name}: {', '.join(changes)}")
+    session.commit()
+    session.refresh(user)
+    return staff_out(user)
+
+
+@app.post("/api/staff/users/{user_id}/password", response_model=StaffOut)
+def staff_reset_password(user_id: str, payload: StaffPasswordReset, who: staff_accounts.Staff = Depends(require_admin),
+                         actor: str = Depends(audit.staff_name), session: Session = Depends(get_session)) -> StaffOut:
+    """Admin sets a temporary password; the person is signed out and must change it at sign-in."""
+    user = session.get(StaffUser, user_id)
+    if user is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Account not found")
+    problem = staff_accounts.password_problem(payload.password)
+    if problem:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, problem)
+    user.password_hash = staff_accounts.hash_password(payload.password)
+    user.must_change_password = True
+    staff_accounts.end_all_sessions(session, user.id)
+    session.add(user)
+    audit.log(session, actor, "staff.reset_password", "staff", user.id, user.name)
+    session.commit()
+    session.refresh(user)
+    return staff_out(user)
 
 
 @app.get("/api/health")

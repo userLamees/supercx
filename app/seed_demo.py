@@ -10,9 +10,12 @@ from datetime import datetime, timedelta, timezone
 
 from sqlmodel import Session, delete, select
 
-from . import config, notify
+import os
+import secrets
+
+from . import config, notify, staff
 from .cases import hash_code, new_tracking_code
-from .db import ChatEvent, Notification, SupportCase, UnansweredQuestion, engine, init_db
+from .db import ChatEvent, Notification, StaffUser, SupportCase, UnansweredQuestion, engine, init_db
 from .redact import normalize_key
 from .rules_agent import TIER_AFFILIATE, TIER_AMBASSADOR, TIER_SUPPORTER
 
@@ -104,13 +107,34 @@ def seed_activity(session: Session, days: int = 14, seed: int = 7) -> tuple[int,
     return events, cases
 
 
+DEMO_STAFF = [("admin@example.com", "مدير تجريبي", "admin"), ("staff@example.com", "موظف تجريبي", "staff")]
+
+
+def seed_staff(session: Session) -> tuple[list[str], str | None]:
+    """Demo accounts (example.com, no real people). Created once; existing ones are left as they are.
+    The password is DEMO_STAFF_PASSWORD, or a random one returned so it can be printed once."""
+    password = os.getenv("DEMO_STAFF_PASSWORD") or f"Demo-{secrets.token_hex(4)}"
+    created = []
+    for email, name, role in DEMO_STAFF:
+        if session.exec(select(StaffUser).where(StaffUser.email == email)).first() is None:
+            session.add(StaffUser(email=email, name=name, role=role, demo=True,
+                                  password_hash=staff.hash_password(password)))
+            created.append(email)
+    return created, (password if created else None)
+
+
 def main() -> None:
     init_db()
     with Session(engine) as session:
         added = seed_questions(session)
         events, cases = seed_activity(session)
+        accounts, password = seed_staff(session)
         session.commit()
     print(f"Added {added} demo questions, {events} demo chat events and {cases} demo requests (last 14 days).")
+    if accounts:
+        print(f"Demo staff accounts: {', '.join(accounts)} (password: {password}). Change it before sharing.")
+    else:
+        print("Demo staff accounts already exist (admin@example.com, staff@example.com); passwords unchanged.")
 
 
 if __name__ == "__main__":

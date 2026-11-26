@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/tokens.css?v=10">
-  <link rel="stylesheet" href="/static/styles.css?v=10">
+  <link rel="stylesheet" href="/static/tokens.css?v=11">
+  <link rel="stylesheet" href="/static/styles.css?v=11">
 </head>
 <body>
   <div class="dash">
@@ -21,8 +21,12 @@
         <a class="tab" href="#cases" data-view="cases"><i data-lucide="inbox" class="icon icon-sm"></i><span data-i18n="dash.cases">حالات الدعم</span><span class="nav-badge" data-badge="new-cases" hidden></span></a>
         <a class="tab" href="#unanswered" data-view="unanswered"><i data-lucide="circle-help" class="icon icon-sm"></i><span data-i18n="dash.unanswered">الأسئلة غير المجابة</span></a>
         <a class="tab" href="#faq" data-view="faq"><i data-lucide="book-open" class="icon icon-sm"></i><span data-i18n="dash.faq">الأسئلة الشائعة</span></a>
+        <a class="tab" href="#team" data-view="team" data-admin hidden><i data-lucide="users" class="icon icon-sm"></i><span data-i18n="team.nav">الفريق</span></a>
       </nav>
-      <div class="side-foot"><strong id="side-name" data-i18n="dash.team">فريق إدارة المعرفة</strong><span data-i18n="dash.role">صلاحية: محرر محتوى</span></div>
+      <div class="side-foot">
+        <strong id="side-name" data-i18n="dash.team">فريق إدارة المعرفة</strong><span id="side-role"></span>
+        <button class="btn btn-sm btn-text side-pw" type="button" id="open-pw" hidden data-i18n="pw.change">تغيير كلمة المرور</button>
+      </div>
     </aside>
 
     <div class="dash-main">
@@ -41,24 +45,68 @@
         <a class="tab" href="#cases" data-view="cases"><i data-lucide="inbox" class="icon icon-sm"></i><span data-i18n="dash.cases">حالات الدعم</span><span class="nav-badge" data-badge="new-cases" hidden></span></a>
         <a class="tab" href="#unanswered" data-view="unanswered"><i data-lucide="circle-help" class="icon icon-sm"></i><span data-i18n="dash.unanswered">الأسئلة غير المجابة</span></a>
         <a class="tab" href="#faq" data-view="faq"><i data-lucide="book-open" class="icon icon-sm"></i><span data-i18n="dash.faq">الأسئلة الشائعة</span></a>
+        <a class="tab" href="#team" data-view="team" data-admin hidden><i data-lucide="users" class="icon icon-sm"></i><span data-i18n="team.nav">الفريق</span></a>
       </nav>
 
       <main class="dash-content">
-        <!-- Sign in -->
+        <!-- Sign in: personal account (email + password); the shared team token stays as an admin key -->
         <section class="panel login" id="login" hidden>
           <div class="panel-head"><h3 data-i18n="dash.loginTitle">دخول فريق الدعم</h3></div>
-          <form id="auth">
+          <form id="auth" novalidate>
             <div class="field">
-              <label class="label" for="staff-name" data-i18n="dash.name">اسمك</label>
-              <input class="input" id="staff-name" autocomplete="name" maxlength="80" dir="auto">
-              <span class="help" data-i18n="dash.nameHelp">يظهر في سجل الإجراءات بجانب ما تعتمده أو تعدّله.</span>
+              <label class="label" for="login-email" data-i18n="login.email">البريد الإلكتروني</label>
+              <input class="input" id="login-email" type="email" autocomplete="username" inputmode="email" maxlength="200" dir="ltr" required>
             </div>
             <div class="field">
-              <label class="label" for="token" data-i18n="dash.token">رمز فريق الدعم</label>
-              <input class="input" id="token" type="password" autocomplete="current-password" required>
+              <label class="label" for="login-password" data-i18n="login.password">كلمة المرور</label>
+              <input class="input" id="login-password" type="password" autocomplete="current-password" maxlength="200" dir="ltr" required>
             </div>
             <p class="form-error" id="auth-error" role="alert" hidden></p>
             <button class="btn btn-primary btn-block" type="submit" data-i18n="dash.signIn">دخول</button>
+            <p class="help" data-i18n="login.help">نسيت كلمة المرور؟ اطلب من مدير النظام تعيين كلمة مؤقتة.</p>
+          </form>
+          <details class="translation token-login">
+            <summary data-i18n="login.tokenToggle">الدخول برمز الفريق (للإدارة)</summary>
+            <form id="auth-token" novalidate>
+              <div class="field">
+                <label class="label" for="staff-name" data-i18n="dash.name">اسمك</label>
+                <input class="input" id="staff-name" autocomplete="name" maxlength="80" dir="auto">
+                <span class="help" data-i18n="dash.nameHelp">يظهر في سجل الإجراءات بجانب ما تعتمده أو تعدّله.</span>
+              </div>
+              <div class="field">
+                <label class="label" for="token" data-i18n="dash.token">رمز فريق الدعم</label>
+                <input class="input" id="token" type="password" autocomplete="off" required>
+              </div>
+              <p class="form-error" id="auth-token-error" role="alert" hidden></p>
+              <button class="btn btn-secondary btn-block" type="submit" data-i18n="login.tokenSubmit">دخول بالرمز</button>
+            </form>
+          </details>
+        </section>
+
+        <!-- Change password (required after a temporary password, or from the sidebar) -->
+        <section class="panel login" id="pw-panel" hidden>
+          <div class="panel-head"><div><h3 data-i18n="pw.title">تغيير كلمة المرور</h3>
+            <p class="help" id="pw-why" data-i18n="pw.required">كلمة المرور الحالية مؤقتة. اختر كلمة جديدة لتكمل.</p></div></div>
+          <form id="pw-form" novalidate>
+            <input type="text" autocomplete="username" id="pw-user" hidden>
+            <div class="field">
+              <label class="label" for="pw-current" data-i18n="pw.current">كلمة المرور الحالية</label>
+              <input class="input" id="pw-current" type="password" autocomplete="current-password" maxlength="200" dir="ltr" required>
+            </div>
+            <div class="field">
+              <label class="label" for="pw-new" data-i18n="pw.new">كلمة المرور الجديدة</label>
+              <input class="input" id="pw-new" type="password" autocomplete="new-password" maxlength="200" dir="ltr" required>
+              <span class="help" id="pw-rule" data-i18n="pw.rule">10 أحرف على الأقل، وتجمع بين الحروف والأرقام أو الرموز.</span>
+            </div>
+            <div class="field">
+              <label class="label" for="pw-confirm" data-i18n="pw.confirm">تأكيد كلمة المرور الجديدة</label>
+              <input class="input" id="pw-confirm" type="password" autocomplete="new-password" maxlength="200" dir="ltr" required>
+            </div>
+            <p class="form-error" id="pw-error" role="alert" hidden></p>
+            <div class="modal-actions">
+              <button class="btn btn-primary" type="submit" id="pw-save" data-i18n="pw.save">حفظ كلمة المرور</button>
+              <button class="btn btn-secondary" type="button" id="pw-cancel" data-i18n="modal.cancel">إلغاء</button>
+            </div>
           </form>
         </section>
 
@@ -224,6 +272,56 @@
             </table>
           </section>
         </div>
+        <!-- Team accounts (admins only) -->
+        <div id="view-team" class="dash-section" hidden>
+          <div class="dash-head">
+            <h2 data-i18n="team.title">حسابات الفريق</h2>
+            <p data-i18n="team.sub">لكل موظف حساب باسمه، فيظهر اسمه في السجل وفي «تم الرد بواسطة». المدير وحده يضيف الحسابات ويعدّلها.</p>
+          </div>
+          <section class="panel">
+            <div class="panel-head"><h3 data-i18n="team.add">إضافة حساب</h3></div>
+            <form class="team-form" id="team-form" novalidate>
+              <div class="field">
+                <label class="label" for="tm-name" data-i18n="team.name">الاسم</label>
+                <input class="input" id="tm-name" maxlength="80" dir="auto" required>
+              </div>
+              <div class="field">
+                <label class="label" for="tm-email" data-i18n="login.email">البريد الإلكتروني</label>
+                <input class="input" id="tm-email" type="email" inputmode="email" maxlength="200" dir="ltr" autocomplete="off" required>
+              </div>
+              <div class="field">
+                <label class="label" for="tm-role" data-i18n="team.role">الصلاحية</label>
+                <select class="select" id="tm-role">
+                  <option value="staff" data-i18n="role.staff">موظف</option>
+                  <option value="admin" data-i18n="role.admin">مدير</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="label" for="tm-password" data-i18n="team.temp">كلمة مرور مؤقتة</label>
+                <div class="input-row">
+                  <input class="input" id="tm-password" maxlength="200" dir="ltr" autocomplete="off" required>
+                  <button class="btn btn-sm btn-secondary" type="button" id="tm-generate" data-i18n="team.generate">توليد</button>
+                </div>
+                <span class="help" data-i18n="team.tempHelp">سلّمها للموظف بطريقة آمنة؛ سيُطلب منه تغييرها عند أول دخول.</span>
+              </div>
+              <p class="form-error" id="tm-error" role="alert" hidden></p>
+              <button class="btn btn-primary" type="submit" id="tm-save" data-i18n="team.create">إضافة الحساب</button>
+            </form>
+          </section>
+          <section class="panel">
+            <p class="muted" id="team-state" role="status" hidden></p>
+            <table class="data-table" id="team-table">
+              <thead><tr>
+                <th scope="col" data-i18n="team.name">الاسم</th>
+                <th scope="col" data-i18n="team.role">الصلاحية</th>
+                <th scope="col" data-i18n="team.status">الحالة</th>
+                <th scope="col" data-i18n="team.lastLogin">آخر دخول</th>
+                <th scope="col" data-i18n="dash.colAction">الإجراء</th>
+              </tr></thead>
+              <tbody id="team-rows"></tbody>
+            </table>
+          </section>
+        </div>
       </main>
     </div>
   </div>
@@ -379,9 +477,9 @@
   <div class="toast" id="toast" role="status" hidden></div>
 
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-  <script src="/static/brand.js?v=10"></script>
-  <script src="/static/i18n.js?v=10"></script>
-  <script src="/static/overview.js?v=10"></script>
-  <script src="/static/support.js?v=10"></script>
+  <script src="/static/brand.js?v=11"></script>
+  <script src="/static/i18n.js?v=11"></script>
+  <script src="/static/overview.js?v=11"></script>
+  <script src="/static/support.js?v=11"></script>
 </body>
 </html>

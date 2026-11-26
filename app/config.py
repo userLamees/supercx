@@ -11,10 +11,16 @@ MEMBERSHIP_CACHE_SECONDS = int(os.getenv("MEMBERSHIP_CACHE_SECONDS", "3600"))
 FIXTURE_CHECKED_AT = os.getenv("FIXTURE_CHECKED_AT", "2026-11-11")
 
 # Replit Postgres sets DATABASE_URL automatically; SQLite is the local fallback.
-# SQLAlchemy needs the "postgresql://" scheme; Replit/Heroku-style URLs use "postgres://".
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./supercx.db")
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
+def normalize_database_url(url: str) -> str:
+    """Replit/Heroku-style "postgres://" -> "postgresql+psycopg2://". The driver is named because
+    SQLAlchemy 2.1 picks psycopg 3 for a bare "postgresql://", and requirements install psycopg2."""
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg2://" + url[len(prefix):]
+    return url
+
+
+DATABASE_URL = normalize_database_url(os.getenv("DATABASE_URL", "sqlite:///./supercx.db"))
 
 # The assistant's display name (persona is the name and avatar only; the agent's wording is unchanged).
 ASSISTANT_NAME_AR = os.getenv("ASSISTANT_NAME_AR", "مشاري")

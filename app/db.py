@@ -1,5 +1,6 @@
 """Database models and session handling (SQLite locally, Postgres on Replit)."""
 from datetime import date, datetime, timezone
+from pathlib import Path
 from typing import Optional
 from uuid import uuid4
 
@@ -174,9 +175,16 @@ _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite"
 engine = create_engine(DATABASE_URL, connect_args=_connect_args)
 
 
-# Columns added after a table first shipped. create_all() does not alter existing
-# tables, so these are added here (SQLite and Postgres both support ADD COLUMN).
-_ADDED_COLUMNS = {
+# ---------- Schema: Alembic migrations (migrations/versions) ----------
+# Change a model, then: alembic revision --autogenerate -m "what changed"  (review the file),
+# and the app applies it at the next start. tests/test_migrations.py fails if a model change
+# has no migration.
+_ROOT = Path(__file__).resolve().parent.parent
+BASELINE = "0001"
+
+# Columns that pre-migration databases (made by create_all) may lack, added before they are
+# adopted at the baseline. Frozen: new columns go in migrations, never here.
+_LEGACY_COLUMNS = {
     "faq_items": {"source_title_en": "VARCHAR"},
     "audit_log": {"actor_id": "VARCHAR"},
     "support_cases": {"category": "VARCHAR DEFAULT 'inquiry'", "tracking_hash": "VARCHAR DEFAULT ''",
@@ -185,21 +193,42 @@ _ADDED_COLUMNS = {
 }
 
 
-def _add_missing_columns() -> None:
-    inspector = inspect(engine)
-    with engine.begin() as conn:
-        for table, columns in _ADDED_COLUMNS.items():
-            if not inspector.has_table(table):
-                continue
-            existing = {c["name"] for c in inspector.get_columns(table)}
-            for name, sql_type in columns.items():
-                if name not in existing:
-                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {sql_type}"))
+def alembic_config(connection=None):
+    from alembic.config import Config
+    cfg = Config(str(_ROOT / "alembic.ini"))
+    cfg.set_main_option("script_location", str(_ROOT / "migrations"))
+    cfg.attributes["configure_logger"] = False  # keep the app's logging as it is
+    if connection is not None:
+        cfg.attributes["connection"] = connection
+    return cfg
 
 
-def init_db() -> None:
-    SQLModel.metadata.create_all(engine)
-    _add_missing_columns()
+def _adopt_legacy(conn) -> None:
+    """A database from before migrations: add the columns it may lack. The baseline migration
+    then creates only the tables it doesn't have."""
+    inspector = inspect(conn)
+    for table, columns in _LEGACY_COLUMNS.items():
+        if not inspector.has_table(table):
+            continue
+        existing = {c["name"] for c in inspector.get_columns(table)}
+        for name, sql_type in columns.items():
+            if name not in existing:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {sql_type}"))
+
+
+def schema_version(conn) -> str | None:
+    from alembic.runtime.migration import MigrationContext
+    return MigrationContext.configure(conn).get_current_revision()
+
+
+def init_db(bind=None) -> None:
+    """Brings the database to the latest migration: creates it if empty, adopts a pre-migration
+    database, or applies the migrations it hasn't had yet. `bind`: another engine (tests)."""
+    from alembic import command
+    with (bind or engine).begin() as conn:
+        if schema_version(conn) is None and inspect(conn).has_table("support_cases"):
+            _adopt_legacy(conn)
+        command.upgrade(alembic_config(conn), "head")
 
 
 def get_session():

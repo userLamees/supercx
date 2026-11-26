@@ -74,6 +74,8 @@ to its path. The association's real member registry is not connected yet.
 | `MEMBERS_FILE` | `data/members_demo.json` | Member registry used after verification |
 | `ALERT_CASE_AGE_HOURS` | `48` | Alert when "new" requests wait longer than this |
 | `ALERT_COMPLAINTS_PER_WEEK` | `3` | Alert when this many complaints arrive in 7 days |
+| `REPLY_BUSINESS_DAYS` | `2` | Expected reply time shown to visitors; "reply needed" flag after this (Fri/Sat not counted). Demo assumption |
+| `TRACK_MAX_FAILURES_PER_IP`, `TRACK_MAX_FAILURES_PER_CASE` | `10`, `5` | Wrong tracking attempts allowed per 15 minutes |
 | `OPENAI_API_KEY` | *(none)* | Turns on the AI agent. Without it the rule-based agent answers |
 | `LLM_MODEL` | `gpt-4.1-mini` | Model used by the agent |
 | `EMBEDDING_MODEL` | `text-embedding-3-small` | Model for the FAQ search index |
@@ -135,6 +137,28 @@ logged (redacted) in `unanswered_questions`.
 
 Demo data for the dashboard: `python -m app.seed_demo`.
 
+## Request loop (visitor ↔ staff)
+
+1. After sending (chat request card or `/#contact`), a confirmation card appears **inside the chat**:
+   case number, type, status, the next step for that type (with and without contact details,
+   `app/cases.py: NEXT_STEP`), and a **tracking code shown once** (stored only as a salted hash).
+2. "طلباتي" (inbox icon, `/#requests`) keeps only case numbers and tracking codes in the
+   browser's `localStorage`, polls their status, shows a timeline and the team's reply, and puts a
+   dot on the icon when a new reply arrives. "تابع طلبك" adds a request from any device.
+3. Staff open a case's details (side panel), see the full text, contact, summary and history,
+   and send a reply; the status becomes "تم الرد". New cases past `REPLY_BUSINESS_DAYS` are
+   flagged "رد جديد مطلوب".
+
+| Endpoint | Access | Purpose |
+|---|---|---|
+| `POST /api/support-cases` | public | Returns `reference`, `tracking_code` (once), `next_step`, `due_at` |
+| `POST /api/track` | public, attempt-limited | `{reference, code}` → status, dates and reply only. No request text, contact or staff name. Wrong code and unknown case both give 404; too many → 429 |
+| `GET /api/support-cases/{id}` | support token | Case details (no tracking hash) |
+| `POST /api/support-cases/{id}/reply` | support token | `{reply}` → saves reply, time and staff name (staff-only), status `replied` |
+
+Case types: `unanswered` (a question the assistant couldn't answer), `inquiry`, `complaint`,
+`suggestion`, `service`. Statuses: `new`, `in_progress`, `replied`, `closed`.
+
 ## Agent contract (for the AI agent)
 
 Replace the body of `run_agent(message, history)` in `app/agent.py`. Keep the
@@ -164,6 +188,8 @@ Available helpers: `get_tiers()`, `get_tier(id)`. The UI creates the support cas
 | Membership tiers (names, prices, benefits) | **Live** | Public API `cxa.sa/api/MemberShip/public`, read only; falls back to the bundled copy |
 | Registration / renewal | **Link only** | Buttons open `cxa.sa/membership`; no enrollment or payment here (Track 2) |
 | Support cases | **Live in this app** | Stored in this app's database, not yet in the association's system |
+| Staff reply and tracking | **Live in this app** | Visitors read the reply in "طلباتي" or by tracking code; no email/WhatsApp notification of the reply yet |
+| Reply time ("within two business days") | **Assumption** | `REPLY_BUSINESS_DAYS`, labeled as an estimate until the association confirms it |
 | Unanswered questions, FAQ | **Live in this app** | Database tables; FAQ content itself is demo (marked "تجريبي") until approved |
 | Verification codes (OTP) | **Live when configured** | Email via SMTP, WhatsApp via Twilio; labeled simulation until a provider is set |
 | Member records (type, expiry) | **Simulated** | `data/members_demo.json`, not the association's member registry |
@@ -175,5 +201,6 @@ Available helpers: `get_tiers()`, `get_tier(id)`. The UI creates the support cas
 - WhatsApp Business sender approval for production WhatsApp codes.
 - Approved FAQ content and sources from the association; replace the demo answers.
 - Send support cases to the association's system and confirm response times.
+- Notify the visitor by email/WhatsApp when the team replies (today the reply shows in "طلباتي" and tracking only).
 - Staff accounts per person (currently one shared token; the action log uses the name typed at sign-in).
 - Database migrations (tables are created with `create_all`; schema changes need a migration tool).

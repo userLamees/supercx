@@ -77,10 +77,12 @@ class ChatResponse(BaseModel):
 class CaseStatus(str, Enum):
     new = "new"
     in_progress = "in_progress"
+    replied = "replied"        # staff sent a reply the visitor can read with the tracking code
     closed = "closed"
 
 
 class CaseCategory(str, Enum):
+    unanswered = "unanswered"  # a question the assistant could not answer
     inquiry = "inquiry"
     complaint = "complaint"
     suggestion = "suggestion"
@@ -123,6 +125,48 @@ class SupportCaseCreate(BaseModel):
 
 class SupportCaseUpdate(BaseModel):
     status: CaseStatus
+
+
+class SupportCaseReply(BaseModel):
+    reply: Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=4000)]
+
+
+class SupportCaseOut(BaseModel):
+    """A case as staff see it. The tracking-code hash never leaves the server."""
+    id: str
+    reference: str
+    created_at: str
+    updated_at: str
+    question: str
+    language: str
+    contact: str
+    tier_id: Optional[str] = None
+    summary: Optional[str] = None
+    status: CaseStatus
+    category: str
+    reply: Optional[str] = None
+    replied_at: Optional[str] = None
+    replied_by: Optional[str] = None
+    due_at: str                 # reply expected by (business days after created_at)
+    overdue: bool               # still "new" after the expected reply time
+
+
+class TrackRequest(BaseModel):
+    reference: str = Field(min_length=3, max_length=20)
+    code: str = Field(min_length=4, max_length=20)
+
+
+class TrackResponse(BaseModel):
+    """What a visitor sees with the case number and tracking code: status, dates and the
+    team's reply. Never the request text, the contact details or the staff member's name."""
+    reference: str
+    category: str
+    status: CaseStatus
+    created_at: str
+    updated_at: str
+    replied_at: Optional[str] = None
+    reply: Optional[str] = None
+    due_at: str
 
 
 class FaqSource(BaseModel):

@@ -9,10 +9,11 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, func, select
 
-from app import audit, otp, speech
+from app import audit, cases, otp, speech
 from app.agent import run_agent
+from app.cases import case_reference
 from app.config import (ALERT_CASE_AGE_HOURS, ALERT_COMPLAINTS_PER_WEEK, HIGH_FREQUENCY_THRESHOLD,
-                        SUPPORT_TOKEN)
+                        REPLY_BUSINESS_DAYS, SUPPORT_TOKEN)
 from app.db import FaqItem as FaqItemRow, SupportCase, UnansweredQuestion, engine, get_session, init_db
 from app.export import LABELS, csv_response, local_time
 from app.knowledge import refresh_index
@@ -22,7 +23,8 @@ from app.memberships import data_origin, get_tier, get_tiers
 from app.redact import normalize_key, redact
 from app.schemas import (Alert, AuditOut, CaseCategory, CaseStatus, ChatAction, ChatRequest,
                          ChatResponse, FaqCategory, FaqCreate, FaqItemAdmin, FaqItemWrite,
-                         MembershipStatus, SpeechRequest, SupportCaseCreate, SupportCaseUpdate, Tier, UnansweredOut,
+                         MembershipStatus, SpeechRequest, SupportCaseCreate, SupportCaseOut, SupportCaseReply,
+                         SupportCaseUpdate, Tier, TrackRequest, TrackResponse, UnansweredOut,
                          UnansweredStats, VerifyChannel, VerifyCheck, VerifySend)
 from app.verify import lookup, normalize_code, normalize_email, normalize_phone, valid_code
 
@@ -62,11 +64,6 @@ def health() -> dict:
 @app.get("/api/memberships", response_model=list[Tier])
 def list_memberships() -> list[Tier]:
     return get_tiers()
-
-
-def case_reference(case_id: str) -> str:
-    """Short, human-friendly case number derived from the id (no schema change)."""
-    return "CX-" + case_id.replace("-", "")[:6].upper()
 
 
 def _now() -> datetime:
@@ -150,23 +147,69 @@ def create_case(payload: SupportCaseCreate, session: Session = Depends(get_sessi
     data["question"] = redact(data["question"])  # phone numbers/emails only in `contact`, with consent
     if data["summary"]:
         data["summary"] = redact(data["summary"])
-    case = SupportCase(**data)
+    code = cases.new_tracking_code()
+    case = SupportCase(**data, tracking_hash=cases.hash_code(code))
     session.add(case)
     session.commit()
-    # Visitors only get a reference, never other cases or member data.
-    return {"id": case.id, "status": case.status, "reference": case_reference(case.id)}
+    # Visitors only get their own case number and tracking code, never other cases or member data.
+    # The tracking code is returned this once; only its hash is stored.
+    return {"id": case.id, "status": case.status, "reference": case_reference(case.id),
+            "tracking_code": code, "category": case.category, "created_at": _iso(case.created_at),
+            "due_at": _iso(cases.due_at(case.created_at)), "reply_within_days": REPLY_BUSINESS_DAYS,
+            "next_step": cases.next_step(case.category, bool(case.contact))}
 
 
-@app.get("/api/support-cases", response_model=list[SupportCase],
+def _iso(dt: Optional[datetime]) -> Optional[str]:
+    if dt is None:
+        return None
+    return (dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)).isoformat()
+
+
+def case_out(case: SupportCase) -> SupportCaseOut:
+    return SupportCaseOut(
+        id=case.id, reference=case_reference(case.id), created_at=_iso(case.created_at),
+        updated_at=_iso(case.updated_at), question=case.question, language=case.language,
+        contact=case.contact, tier_id=case.tier_id, summary=case.summary, status=case.status,
+        category=case.category or "inquiry", reply=case.reply, replied_at=_iso(case.replied_at),
+        replied_by=case.replied_by, due_at=_iso(cases.due_at(case.created_at)),
+        overdue=cases.is_overdue(case.created_at, case.status))
+
+
+@app.post("/api/track", response_model=TrackResponse)
+def track_case(payload: TrackRequest, request: Request, session: Session = Depends(get_session)):
+    """Public: case number + tracking code -> status, dates and the team's reply only.
+    Unknown number and wrong code get the same 404; failed attempts are limited."""
+    ip = request.client.host if request.client else "unknown"
+    prefix = cases.reference_prefix(payload.reference)
+    wait = cases.limiter.retry_after(ip, prefix or payload.reference.lower())
+    if wait:
+        return JSONResponse({"detail": {"code": "too_many_attempts", "retry_after": wait}},
+                            status_code=status.HTTP_429_TOO_MANY_REQUESTS, headers={"Retry-After": str(wait)})
+    match = None
+    if prefix:
+        for case in session.exec(select(SupportCase).where(SupportCase.id.startswith(prefix))):
+            if case.tracking_hash and cases.check_code(payload.code, case.tracking_hash):
+                match = case
+                break
+    if match is None:
+        cases.limiter.fail(ip, prefix or payload.reference.lower())
+        raise HTTPException(status.HTTP_404_NOT_FOUND, {"code": "not_found"})
+    return TrackResponse(reference=case_reference(match.id), category=match.category or "inquiry",
+                         status=match.status, created_at=_iso(match.created_at),
+                         updated_at=_iso(match.updated_at), replied_at=_iso(match.replied_at),
+                         reply=match.reply, due_at=_iso(cases.due_at(match.created_at)))
+
+
+@app.get("/api/support-cases", response_model=list[SupportCaseOut],
          dependencies=[Depends(require_support_token)])
 def list_cases(case_status: Optional[CaseStatus] = None, category: Optional[CaseCategory] = None,
-               session: Session = Depends(get_session)) -> list[SupportCase]:
+               session: Session = Depends(get_session)) -> list[SupportCaseOut]:
     query = select(SupportCase).order_by(SupportCase.created_at.desc())
     if case_status:
         query = query.where(SupportCase.status == case_status)
     if category:
         query = query.where(SupportCase.category == category.value)
-    return list(session.exec(query))
+    return [case_out(c) for c in session.exec(query)]
 
 
 @app.get("/api/support-cases/export.csv", dependencies=[Depends(require_support_token)])
@@ -178,16 +221,49 @@ def export_cases(lang: Literal["ar", "en"] = "ar", actor: str = Depends(audit.st
     rows = [[case_reference(c.id), local_time(c.created_at), labels.get(c.category or "inquiry", c.category),
              labels.get(c.status.value if hasattr(c.status, "value") else c.status, c.status),
              labels[f"lang_{c.language}"] if f"lang_{c.language}" in labels else c.language,
-             c.question, c.summary, names.get(c.tier_id, ""), c.contact] for c in cases]
+             c.question, c.summary, names.get(c.tier_id, ""), c.contact, c.reply or "",
+             local_time(c.replied_at) if c.replied_at else "", c.replied_by or ""] for c in cases]
     audit.log(session, actor, "export.cases", summary=f"{len(rows)}")
     session.commit()
     return csv_response("cases", lang, rows)
 
 
-@app.patch("/api/support-cases/{case_id}", response_model=SupportCase,
+@app.get("/api/support-cases/{case_id}", response_model=SupportCaseOut,
+         dependencies=[Depends(require_support_token)])
+def get_case(case_id: str, session: Session = Depends(get_session)) -> SupportCaseOut:
+    case = session.get(SupportCase, case_id)
+    if case is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Case not found")
+    return case_out(case)
+
+
+@app.post("/api/support-cases/{case_id}/reply", response_model=SupportCaseOut,
+          dependencies=[Depends(require_support_token)])
+def reply_case(case_id: str, payload: SupportCaseReply, actor: str = Depends(audit.staff_name),
+               session: Session = Depends(get_session)) -> SupportCaseOut:
+    """The reply is shown to the visitor through tracking; the staff name is kept for staff only."""
+    case = session.get(SupportCase, case_id)
+    if case is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Case not found")
+    first = case.reply is None
+    now = _now()
+    case.reply = payload.reply
+    case.replied_at = now
+    case.replied_by = actor or None
+    case.status = CaseStatus.replied
+    case.updated_at = now
+    session.add(case)
+    audit.log(session, actor, "case.reply" if first else "case.reply_update", "case", case.id,
+              f"{case_reference(case.id)}: {payload.reply}")
+    session.commit()
+    session.refresh(case)
+    return case_out(case)
+
+
+@app.patch("/api/support-cases/{case_id}", response_model=SupportCaseOut,
            dependencies=[Depends(require_support_token)])
 def update_case(case_id: str, payload: SupportCaseUpdate, actor: str = Depends(audit.staff_name),
-                session: Session = Depends(get_session)) -> SupportCase:
+                session: Session = Depends(get_session)) -> SupportCaseOut:
     case = session.get(SupportCase, case_id)
     if case is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Case not found")
@@ -199,7 +275,7 @@ def update_case(case_id: str, payload: SupportCaseUpdate, actor: str = Depends(a
               f"{case_reference(case.id)}: {getattr(old, 'value', old)} → {payload.status.value}")
     session.commit()
     session.refresh(case)
-    return case
+    return case_out(case)
 
 
 # FAQ: read-only for visitors, staff can approve new entries.

@@ -6,10 +6,23 @@ I18N.add({
   ar: {
     "page.title": "SuperCX | مساعد جمعية تجربة العميل",
     "chat.new": "محادثة جديدة",
-    "hero.title": "أهلًا، أنا {assistant}، مساعد جمعية تجربة العميل",
-    "hero.sub": "أجيبك من المحتوى المعتمد للجمعية، وأحوّل سؤالك للفريق إذا لم أجد الإجابة.",
-    "typing": "{assistant} يكتب…",
-    "hero.privacy": "لا نطلب بياناتك الشخصية إلا عند تحويل سؤالك للدعم، وبموافقتك.",
+    "hero.title": "أهلًا، أنا {assistant}",
+    "hero.sub": "مساعدك في جمعية تجربة العميل",
+    "hero.start": "ابدأ بسؤال",
+    "start.fit": "أي عضوية تناسبني؟",
+    "start.compare": "قارن بين العضويات",
+    "start.events": "الفعاليات القادمة",
+    "start.status": "حالة عضويتي",
+    "start.eventsQ": "ما الفعاليات القادمة للجمعية؟",
+    "followups": "اقتراحات",
+    "followup.contact": "تواصل مع الفريق",
+    "nav.chat": "المحادثة",
+    "nav.faq": "الأسئلة الشائعة",
+    "nav.main": "التنقل الرئيسي",
+    "req.contact": "تفضّل التواصل مع الفريق مباشرة؟",
+    "composer.note": "{assistant} يجيب من المحتوى المعتمد للجمعية فقط، وما لا يعرفه يحوّله للفريق.",
+    "typing": "{assistant} يكتب...",
+    "hero.privacy": "لا نطلب بياناتك الشخصية إلا بموافقتك",
     "hero.status": "حالة عضويتي",
     "hero.faq": "الأسئلة الشائعة",
     "hero.contact": "تواصل مع الفريق",
@@ -169,10 +182,23 @@ I18N.add({
   en: {
     "page.title": "SuperCX | Customer Experience Association assistant",
     "chat.new": "New chat",
-    "hero.title": "Hello, I'm {assistant}, the Customer Experience Association's assistant",
-    "hero.sub": "I answer from the association's approved content, and pass your question to the team if I can't find the answer.",
-    "typing": "{assistant} is typing…",
-    "hero.privacy": "We only ask for personal details when you choose to send your question to support.",
+    "hero.title": "Hi, I'm {assistant}",
+    "hero.sub": "Your assistant at the Customer Experience Association",
+    "hero.start": "Start with a question",
+    "start.fit": "Which membership suits me?",
+    "start.compare": "Compare the memberships",
+    "start.events": "Upcoming events",
+    "start.status": "My membership status",
+    "start.eventsQ": "What are the association's upcoming events?",
+    "followups": "Suggestions",
+    "followup.contact": "Contact the team",
+    "nav.chat": "Chat",
+    "nav.faq": "FAQ",
+    "nav.main": "Main navigation",
+    "req.contact": "Prefer to contact the team directly?",
+    "composer.note": "{assistant} answers only from the association's approved content, and passes anything it doesn't know to the team.",
+    "typing": "{assistant} is typing...",
+    "hero.privacy": "We never ask for personal details without your consent",
     "hero.status": "My membership status",
     "hero.faq": "FAQ",
     "hero.contact": "Contact the team",
@@ -334,7 +360,7 @@ I18N.add({
 const CARE_EMAIL = "Care@cxa.sa"; // from the v2 design
 const log = document.getElementById("log");
 const hero = document.getElementById("hero");
-const suggestionsList = document.getElementById("suggestions");
+const startGrid = document.getElementById("start-grid");
 const form = document.getElementById("composer");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("send");
@@ -386,27 +412,45 @@ function redact(text) {
 }
 
 /* ---------- Start screen ---------- */
-function renderSuggestions() {
-  suggestionsList.replaceChildren(...["sugg.fit", "sugg.diff", "sugg.vote", "sugg.student"].map((key) => {
-    const text = t(key);
-    return h("li", {}, h("button", { class: "suggestion", type: "button", onclick: () => send(text) },
-      h("span", { dir: "auto" }, text), ic("chevron-left", "icon-sm flip-rev")));
-  }));
+const START = [
+  { key: "start.fit", icon: "sparkles", ask: "start.fit" },
+  { key: "start.compare", icon: "scale", ask: "start.compare" },
+  { key: "start.events", icon: "calendar-days", ask: "start.eventsQ" },
+  { key: "start.status", icon: "badge-check", ask: "start.status" },
+];
+function renderStart() {
+  startGrid.replaceChildren(...START.map((c) =>
+    h("button", { class: "start-card", type: "button", onclick: () => send(t(c.ask)) },
+      h("span", { class: "start-icon" }, ic(c.icon)), h("span", {}, t(c.key)))));
   I18N.icons();
 }
 
-function hideStart() { hero.hidden = true; suggestionsList.hidden = true; }
+/* Pill suggestions under the latest reply (only the newest reply keeps them). */
+function followUps(question) {
+  log.querySelectorAll(".followups").forEach((el) => el.remove());
+  const q = (question || "").trim();
+  const items = [["start.fit"], ["start.compare"], ["start.events", "start.eventsQ"]]
+    .map(([label, ask]) => ({ label: t(label), ask: t(ask || label) }))
+    .filter((it) => it.ask !== q && it.label !== q);
+  const row = h("div", { class: "followups", role: "group", "aria-label": t("followups") },
+    ...items.slice(0, 2).map((it) => h("button", { class: "pill", type: "button", onclick: () => send(it.ask) }, it.label)),
+    h("a", { class: "pill", href: "#contact" }, t("followup.contact")));
+  return add(row);
+}
+
+function hideStart() { hero.hidden = true; document.body.classList.add("chatting"); }
 
 function resetChat() {
   history = []; quizActive = false; lastRecommended = null; setBusy(false);
-  log.replaceChildren(hero, suggestionsList);
-  hero.hidden = false; suggestionsList.hidden = false;
+  log.replaceChildren(hero);
+  hero.hidden = false; document.body.classList.remove("chatting");
+  if (location.hash && location.hash !== "#chat") location.hash = "#chat";
   input.value = ""; setPlaceholder(); input.focus();
 }
 
 /* ---------- Messages ---------- */
 function userBubble(text) { return add(h("div", { class: "msg msg-user", dir: "auto" }, text)); }
-function botText(text, lang) { return add(h("div", { class: "msg msg-bot", dir: lang ? dirOf(lang) : "auto" }, text)); }
+function botText(text, lang) { return add(h("div", { class: "msg msg-bot", dir: lang ? dirOf(lang) : "auto" }, h("p", { class: "msg-text" }, text))); }
 
 /* The assistant's avatar and name above its turn (user messages have neither). */
 function agentMeta(l = I18N.lang) {
@@ -523,12 +567,14 @@ function renderReply(question, reply) {
       // inline "center" works in both RTL and LTR scroll containers.
       setTimeout(() => rec.scrollIntoView({ inline: "center", block: "nearest", behavior: scrollBehavior() }), 50);
     }
+    followUps(question);
     return;
   }
 
   const msg = botText(reply.answer, lang);
   if (reply.sources?.length) msg.append(sourcesLine(reply.sources, ui));
   addListen(msg, reply.answer, lang);
+  followUps(question);
 }
 
 /* 03 Recommendation card (matched by tier_id, never by name) */
@@ -550,18 +596,29 @@ function tierCards(decision, lang, eventId) {
     const badge = m.badge ? t(m.badge === "recommended" ? "tier.best" : "tier.popular", null, lang) : null;
     return h("article", { class: `tier${m.recommended ? " is-recommended" : ""}`, role: "listitem",
                           "aria-label": badge ? `${m.name} · ${badge}` : m.name },
-      badge ? h("span", { class: "tier-badge" }, badge) : null,
       h("div", { class: "tier-top", "data-tone": tones[m.id] },
+        badge ? h("span", { class: `tier-badge tier-badge-${m.badge}` }, badge) : null,
         h("h3", {}, m.name),
-        h("div", { class: "tier-cost" }, h("strong", {}, I18N.formatNumber(m.price, lang)), h("span", {}, unit))),
+        h("div", { class: "tier-cost" }, h("strong", { class: "num-latin" }, I18N.formatNumber(m.price, lang)), h("span", {}, unit))),
       h("div", { class: "tier-body" },
         h("ul", { class: "benefits" }, ...m.features.map((f) => h("li", {}, ic("check"), h("span", {}, f)))),
-        h("a", { class: "btn btn-primary", href: m.url, target: "_blank", rel: "noopener",
+        h("a", { class: `btn ${m.recommended ? "btn-primary" : "btn-secondary"}`, href: m.url, target: "_blank", rel: "noopener",
                  onclick: () => trackRegister(eventId) }, t("tier.get", null, lang))));
   });
   const first = tiersById[decision.ids[0]];
-  return h("div", { class: "tiers", dir: dirOf(lang) },
-    h("div", { class: "tier-cards", role: "list", "aria-label": t("tier.cardsAria", null, lang) }, ...cards),
+  const row = h("div", { class: "tier-cards", role: "list", "aria-label": t("tier.cardsAria", null, lang) }, ...cards);
+  // Position dots (phones only, where the cards scroll sideways).
+  const dots = h("div", { class: "tier-dots", "aria-hidden": "true" }, ...cards.map(() => h("span")));
+  const mark = () => {
+    const box = row.getBoundingClientRect();
+    const mid = box.left + box.width / 2;
+    let best = 0, dist = Infinity;
+    cards.forEach((c, i) => { const r = c.getBoundingClientRect(); const d = Math.abs(r.left + r.width / 2 - mid); if (d < dist) { dist = d; best = i; } });
+    [...dots.children].forEach((d, i) => d.classList.toggle("on", i === best));
+  };
+  row.addEventListener("scroll", () => requestAnimationFrame(mark), { passive: true });
+  requestAnimationFrame(mark);
+  return h("div", { class: "tiers", dir: dirOf(lang) }, row, dots,
     sourcesLine([{ title: t("src.memberships", null, lang), url: first.source_url }], lang, first.checked_at),
     h("p", { class: "footnote" }, t("tier.pending", null, lang)));
 }
@@ -872,6 +929,7 @@ function listenButton(text, lang) {
 function send(text) {
   if (busy || !text) return;
   hideStart();
+  log.querySelectorAll(".followups").forEach((el) => el.remove());
   if (QUIZ_TRIGGER.test(text) && !quizActive) return startQuiz(text);
   if (STATUS_TRIGGER.test(text)) return statusPrompt(text);
   quizActive = false; setPlaceholder();
@@ -1154,8 +1212,18 @@ function route() {
 }
 window.addEventListener("hashchange", route);
 
+/* Laptop nav: the link of the current view is marked. */
+function markNav() {
+  const name = location.hash.slice(1) || "chat";
+  document.querySelectorAll(".nav-links [data-nav]").forEach((a) => {
+    if (a.dataset.nav === name) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
+  });
+}
+window.addEventListener("hashchange", markNav);
+
 document.addEventListener("langchange", () => {
-  renderSuggestions(); setPlaceholder();
+  renderStart(); setPlaceholder(); markNav();
   cells.forEach((c, i) => c.setAttribute("aria-label", t("verify.cell", { n: i + 1 })));
   applyChannel();
   if (pending) codeSent.textContent = t(pending.demo ? "verify.codeSentDemo" : pending.channel === "email" ? "verify.codeSentEmail" : "verify.codeSentWhatsapp", { to: pending.display });
@@ -1165,7 +1233,8 @@ document.addEventListener("langchange", () => {
 
 document.getElementById("hero-avatar").append(Brand.avatar("lg"));
 I18N.apply();
-renderSuggestions();
+renderStart();
+markNav();
 setPlaceholder();
 loadChannels();
 initVoice();

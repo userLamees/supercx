@@ -7,19 +7,22 @@
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/tokens.css?v=8">
-  <link rel="stylesheet" href="/static/styles.css?v=8">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/tokens.css?v=9">
+  <link rel="stylesheet" href="/static/styles.css?v=9">
 </head>
 <body class="page-tint">
   <header class="nav">
-    <div class="container nav-inner">
-      <div class="nav-start">
-        <a class="icon-btn" href="/" data-i18n-aria="faq.newChat"><i data-lucide="square-pen" class="icon"></i></a>
-      </div>
-      <a class="brand" href="/" aria-label="SuperCX"><svg class="brand-mark" aria-hidden="true"><use href="#sx-mark-white"></use></svg><span>SuperCX</span></a>
+    <div class="nav-inner">
+      <a class="brand" href="/" data-brand-logo aria-label="SuperCX"></a>
+      <nav class="nav-links" data-i18n-aria="nav.main">
+        <a href="/" data-i18n="nav.chat">المحادثة</a>
+        <a href="/faq" aria-current="page" data-i18n="nav.faq">الأسئلة الشائعة</a>
+        <a href="/#requests" data-i18n="faq.myRequests">طلباتي</a>
+      </nav>
       <div class="nav-end">
-        <a class="icon-btn" href="/#requests" data-i18n-aria="faq.myRequests"><i data-lucide="inbox" class="icon"></i></a>
+        <a class="new-chat-btn" href="/" data-i18n-aria="faq.newChat"><i data-lucide="square-pen" class="icon icon-sm"></i><span data-i18n="faq.newChat">محادثة جديدة</span></a>
+        <a class="icon-btn has-badge" href="/#requests" data-i18n-aria="faq.myRequests"><i data-lucide="inbox" class="icon"></i></a>
         <button class="lang-btn" type="button" data-lang-toggle data-i18n="lang.toggle" data-i18n-aria="lang.toggleAria">EN</button>
       </div>
     </div>
@@ -43,8 +46,8 @@
   </main>
 
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-  <script src="/static/brand.js?v=8"></script>
-  <script src="/static/i18n.js?v=8"></script>
-  <script src="/static/faq.js?v=8"></script>
+  <script src="/static/brand.js?v=9"></script>
+  <script src="/static/i18n.js?v=9"></script>
+  <script src="/static/faq.js?v=9"></script>
 </body>
 </html>

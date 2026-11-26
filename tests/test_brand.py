@@ -122,16 +122,39 @@ def test_name_is_not_hard_coded_in_the_frontend():
             assert "مشاري" not in text and "Mishari" not in text, path.name
 
 
-# ---------- Colors ----------
-def test_old_gold_is_gone_from_static():
-    hits = [p.name for p in STATIC.rglob("*") if p.is_file() and p.suffix in {".css", ".js", ".html", ".svg"}
-            and re.search(r"#c9a24a", p.read_text(encoding="utf-8"), re.I)]
+# ---------- Colors, fonts, light only ----------
+def static_files(*suffixes):
+    return [p for p in STATIC.rglob("*") if p.is_file() and p.suffix in suffixes]
+
+
+def test_old_gold_and_green_are_gone_from_static():
+    hits = [p.name for p in static_files(".css", ".js", ".html", ".svg")
+            if re.search(r"#(c9a24a|102e1a)\b", p.read_text(encoding="utf-8"), re.I)]
     assert hits == []
 
 
-def test_brand_tokens_are_defined():
+def test_interface_is_light_only():
+    for p in static_files(".css", ".js", ".html"):
+        text = p.read_text(encoding="utf-8")
+        assert "prefers-color-scheme" not in text and "data-theme" not in text, p.name
+
+
+def test_v3_tokens_are_defined():
     tokens = (STATIC / "tokens.css").read_text()
-    for name, value in {"--c-green": "#102E1A", "--c-blue": "#3040D0", "--c-blue-bright": "#5A62F5",
-                        "--c-blue-soft": "#ECEEFC", "--c-indigo": "#1A2390", "--c-ink": "#05030F"}.items():
+    for name, value in {"--c-blue": "#3040D0", "--c-blue-bright": "#5A62F5", "--c-blue-soft": "#ECEEFC",
+                        "--c-indigo": "#1A2390", "--c-text": "#14152B", "--c-text-2": "#5B5E73",
+                        "--c-muted": "#8A8DA3", "--c-border": "#E6E8F0", "--c-line": "#EEF0F6",
+                        "--c-surface": "#FAFBFD", "--c-bg": "#FFFFFF"}.items():
         assert re.search(rf"{name}:\s*{value}", tokens), name
-    assert "prefers-color-scheme: dark" in tokens
+
+
+def test_pages_load_plex_arabic_and_inter():
+    for name in ("index.html", "faq.html", "support.html"):
+        html = (STATIC / name).read_text(encoding="utf-8")
+        assert "IBM+Plex+Sans+Arabic:wght@400;500;600;700" in html and "Inter:wght@600;700" in html, name
+        assert "data-brand-logo" in html, name  # one logo component, filled by brand.js
+
+
+def test_avatar_image_is_served(client):
+    r = client.get("/static/img/mishari.png")
+    assert r.status_code == 200 and r.headers["content-type"] == "image/png"

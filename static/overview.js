@@ -8,7 +8,6 @@ window.Overview = (function () {
     ar: {
       "ov.title": "نظرة عامة",
       "ov.sub": "ملخص أداء المساعد وطلبات الدعم في الفترة المختارة. كل رقم محسوب من قاعدة البيانات.",
-      "ov.demo": "تتضمن الفترة {n} محادثة تجريبية",
       "ov.today": "أسئلة اليوم",
       "ov.todayHow": "رسائل المحادثة منذ بداية اليوم بتوقيت الرياض. في الفترة المختارة: {n}.",
       "ov.answered": "أجاب عنها المساعد",
@@ -54,7 +53,6 @@ window.Overview = (function () {
     en: {
       "ov.title": "Overview",
       "ov.sub": "How the assistant and support requests performed in the selected period. Every number is counted from the database.",
-      "ov.demo": "The period includes {n} demo conversations",
       "ov.today": "Questions today",
       "ov.todayHow": "Chat messages since the start of today, Riyadh time. In the selected period: {n}.",
       "ov.answered": "Answered by the assistant",
@@ -192,8 +190,6 @@ window.Overview = (function () {
         h("span", { class: "caption" }, `${t(`status.${c.status}`)} · ${relative(c.created_at)}`)),
       h("button", { class: "btn btn-sm btn-secondary", type: "button", onclick: () => openCase(c.id) }, t("ov.details"))));
 
-    $("overview-demo").hidden = !o.demo_events;
-    $("overview-demo").textContent = t("ov.demo", { n: num(o.demo_events) });
     $("overview-body").replaceChildren(
       h("div", { class: "kpis" },
         kpi(t("ov.today"), num(o.questions_today), t("ov.todayHow", { n: num(o.questions) })),

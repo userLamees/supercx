@@ -7,7 +7,7 @@ I18N.add({
     "faq.newChat": "محادثة جديدة",
     "faq.myRequests": "طلباتي",
     "faq.title": "الأسئلة الشائعة",
-    "faq.sub": "إجابات موثوقة في مكان واحد · محتوى تجريبي",
+    "faq.sub": "إجابات موثوقة من مصادر الجمعية في مكان واحد",
     "faq.searchLabel": "البحث في الأسئلة",
     "faq.searchPh": "ابحث عن سؤالك…",
     "faq.ask": "ما وجدت إجابتك؟ اسأل المساعد",
@@ -17,7 +17,8 @@ I18N.add({
     "faq.approved": "معتمد",
     "faq.onlyIn.ar": "متاح بالعربية فقط",
     "faq.onlyIn.en": "متاح بالإنجليزية فقط",
-    "faq.noResults": "لا توجد نتائج مطابقة. جرّب كلمات أخرى أو اسأل المساعد.",
+    "faq.noResultsTitle": "لا توجد نتائج",
+    "faq.noResults": "جرّب كلمات أخرى، أو اسأل المساعد مباشرة.",
     "faq.loading": "جارٍ تحميل الأسئلة…",
     "faq.error": "تعذّر تحميل الأسئلة الشائعة. تحقق من الاتصال ثم أعد تحميل الصفحة.",
   },
@@ -36,7 +37,8 @@ I18N.add({
     "faq.approved": "Approved",
     "faq.onlyIn.ar": "Available in Arabic only",
     "faq.onlyIn.en": "Available in English only",
-    "faq.noResults": "No matching results. Try other words or ask the assistant.",
+    "faq.noResultsTitle": "No results",
+    "faq.noResults": "Try other words, or ask the assistant directly.",
     "faq.loading": "Loading questions…",
     "faq.error": "Couldn't load the FAQ. Check your connection and reload the page.",
   },
@@ -89,12 +91,12 @@ function render() {
             h("span", {}, t("faq.source"), " ",
               it.source.url ? h("a", { href: it.source.url, target: "_blank", rel: "noopener", dir: "auto" }, it.source.title[lang])
                             : h("span", { dir: "auto" }, it.source.title[lang]),
-              " · ", it.demo ? t("demo") : t("faq.approved")),
+              ),
             h("span", {}, t("faq.checked", { date: I18N.formatDate(it.checked_at) })))))));
   }).filter(Boolean);
   sectionsEl.replaceChildren(...nodes);
   stateEl.hidden = !(query && shown === 0);
-  stateEl.textContent = t("faq.noResults");
+  if (!stateEl.hidden) stateEl.replaceChildren(emptyState("search-x", t("faq.noResultsTitle"), t("faq.noResults")));
   I18N.icons();
 }
 

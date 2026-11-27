@@ -609,7 +609,7 @@ dialog.modal::backdrop { background: var(--c-overlay); }
 .escalation-head { display: grid; gap: var(--s-1); --accent: var(--c-warning); }  /* warning dot, like the status cards */
 .escalation .divider { margin: 0; }
 .consent-status:empty { display: none; }
-.input[aria-invalid="true"] { border-color: var(--c-danger); }
+.input[aria-invalid="true"], .textarea[aria-invalid="true"] { border-color: var(--c-danger); box-shadow: 0 0 0 3px var(--c-danger-soft); }
 .confirm-head h1 { font-size: var(--fs-title2); font-weight: 700; color: var(--c-text); line-height: var(--lh); }
 .faq-item .faq-only { justify-self: start; }
 
@@ -620,7 +620,7 @@ dialog.modal::backdrop { background: var(--c-overlay); }
 .alert {
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-3);
   padding: var(--s-3) var(--s-4); border-radius: var(--r-md);
-  background: var(--c-warning-soft); border-inline-start: var(--bw-accent) solid var(--c-warning);
+  background: var(--c-warning-soft); border: var(--bw) solid rgba(180, 83, 9, 0.18);
   font-size: var(--fs-footnote); color: var(--c-text);
 }
 .alert > .icon { color: var(--c-warning); }
@@ -954,20 +954,6 @@ dialog.drawer {
 }
 .side-foot { display: grid; gap: 2px; justify-items: start; }
 
-/* Admin: integrations; case panel: data sent to the association's system */
-.int-summary { font-size: var(--fs-footnote); font-weight: 600; color: var(--c-text-2); }
-.int-grid { display: grid; gap: var(--s-3); }
-.int-card { display: grid; gap: var(--s-2); align-content: start; padding: var(--s-4); border: var(--bw) solid var(--c-border); border-radius: var(--r-card); background: var(--c-bg); }
-.int-card h3 { font-size: var(--fs-sub); font-weight: 700; }
-.int-card.int-missing { border-color: var(--c-danger); }
-.int-detail { font-size: var(--fs-footnote); color: var(--c-text-2); line-height: var(--lh); }
-.int-needs { display: grid; gap: var(--s-1); }
-.int-keys { display: flex; flex-wrap: wrap; gap: var(--s-1); }
-.int-keys code { padding: 2px var(--s-2); border-radius: 6px; background: var(--c-surface-2); font-size: var(--fs-caption); color: var(--c-text); }
-.sync-payload { margin: 0; max-height: 240px; overflow: auto; padding: var(--s-2); border-radius: var(--r-sm); background: var(--c-surface-2); font-size: 11px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
-@media (min-width: 768px) { .int-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1200px) { .int-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-
 /* Staff: WhatsApp simulator (a phone-shaped chat; colors stay on the brand tokens) */
 .wa-panel { gap: var(--s-4); }
 .wa-number { display: grid; gap: var(--s-1); max-width: 420px; }
@@ -984,4 +970,36 @@ dialog.drawer {
 .wa-compose { display: flex; align-items: center; gap: var(--s-2); padding: var(--s-2) var(--s-3) var(--s-3); background: var(--c-surface); }
 .wa-compose input { flex: 1; min-width: 0; height: 42px; padding: 0 var(--s-4); border: var(--bw) solid var(--c-input-border); border-radius: var(--r-pill); background: var(--c-bg); font-size: var(--fs-sub); }
 .wa-compose input:focus { outline: none; border-color: var(--c-blue-bright); }
-@media (min-width: 1200px) { .wa-panel { grid-template-columns: 420px 1fr; align-items: start; } .wa-panel .wa-number { grid-column: 1 / -1; } }
+.wa-panel { max-width: 460px; }
+.wa-number, .wa-phone { max-width: none; }
+.wa-empty { margin: auto; max-width: 26ch; text-align: center; font-size: var(--fs-footnote); line-height: var(--lh); color: var(--c-meta); }
+
+/* Empty states (My requests, FAQ search) */
+.empty-state { display: grid; justify-items: center; gap: var(--s-2); padding: var(--s-8) var(--s-5); text-align: center; border: var(--bw) dashed var(--c-border); border-radius: var(--r-card); background: var(--c-bg); }
+.empty-icon { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: var(--s-1); border-radius: var(--r-pill); background: var(--c-blue-soft); color: var(--c-blue); }
+.empty-state strong { font-size: var(--fs-sub); font-weight: 700; color: var(--c-text); }
+.empty-state p { max-width: 36ch; font-size: var(--fs-footnote); line-height: var(--lh); color: var(--c-text-2); }
+.faq-empty:has(.empty-state) { padding: 0; }
+
+/* Staff tables: contact on one line, cut with an ellipsis (full value on hover and in the case panel) */
+.data-table td.contact-cell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.alerts { gap: var(--s-2); }
+.alert { padding-block: var(--s-2); }
+
+/* Case panel: clear sections */
+.drawer-inner { gap: 0; }
+.drawer-inner > * + * { margin-top: var(--s-5); }
+#cd-body { display: grid; gap: 0; }
+#cd-body > .detail-block { padding-block: var(--s-5); border-top: var(--bw) solid var(--c-line); }
+#cd-body > .detail-grid + .detail-block { border-top: 0; padding-top: var(--s-5); }
+.detail-block h3 { font-size: var(--fs-small); font-weight: 700; color: var(--c-text); }
+.reply-form { margin-top: 0; }
+.panel-head > .panel-tools { display: flex; flex-wrap: nowrap; }
+@media (max-width: 767px) { .panel-head > .panel-tools { flex-wrap: wrap; } }
+
+/* Staff on phones: one row of tabs that scrolls sideways */
+@media (max-width: 767px) {
+  .tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-block: var(--s-2); }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs .tab { flex: none; }
+}

@@ -141,7 +141,7 @@ app/staff.py         staff accounts: sign-in, sessions, roles
 app/notify.py        reply notifications: email / WhatsApp / demo outbox
 app/whatsapp.py      the assistant on WhatsApp (Twilio webhook and staff simulator)
 app/chatlog.py       chat events and unanswered questions, shared by website and WhatsApp
-app/integrations/    connectors: member registry, requests to the association's system, status
+app/integrations/    connectors: member registry, requests to the association's system
 app/faq.py           FAQ in the DB (faq_categories/faq_items), seeded once from data/faq.json
 app/verify.py        member lookup (phone or email) + normalization
 app/otp.py           verification codes: email (SMTP) / WhatsApp (Twilio), limits, hashing
@@ -179,8 +179,8 @@ The same agent and rules as the website, on the association's WhatsApp number (`
 ## Integrations (connectors to the association's systems)
 
 Each connector lives in one file under `app/integrations/`, works with demo data today, and goes
-live by settings only. Admins see the state of every connector, and the settings it needs, on
-**التكاملات** (`/support#integrations`, `GET /api/integrations`); secret values are never shown.
+live by settings only. `python -m app.preflight` lists the state of every connector and the
+settings it needs (never a secret's value).
 
 **Member registry** (`members.py`, `MEMBER_REGISTRY`): after verification, who is a member.
 `demo` reads `data/members_demo.json`, `file` reads `MEMBERS_FILE`, `api` asks the association:

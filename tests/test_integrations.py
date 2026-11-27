@@ -1,5 +1,5 @@
 """Connectors: member registry (demo, file, API), cases sent to the association's system
-(demo, webhook, email), and the admin integrations status."""
+(demo, webhook, email)."""
 import hashlib
 import hmac
 import json
@@ -218,33 +218,3 @@ def test_case_sync_endpoints_need_staff(client):
     assert client.get(f"/api/support-cases/{case['id']}/syncs").status_code == 401
     assert client.post(f"/api/support-cases/{case['id']}/sync").status_code == 401
     assert client.get("/api/support-cases/nope/syncs", headers=TOKEN).status_code == 404
-
-
-# ================= Integrations status =================
-def test_status_lists_every_connector(client):
-    items = {i["key"]: i for i in client.get("/api/integrations", headers=TOKEN).json()}
-    assert set(items) == {"ai_agent", "memberships", "member_registry", "case_sync", "email", "whatsapp",
-                          "notifications", "database", "staff_accounts", "secrets", "whatsapp_assistant"}
-    assert items["member_registry"]["state"] == "demo" and items["case_sync"]["state"] == "demo"
-    assert items["ai_agent"]["state"] == "demo" and "OPENAI_API_KEY" in items["ai_agent"]["needs"]
-    assert items["database"]["version"]  # migration version
-
-
-def test_status_shows_missing_settings_and_never_secrets(client, monkeypatch):
-    monkeypatch.setattr(config, "MEMBER_REGISTRY", "api")
-    monkeypatch.setattr(config, "CASE_SYNC", "webhook")
-    monkeypatch.setattr(config, "CASE_WEBHOOK_URL", "https://crm.example.org/hook")
-    monkeypatch.setattr(config, "CASE_WEBHOOK_SECRET", "very-secret-value")
-    r = client.get("/api/integrations", headers=TOKEN)
-    items = {i["key"]: i for i in r.json()}
-    assert items["member_registry"]["state"] == "missing" and items["case_sync"]["state"] == "live"
-    assert "very-secret-value" not in r.text and "test-token" not in r.text
-
-
-def test_status_is_for_admins_only(client):
-    assert client.get("/api/integrations").status_code == 401
-    client.post("/api/staff/users", json={"email": "s@example.com", "name": "سعد", "password": "Temp-pass-2026"}, headers=TOKEN)
-    token = client.post("/api/staff/login", json={"email": "s@example.com", "password": "Temp-pass-2026"}).json()["token"]
-    h = {"Authorization": f"Bearer {token}"}
-    client.post("/api/staff/me/password", json={"current_password": "Temp-pass-2026", "new_password": "New-pass-2026!"}, headers=h)
-    assert client.get("/api/integrations", headers=h).status_code == 403

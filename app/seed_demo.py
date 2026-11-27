@@ -96,7 +96,7 @@ def seed_activity(session: Session, days: int = 14, seed: int = 7) -> tuple[int,
                 status=status, tracking_hash=hash_code(new_tracking_code()),
                 reply=REPLIES[lang] if replied else None,
                 replied_at=created + timedelta(hours=rng.randint(3, 40)) if replied else None,
-                replied_by="فريق الدعم (تجريبي)" if replied else None)
+                replied_by="فريق الدعم" if replied else None)
             session.add(case)
             if replied:  # the user was told by email: kept in the demo outbox, nothing is sent
                 note = notify.queue_reply(session, case, DEMO_BASE_URL)
@@ -107,7 +107,7 @@ def seed_activity(session: Session, days: int = 14, seed: int = 7) -> tuple[int,
     return events, cases
 
 
-DEMO_STAFF = [("admin@example.com", "مدير تجريبي", "admin"), ("staff@example.com", "موظف تجريبي", "staff")]
+DEMO_STAFF = [("admin@example.com", "مدير النظام", "admin"), ("staff@example.com", "موظف الدعم", "staff")]
 
 
 def seed_staff(session: Session) -> tuple[list[str], str | None]:

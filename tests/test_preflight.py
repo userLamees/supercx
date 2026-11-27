@@ -87,3 +87,12 @@ def test_requirements_file_is_valid():
         req = Requirement(line)
         assert len(req.specifier) == 1 and str(next(iter(req.specifier))).startswith("=="), line
     assert {"fastapi", "sqlmodel", "alembic", "psycopg2-binary"} <= {Requirement(l).name for l in lines}
+
+
+def test_report_lists_every_connector_without_secrets(client, monkeypatch, capsys):
+    monkeypatch.setattr(config, "CASE_WEBHOOK_SECRET", "very-secret-value")
+    preflight.main([])
+    out = capsys.readouterr().out
+    for key in ("ai_agent", "member_registry", "case_sync", "whatsapp_assistant", "database"):
+        assert key in out
+    assert "very-secret-value" not in out and "test-token" not in out

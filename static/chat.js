@@ -104,7 +104,7 @@ I18N.add({
     "state.offline": "لا يوجد اتصال",
     "state.offlineBody": "تحقق من اتصالك بالإنترنت ثم أعد المحاولة. نحتفظ بنص سؤالك.",
     "state.chatFailed": "تعذّر الحصول على إجابة",
-    "state.chatFailedBody": "حدث خطأ في الخادم. نحتفظ بنص سؤالك، أعد المحاولة بعد قليل.",
+    "state.chatFailedBody": "حدث خلل مؤقت. احتفظنا بنص سؤالك، أعد المحاولة بعد قليل.",
     "state.retry": "أعد المحاولة",
 
     "consent.summary": "أوافق على إرسال ملخص سؤالي إلى فريق الدعم",
@@ -126,13 +126,12 @@ I18N.add({
 
     "verify.title": "التحقق من الجوال",
     "verify.sub": "لعرض بيانات عضويتك نحتاج التحقق من رقم جوالك",
-    "verify.demoHint": "محاكاة: لا تُرسل رسائل فعلية. جرّب الجوال 500000001 أو 500000002، أو البريد ambassador@example.com، وأي رمز من 4 أرقام.",
     "verify.phone": "رقم الجوال",
     "verify.send": "إرسال رمز التحقق",
     "verify.resend": "إعادة إرسال الرمز",
     "verify.code": "رمز التحقق",
     "verify.codeHelp": "أدخل الرمز المكوّن من 4 أرقام المرسل إلى جوالك",
-    "verify.codeSent": "أُرسل رمز تجريبي إلى \u2066+966 {phone}\u2069.",
+    "verify.codeSent": "أُرسل رمز التحقق إلى \u2066+966 {phone}\u2069.",
     "verify.check": "تحقق",
     "verify.sending": "جارٍ إرسال الرمز…",
     "verify.checking": "جارٍ التحقق…",
@@ -141,7 +140,6 @@ I18N.add({
     "verify.badCode": "أدخل الرمز كاملًا (4 أرقام).",
     "verify.failed": "تعذّر التحقق. أعد المحاولة.",
     "verify.registryDown": "تحققنا من رمزك، لكن سجل الأعضاء لا يرد الآن. حاول بعد قليل.",
-    "status.sourceLive": "المصدر: سجل أعضاء الجمعية",
     "verify.offline": "لا يوجد اتصال. تحقق من الإنترنت ثم أعد المحاولة.",
     "verify.cell": "الخانة {n}",
     "verify.subEmail": "لعرض بيانات عضويتك نحتاج التحقق من بريدك الإلكتروني",
@@ -152,7 +150,7 @@ I18N.add({
     "verify.email": "البريد الإلكتروني",
     "verify.codeHelpEmail": "أدخل الرمز المكوّن من 4 أرقام المرسل إلى بريدك",
     "verify.badEmail": "أدخل بريدًا إلكترونيًا صحيحًا.",
-    "verify.codeSentDemo": "محاكاة: لم تُرسل رسالة فعلية إلى \u2066{to}\u2069. أدخل أي 4 أرقام.",
+    "verify.codeSentDemo": "أرسلنا رمز التحقق إلى \u2066{to}\u2069.",
     "verify.codeSentEmail": "أرسلنا رمزًا إلى \u2066{to}\u2069. صالح لمدة 5 دقائق. تحقق من مجلد الرسائل غير المرغوب فيها إن لم يصلك.",
     "verify.codeSentWhatsapp": "أرسلنا رمزًا عبر واتساب إلى \u2066{to}\u2069. صالح لمدة 5 دقائق.",
     "verify.resendIn": "إعادة الإرسال بعد {s} ث",
@@ -175,7 +173,7 @@ I18N.add({
     "status.remaining": "المدة المتبقية",
     "status.progress": "المدة المتبقية من العضوية",
     "status.renew": "تجديد العضوية",
-    "status.source": "المصدر: سجل الأعضاء · بيانات تجريبية",
+    "status.source": "المصدر: سجل أعضاء الجمعية",
     "status.altCaption": "بعد التحقق",
     "status.none": "الرقم غير مسجل لدينا",
     "status.noneBody": "يمكنك استعراض أنواع العضويات واختيار الأنسب لك.",
@@ -282,7 +280,7 @@ I18N.add({
     "state.offline": "No connection",
     "state.offlineBody": "Check your internet connection and try again. We kept your question.",
     "state.chatFailed": "Couldn't get an answer",
-    "state.chatFailedBody": "The server returned an error. We kept your question; try again shortly.",
+    "state.chatFailedBody": "Something went wrong for a moment. We kept your question; please try again shortly.",
     "state.retry": "Try again",
 
     "consent.summary": "I agree to send a summary of my question to the support team",
@@ -304,7 +302,6 @@ I18N.add({
 
     "verify.title": "Mobile verification",
     "verify.sub": "To show your membership details we need to verify your mobile number",
-    "verify.demoHint": "Simulation: no real messages are sent. Try mobile 500000001 or 500000002, or ambassador@example.com, with any 4-digit code.",
     "verify.phone": "Mobile number",
     "verify.send": "Send verification code",
     "verify.resend": "Resend code",
@@ -319,7 +316,6 @@ I18N.add({
     "verify.badCode": "Enter the full 4-digit code.",
     "verify.failed": "Verification failed. Please try again.",
     "verify.registryDown": "Your code was verified, but the member registry isn't answering right now. Please try again shortly.",
-    "status.sourceLive": "Source: the association's member registry",
     "verify.offline": "No connection. Check your internet and try again.",
     "verify.cell": "Digit {n}",
     "verify.subEmail": "To show your membership details we need to verify your email",
@@ -330,7 +326,7 @@ I18N.add({
     "verify.email": "Email",
     "verify.codeHelpEmail": "Enter the 4-digit code sent to your email",
     "verify.badEmail": "Enter a valid email address.",
-    "verify.codeSentDemo": "Simulation: no message was sent to \u2066{to}\u2069. Enter any 4 digits.",
+    "verify.codeSentDemo": "We sent a verification code to \u2066{to}\u2069.",
     "verify.codeSentEmail": "We sent a code to \u2066{to}\u2069. It is valid for 5 minutes. Check your spam folder if it doesn't arrive.",
     "verify.codeSentWhatsapp": "We sent a code on WhatsApp to \u2066{to}\u2069. It is valid for 5 minutes.",
     "verify.resendIn": "Resend in {s}s",
@@ -353,7 +349,7 @@ I18N.add({
     "status.remaining": "Time remaining",
     "status.progress": "Membership time remaining",
     "status.renew": "Renew membership",
-    "status.source": "Source: member registry · demo data",
+    "status.source": "Source: the association's member registry",
     "status.altCaption": "After verification",
     "status.none": "This number isn't registered with us",
     "status.noneBody": "You can browse the membership types and choose the one that suits you.",
@@ -560,7 +556,10 @@ function renderReply(question, reply) {
     if (reply.action === "recommend") lastRecommended = reply.tier_id;
     // The cards carry prices and benefits, so list lines are dropped from the text above them.
     const text = reply.action === "recommend" ? reply.answer.split(/\n\s*\n/)[0]
-      : reply.answer.split("\n").filter((l) => !/^\s*([•\-*]|\d+[.)])\s/.test(l)).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+      : reply.answer.split("\n")
+        // The cards replace the list, so its items and the line introducing it ("…3 memberships:") go.
+        .filter((l) => !/^\s*([•\-*]|\d+[.)])\s/.test(l) && !/[:：]\s*$/.test(l))
+        .join("\n").replace(/\n{3,}/g, "\n\n").trim();
     const shown = text || t("tier.cardsIntro", null, lang);
     addListen(botText(shown, lang), shown, lang);
     const block = add(tierCards(decision, ui, reply.chat_event_id));
@@ -992,7 +991,6 @@ async function loadChannels() {
   const both = channels.demo || (channels.email && channels.whatsapp);
   document.getElementById("channel-switch").hidden = !both;
   if (!both) document.querySelector(`input[name=channel][value=${channels.email ? "email" : "whatsapp"}]`).checked = true;
-  document.getElementById("verify-demo").hidden = !channels.demo;
   applyChannel();
 }
 
@@ -1127,6 +1125,7 @@ const contactForm = document.getElementById("contact-form");
 const contactReply = document.getElementById("contact-reply");
 const contactChannel = document.getElementById("contact-channel");
 const contactError = document.getElementById("contact-error");
+document.getElementById("contact-form").addEventListener("input", (e) => e.target.removeAttribute?.("aria-invalid"));
 const contactStatus = document.getElementById("contact-status");
 const contactSend = document.getElementById("contact-send");
 contactReply.addEventListener("change", () => {
@@ -1136,12 +1135,14 @@ contactReply.addEventListener("change", () => {
 contactForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   showError(contactError, null);
+  contactForm.querySelectorAll("[aria-invalid]").forEach((el) => el.removeAttribute("aria-invalid"));
   const message = document.getElementById("contact-message").value.trim();
   const consent = document.getElementById("contact-consent");
-  if (message.length < 10) { showError(contactError, "contact.needMessage"); document.getElementById("contact-message").focus(); return; }
+  const invalid = (el) => { el.setAttribute("aria-invalid", "true"); el.focus(); };
+  if (message.length < 10) { showError(contactError, "contact.needMessage"); invalid(document.getElementById("contact-message")); return; }
   if (!consent.checked) { showError(contactError, "contact.needConsent"); consent.focus(); return; }
   const contact = contactReply.checked ? contactChannel.value.trim() : "";
-  if (contactReply.checked && !validContact(contact)) { showError(contactError, "consent.needContact"); contactChannel.focus(); return; }
+  if (contactReply.checked && !validContact(contact)) { showError(contactError, "consent.needContact"); invalid(contactChannel); return; }
   contactSend.disabled = true; contactSend.textContent = t("consent.sending");
   contactStatus.replaceChildren(stateCard("info", t("state.sending"), t("state.sendingBody")));
   try {
@@ -1178,7 +1179,6 @@ function renderStatus() {
   if (!s.registered) {
     sub.textContent = t("status.subNone"); sub.dataset.i18n = "status.subNone";
     body.replaceChildren(h("section", { class: "card card-white status-alt" },
-      h("p", { class: "demo-note" }, h("span", { class: "caption" }, t("status.altCaption")), s.demo === false ? null : h("span", { class: "tag" }, t("demoData"))),
       h("h2", {}, t("status.none")),
       h("p", {}, t("status.noneBody")),
       h("button", { class: "btn btn-secondary btn-block", type: "button", onclick: () => { location.hash = "#chat"; send(t("sugg.diff")); } }, t("status.browse"))));
@@ -1198,7 +1198,7 @@ function renderStatus() {
     h("div", { class: "progress", role: "progressbar", "aria-label": t("status.progress"), "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(pct) },
       h("span", { style: `width:${pct}%` })),
     s.can_renew ? h("a", { class: "btn btn-primary btn-block", href: tier?.source_url || "https://cxa.sa/membership", target: "_blank", rel: "noopener" }, t("status.renew")) : null,
-    h("p", { class: "caption" }, t(s.demo === false ? "status.sourceLive" : "status.source"))));
+    h("p", { class: "caption" }, t("status.source"))));
 }
 
 /* ---------- Views (hash routing) ---------- */

@@ -70,7 +70,7 @@ def test_english_conversation(client):
 # ---------- Personal information: only for the number that writes ----------
 def test_membership_status_for_the_sender_only(client):
     text = last(client, "حالة عضويتي")
-    assert "سفير" in text and "نشطة" in text and "بيانات تجريبية" in text
+    assert "سفير" in text and "نشطة" in text and "تجريبي" not in text
     assert "غير مسجل" in last(client, "حالة عضويتي", STRANGER)
 
 
@@ -102,6 +102,7 @@ def test_consent_creates_a_case_with_this_number(client):
     with Session(engine) as s:
         case = s.exec(select(SupportCase)).one()
         assert case.contact == "+966500000001" and case.category == "unanswered" and case.demo
+        assert not case.summary.startswith("[")  # the agent's language tag is not shown to staff
         assert s.exec(select(CaseSync).where(CaseSync.case_id == case.id)).one().event == "case.created"
         event = s.exec(select(ChatEvent).where(ChatEvent.channel == "whatsapp", ChatEvent.action == "escalate")).one()
         assert event.case_created
@@ -201,8 +202,3 @@ def test_webhook_escapes_xml(client, twilio, monkeypatch):
     params = {"From": "whatsapp:+966500000001", "Body": "what is x?"}
     r = client.post("/api/whatsapp/webhook", data=params, headers=signed(params))
     assert "A &lt; B &amp; C" in r.text
-
-
-def test_status_page_lists_the_whatsapp_assistant(client):
-    items = {i["key"]: i for i in client.get("/api/integrations", headers=TOKEN).json()}
-    assert items["whatsapp_assistant"]["state"] == "demo" and items["whatsapp_assistant"]["detail"] == "simulator"

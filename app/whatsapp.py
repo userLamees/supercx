@@ -70,7 +70,6 @@ T = {
         "status_off": "عضويتك: {tier}، منتهية منذ {date}.",
         "renew": "يمكنك التجديد من: {url}",
         "status_none": "رقمك غير مسجل لدينا كعضو. للتعرف على العضويات اكتب: قارن بين العضويات",
-        "status_demo": "(بيانات تجريبية)",
         "registry_down": "سجل الأعضاء لا يرد الآن. حاول بعد قليل.",
         "no_requests": "لا توجد طلبات مرسلة من هذا الرقم.",
         "requests_head": "طلباتك:",
@@ -102,7 +101,6 @@ T = {
         "status_off": "Your membership: {tier}, expired on {date}.",
         "renew": "You can renew at: {url}",
         "status_none": "This number isn't registered as a member. To see the memberships, type: compare the memberships",
-        "status_demo": "(demo data)",
         "registry_down": "The member registry isn't answering right now. Please try again shortly.",
         "no_requests": "No requests were sent from this number.",
         "requests_head": "Your requests:",
@@ -252,8 +250,6 @@ def status_text(phone: Optional[str], lang: str) -> str:
     if s.can_renew:
         tier_row = get_tier(s.tier_id)
         text += "\n" + t["renew"].format(url=tier_row.source_url if tier_row else "https://cxa.sa/membership")
-    if s.demo:
-        text += "\n" + t["status_demo"]
     return text
 
 
@@ -284,7 +280,7 @@ def create_case(session: Session, conv: WhatsAppConversation, contact: str, pend
     code = cases.new_tracking_code()
     category = pending.get("category") or "unanswered"
     case = SupportCase(question=redact(pending["question"])[:2000], language=lang, contact=contact,
-                       category=category, summary=redact(pending.get("summary") or pending["question"])[:2000],
+                       category=category, summary=redact(re.sub(r"^\[(ar|en)\]\s*", "", pending.get("summary") or pending["question"]))[:2000],
                        tracking_hash=cases.hash_code(code), demo=conv.demo)
     session.add(case)
     if pending.get("event_id"):
@@ -380,7 +376,8 @@ def handle(session: Session, raw_from: str, text: str, demo: bool = False) -> Re
                 body = reply.answer.split("\n\n")[0]
             elif cards:  # the cards carry prices and benefits: drop list lines, as the website does
                 body = re.sub(r"\n{3,}", "\n\n", "\n".join(l for l in reply.answer.split("\n")
-                                                         if not re.match(r"^\s*([•\-*]|\d+[.)])\s", l))).strip()
+                                                         if not re.match(r"^\s*([•\-*]|\d+[.)])\s", l)
+                                                         and not re.search(r"[:：]\s*$", l))).strip()
             parts = [body]
             if cards:
                 parts.append(cards)

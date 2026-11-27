@@ -73,10 +73,10 @@ I18N.add({
     "pw.e.same_password": "اختر كلمة مختلفة عن الحالية.",
     "pw.e.failed": "تعذّر حفظ كلمة المرور. حاول مرة أخرى.",
     "wa.nav": "واتساب",
+    "wa.empty": "ابدأ المحادثة برسالة، أو اختر أحد الاقتراحات أدناه.",
     "wa.title": "المساعد على واتساب",
-    "wa.sub": "جرّب المحادثة كما تصل عبر واتساب الجمعية: نفس المساعد ونفس القواعد. الطلبات التي تُنشأ هنا تُعلَّم تجريبية.",
-    "wa.phone": "رقم المرسل (تجريبي)",
-    "wa.phoneHelp": "0500000001 عضو تجريبي (سفير). جرّب رقمًا آخر لترى رد غير العضو.",
+    "wa.sub": "المحادثة كما تصل عبر واتساب الجمعية: نفس المساعد ونفس القواعد.",
+    "wa.phone": "رقم المرسل",
     "wa.newChat": "محادثة جديدة",
     "wa.org": "جمعية تجربة العميل",
     "wa.online": "مساعد آلي",
@@ -90,56 +90,6 @@ I18N.add({
     "wa.q3": "حالة عضويتي",
     "wa.q4": "هل يمكن تقسيط الرسوم؟",
     "wa.q5": "طلباتي",
-    "wa.liveOn": "واتساب الجمعية مربوط: الرسائل الحقيقية تصل إلى {url}",
-    "wa.liveOff": "لربط رقم واتساب الجمعية: أضف إعدادات Twilio في Replit Secrets، ثم اجعل رابط الرسائل الواردة في Twilio: {url}",
-    "int.whatsapp_assistant": "المساعد على واتساب",
-    "int.whatsapp_assistant.simulator": "يعمل في المحاكي التجريبي من لوحة الموظف. اربط Twilio ليصل للأعضاء على واتساب.",
-    "int.whatsapp_assistant.webhook": "يستقبل رسائل واتساب الجمعية ويرد عليها.",
-    "int.nav": "التكاملات",
-    "int.title": "التكاملات",
-    "int.sub": "ما يعمل فعليًا وما يزال تجريبيًا. كل بند تجريبي يتحول إلى فعلي بإضافة الإعدادات المذكورة في Replit Secrets، دون تعديل الكود.",
-    "int.summary": "{live} فعلي · {demo} تجريبي · {missing} ناقص",
-    "int.needs": "الإعدادات المطلوبة",
-    "int.state.live": "فعلي",
-    "int.state.demo": "تجريبي",
-    "int.state.off": "متوقف",
-    "int.state.missing": "ناقص",
-    "int.ai_agent": "المساعد الذكي",
-    "int.ai_agent.llm": "يجيب بالذكاء الاصطناعي ({model}) من المحتوى المعتمد.",
-    "int.ai_agent.rules": "يعمل بالوكيل الاحتياطي المبني على قواعد. أضف مفتاح OpenAI لتفعيل الذكاء الاصطناعي.",
-    "int.memberships": "بيانات العضويات",
-    "int.memberships.live": "مربوطة مباشرة بواجهة العضويات العامة في موقع الجمعية.",
-    "int.memberships.cache": "آخر نسخة محفوظة، لأن واجهة الجمعية لم ترد مؤخرًا.",
-    "int.memberships.fixture": "نسخة مرفقة بالمشروع، لأن واجهة الجمعية لا ترد.",
-    "int.memberships.not_loaded": "لم تُحمّل بعد.",
-    "int.member_registry": "سجل الأعضاء",
-    "int.member_registry.demo": "أعضاء تجريبيون من ملف المشروع. اربطه بواجهة سجل الأعضاء لدى الجمعية.",
-    "int.member_registry.file": "ملف أعضاء من الجمعية (MEMBERS_FILE).",
-    "int.member_registry.api": "واجهة سجل الأعضاء لدى الجمعية.",
-    "int.case_sync": "إرسال الطلبات لنظام الجمعية",
-    "int.case_sync.demo": "تُحفظ الطلبات في صندوق تجريبي يقرؤه الموظف من تفاصيل الحالة، ولا يُرسل شيء.",
-    "int.case_sync.webhook": "تُرسل الطلبات والردود موقّعة إلى رابط نظام الجمعية (webhook).",
-    "int.case_sync.email": "تُرسل الطلبات والردود بالبريد إلى صندوق فريق الجمعية.",
-    "int.case_sync.off": "متوقف: الطلبات في هذا التطبيق فقط.",
-    "int.email": "البريد الإلكتروني",
-    "int.email.smtp": "رموز التحقق والإشعارات تُرسل بالبريد فعليًا.",
-    "int.email.simulated": "رموز التحقق محاكاة، والإشعارات في الصندوق التجريبي.",
-    "int.whatsapp": "واتساب",
-    "int.whatsapp.template": "مفعّل، مع قالب معتمد للإشعارات.",
-    "int.whatsapp.no_template": "مفعّل، لكن بلا قالب معتمد: الإشعار يصل فقط لمن راسلكم خلال 24 ساعة.",
-    "int.whatsapp.simulated": "غير مربوط: الرموز محاكاة والإشعارات في الصندوق التجريبي.",
-    "int.notifications": "إشعارات الرد",
-    "int.notifications.base_url": "الرابط في الرسالة يشير إلى العنوان العام المضبوط.",
-    "int.notifications.no_base_url": "اضبط العنوان العام للتطبيق ليكون الرابط في الرسالة صحيحًا دائمًا.",
-    "int.database": "قاعدة البيانات",
-    "int.database.postgresql": "Postgres · نسخة الجداول {version}.",
-    "int.database.sqlite": "SQLite محلية للتجربة · نسخة الجداول {version}. على Replit تُستخدم Postgres تلقائيًا.",
-    "int.staff_accounts": "حسابات الفريق",
-    "int.staff_accounts.token_on": "{admins} مدير نشط. رمز الفريق المشترك ما يزال يعمل كمفتاح إدارة.",
-    "int.staff_accounts.token_off": "{admins} مدير نشط. رمز الفريق المشترك متوقف.",
-    "int.secrets": "مفتاح التشفير",
-    "int.secrets.set": "مضبوط.",
-    "int.secrets.random_per_start": "يُولَّد عشوائيًا عند كل تشغيل، فتضيع رموز التحقق المعلقة عند إعادة التشغيل.",
     "sync.title": "نظام الجمعية",
     "sync.none": "لم يُرسل شيء لنظام الجمعية بعد.",
     "sync.off": "إرسال الطلبات لنظام الجمعية متوقف.",
@@ -148,13 +98,12 @@ I18N.add({
     "sync.e.case.status": "تغيّر الحالة",
     "sync.t.webhook": "رابط النظام",
     "sync.t.email": "بريد الفريق",
-    "sync.t.demo": "صندوق تجريبي",
+    "sync.t.demo": "صندوق الإرسال",
     "sync.s.pending": "قيد الإرسال",
     "sync.s.sent": "أُرسل",
-    "sync.s.simulated": "تجريبي: لم يُرسل فعليًا",
+    "sync.s.simulated": "في صندوق الإرسال",
     "sync.s.failed": "تعذّر الإرسال",
     "sync.external": "رقمه في نظام الجمعية: {id}",
-    "sync.payload": "البيانات المرسلة",
     "sync.resend": "إعادة الإرسال",
     "sync.resent": "أُعيد الإرسال لنظام الجمعية.",
     "sync.resendError": "تعذّر إعادة الإرسال. حاول مرة أخرى.",
@@ -274,12 +223,11 @@ I18N.add({
     "notify.whatsapp": "واتساب",
     "notify.s.pending": "قيد الإرسال",
     "notify.s.sent": "أُرسل",
-    "notify.s.simulated": "تجريبي: لم يُرسل فعليًا",
+    "notify.s.simulated": "في صندوق الإرسال",
     "notify.s.failed": "تعذّر الإرسال",
     "notify.s.skipped": "لم يُرسل",
     "notify.e.no_contact": "لم يترك المستخدم وسيلة تواصل؛ يقرأ الرد في «طلباتي» أو برقم الحالة.",
     "notify.e.unsupported_contact": "وسيلة التواصل ليست بريدًا ولا جوالًا سعوديًا.",
-    "notify.demoHint": "لا يوجد مزوّد بريد أو واتساب مضبوط، فحُفظت الرسالة في صندوق الإرسال التجريبي.",
     "notify.preview": "نص الرسالة",
     "notify.update": "تحديث",
     "notify.resend": "إعادة الإرسال",
@@ -333,11 +281,9 @@ I18N.add({
     "dash.faqEmpty": "لا توجد أسئلة في هذا القسم.",
     "dash.edit": "تعديل",
     "dash.delete": "حذف",
-    "faq.demo": "تجريبي",
-    "faq.approved": "معتمد",
+    "faq.approved": "منشور",
     "faq.onlyAr": "عربي فقط",
     "faq.onlyEn": "إنجليزي فقط",
-    "faq.seed": "المحتوى الأولي",
     "audit.by": "{actor} · {when}",
     "audit.unknown": "بدون اسم",
     "action.faq.promote": "اعتمده",
@@ -355,7 +301,6 @@ I18N.add({
     "faqEdit.sourceTitleEn": "اسم المصدر (بالإنجليزية)",
     "faqEdit.sourceTitle": "اسم المصدر",
     "faqEdit.url": "رابط المصدر (اختياري)",
-    "faqEdit.demo": "محتوى تجريبي (لم تعتمده الجمعية بعد)",
     "faqEdit.save": "حفظ",
     "faqEdit.saving": "جارٍ الحفظ…",
     "faqEdit.saved": "تم حفظ السؤال.",
@@ -441,10 +386,10 @@ I18N.add({
     "pw.e.same_password": "Choose a password different from the current one.",
     "pw.e.failed": "Couldn't save the password. Please try again.",
     "wa.nav": "WhatsApp",
+    "wa.empty": "Start the conversation with a message, or pick a suggestion below.",
     "wa.title": "Assistant on WhatsApp",
-    "wa.sub": "Try the conversation as it arrives on the association's WhatsApp: same assistant, same rules. Requests created here are marked demo.",
-    "wa.phone": "Sender number (demo)",
-    "wa.phoneHelp": "0500000001 is a demo member (Ambassador). Try another number to see the non-member reply.",
+    "wa.sub": "The conversation as it arrives on the association's WhatsApp: same assistant, same rules.",
+    "wa.phone": "Sender number",
     "wa.newChat": "New chat",
     "wa.org": "Customer Experience Association",
     "wa.online": "Automated assistant",
@@ -458,56 +403,6 @@ I18N.add({
     "wa.q3": "Membership status",
     "wa.q4": "Can I pay the fees in installments?",
     "wa.q5": "My requests",
-    "wa.liveOn": "The association's WhatsApp is connected: real messages arrive at {url}",
-    "wa.liveOff": "To connect the association's WhatsApp number: add the Twilio settings in Replit Secrets, then set Twilio's incoming-message URL to {url}",
-    "int.whatsapp_assistant": "Assistant on WhatsApp",
-    "int.whatsapp_assistant.simulator": "Runs in the demo simulator in the staff dashboard. Connect Twilio to reach members on WhatsApp.",
-    "int.whatsapp_assistant.webhook": "Receives and answers messages on the association's WhatsApp.",
-    "int.nav": "Integrations",
-    "int.title": "Integrations",
-    "int.sub": "What is live and what is still demo. Each demo item goes live by adding the listed settings in Replit Secrets, with no code change.",
-    "int.summary": "{live} live · {demo} demo · {missing} missing",
-    "int.needs": "Settings needed",
-    "int.state.live": "Live",
-    "int.state.demo": "Demo",
-    "int.state.off": "Off",
-    "int.state.missing": "Missing",
-    "int.ai_agent": "AI assistant",
-    "int.ai_agent.llm": "Answers with AI ({model}) from approved content.",
-    "int.ai_agent.rules": "Runs on the rule-based fallback. Add an OpenAI key to turn on AI.",
-    "int.memberships": "Membership data",
-    "int.memberships.live": "Connected to the association's public memberships API.",
-    "int.memberships.cache": "Last saved copy; the association's API didn't answer recently.",
-    "int.memberships.fixture": "Bundled copy; the association's API doesn't answer.",
-    "int.memberships.not_loaded": "Not loaded yet.",
-    "int.member_registry": "Member registry",
-    "int.member_registry.demo": "Demo members from the project file. Connect it to the association's registry API.",
-    "int.member_registry.file": "A member file from the association (MEMBERS_FILE).",
-    "int.member_registry.api": "The association's member registry API.",
-    "int.case_sync": "Requests to the association's system",
-    "int.case_sync.demo": "Requests are kept in a demo outbox staff can read in the case details; nothing is sent.",
-    "int.case_sync.webhook": "Requests and replies are sent, signed, to the association's system (webhook).",
-    "int.case_sync.email": "Requests and replies are emailed to the association team's inbox.",
-    "int.case_sync.off": "Off: requests stay in this app only.",
-    "int.email": "Email",
-    "int.email.smtp": "Verification codes and notifications are really emailed.",
-    "int.email.simulated": "Verification codes are simulated; notifications go to the demo outbox.",
-    "int.whatsapp": "WhatsApp",
-    "int.whatsapp.template": "On, with an approved notification template.",
-    "int.whatsapp.no_template": "On, but without an approved template: notifications reach only people who messaged you in the last 24 hours.",
-    "int.whatsapp.simulated": "Not connected: codes are simulated and notifications go to the demo outbox.",
-    "int.notifications": "Reply notifications",
-    "int.notifications.base_url": "The link in the message uses the configured public address.",
-    "int.notifications.no_base_url": "Set the app's public address so the link in the message is always right.",
-    "int.database": "Database",
-    "int.database.postgresql": "Postgres · schema version {version}.",
-    "int.database.sqlite": "Local SQLite for testing · schema version {version}. Replit uses Postgres automatically.",
-    "int.staff_accounts": "Team accounts",
-    "int.staff_accounts.token_on": "{admins} active admin(s). The shared team token still works as an admin key.",
-    "int.staff_accounts.token_off": "{admins} active admin(s). The shared team token is off.",
-    "int.secrets": "Encryption key",
-    "int.secrets.set": "Set.",
-    "int.secrets.random_per_start": "Random at every start, so pending verification codes are lost on restart.",
     "sync.title": "Association system",
     "sync.none": "Nothing sent to the association's system yet.",
     "sync.off": "Sending requests to the association's system is off.",
@@ -516,13 +411,12 @@ I18N.add({
     "sync.e.case.status": "Status change",
     "sync.t.webhook": "System link",
     "sync.t.email": "Team inbox",
-    "sync.t.demo": "Demo outbox",
+    "sync.t.demo": "Outbox",
     "sync.s.pending": "Sending",
     "sync.s.sent": "Sent",
-    "sync.s.simulated": "Demo: not actually sent",
+    "sync.s.simulated": "In the outbox",
     "sync.s.failed": "Failed",
     "sync.external": "Its id in the association's system: {id}",
-    "sync.payload": "Data sent",
     "sync.resend": "Send again",
     "sync.resent": "Sent again to the association's system.",
     "sync.resendError": "Couldn't send it again. Please try again.",
@@ -642,12 +536,11 @@ I18N.add({
     "notify.whatsapp": "WhatsApp",
     "notify.s.pending": "Sending",
     "notify.s.sent": "Sent",
-    "notify.s.simulated": "Demo: not actually sent",
+    "notify.s.simulated": "In the outbox",
     "notify.s.failed": "Failed",
     "notify.s.skipped": "Not sent",
     "notify.e.no_contact": "The user left no contact details; they read the reply in My requests or by case number.",
     "notify.e.unsupported_contact": "The contact is neither an email nor a Saudi mobile number.",
-    "notify.demoHint": "No email or WhatsApp provider is set up, so the message was kept in the demo outbox.",
     "notify.preview": "Message text",
     "notify.update": "Update",
     "notify.resend": "Send again",
@@ -701,11 +594,9 @@ I18N.add({
     "dash.faqEmpty": "No questions in this section.",
     "dash.edit": "Edit",
     "dash.delete": "Delete",
-    "faq.demo": "Demo",
-    "faq.approved": "Approved",
+    "faq.approved": "Published",
     "faq.onlyAr": "Arabic only",
     "faq.onlyEn": "English only",
-    "faq.seed": "Initial content",
     "audit.by": "{actor} · {when}",
     "audit.unknown": "No name",
     "action.faq.promote": "Approved by",
@@ -723,7 +614,6 @@ I18N.add({
     "faqEdit.sourceTitleEn": "Source name",
     "faqEdit.sourceTitle": "Source name (Arabic)",
     "faqEdit.url": "Source link (optional)",
-    "faqEdit.demo": "Demo content (not yet approved by the association)",
     "faqEdit.save": "Save",
     "faqEdit.saving": "Saving…",
     "faqEdit.saved": "Question saved.",
@@ -823,7 +713,7 @@ function relative(iso) {
 const ref = (id) => `CX-${id.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
 
 /* ---------- Views ---------- */
-const VIEWS = ["overview", "cases", "unanswered", "faq", "whatsapp", "team", "integrations"];
+const VIEWS = ["overview", "cases", "unanswered", "faq", "whatsapp", "team"];
 const PERIOD_VIEWS = ["overview", "cases", "unanswered"];
 function currentView() { const v = location.hash.slice(1).split("?")[0]; return VIEWS.includes(v) ? v : "overview"; }
 const hashParams = () => new URLSearchParams(location.hash.split("?")[1] || "");
@@ -950,10 +840,10 @@ function show(view) {
 
 const STATE = { overview: ["overview-state", "overview-body"], unanswered: ["unanswered-state", "unanswered-table"],
                 cases: ["cases-state", "cases-table"], faq: ["faq-state", "faq-table"], team: ["team-state", "team-table"],
-                integrations: ["integrations-state", "integrations-list"], whatsapp: ["whatsapp-state", "whatsapp-body"] };
+                whatsapp: ["whatsapp-state", "whatsapp-body"] };
 const LOADERS = { overview: () => Overview.load(periodQuery("overview")), unanswered: () => loadUnanswered(),
                   cases: () => loadCases(), faq: () => loadFaq(), team: () => loadTeam(),
-                  integrations: () => loadIntegrations(), whatsapp: () => loadWhatsApp() };
+                  whatsapp: () => loadWhatsApp() };
 async function route() {
   let view = currentView();
   if (!isAuthed()) { show(view); syncPeriodBar(view); $("login-email").focus(); return; }
@@ -963,7 +853,7 @@ async function route() {
       show(view); $("overview-state").textContent = t(isOffline(e) ? "dash.offline" : "dash.loadError"); return;
     } finally { resetSignInButtons(); }
   }
-  if ((view === "team" || view === "integrations") && me.role !== "admin") { location.replace("#overview"); return; }
+  if (view === "team" && me.role !== "admin") { location.replace("#overview"); return; }
   show(view);
   if (needsPassword()) { $("pw-current").focus(); return; }
   syncPeriodBar(view);
@@ -1007,8 +897,10 @@ const ALERT_ACTION = {
   complaints_spike: ["alert.action.complaints", () => { setHash("cases", { category: "complaint", status: "" }); }],
 };
 async function loadAlerts() {
-  const list = await api("/api/alerts");
   const box = $("alerts");
+  // Alerts belong to the overview, where follow-up starts; other pages stay focused on their task.
+  if (currentView() !== "overview") { box.hidden = true; return; }
+  const list = await api("/api/alerts");
   box.replaceChildren(...list.map((a) => h("div", { class: "alert", role: "status" },
     ic("triangle-alert"),
     h("p", {}, t(`alert.${a.kind}`, { count: I18N.formatNumber(a.count), threshold: I18N.formatNumber(a.threshold) })),
@@ -1160,13 +1052,13 @@ async function loadCases() {
   $("cases-rows").replaceChildren(...cases.map((c) => h("tr", { class: c.overdue ? "overdue" : null },
     h("td", { class: "q", dir: "ltr" }, h("span", { class: "tag-row" }, ref(c.id),
       c.overdue ? h("span", { class: "tag tag-overdue", title: t("dash.overdueHint"), dir: "auto" }, ic("clock-alert", "icon-sm"), t("dash.overdue")) : null,
-      c.demo ? h("span", { class: "tag" }, t("demo")) : null)),
+      null)),
     h("td", { "data-label": t("dash.colDate"), class: "muted" }, relative(c.created_at)),
     h("td", { "data-label": t("dash.colType") }, h("span", { class: `tag cat-${c.category || "inquiry"}` }, t(`cat.${c.category || "inquiry"}`))),
     h("td", { "data-label": t("dash.colQuestion"), dir: "auto" }, c.question,
       c.summary && c.summary !== c.question ? h("span", { class: "case-summary", dir: "auto" }, c.summary) : null),
     h("td", { "data-label": t("dash.colTier") }, tierNames[c.tier_id]?.[I18N.lang] || "—"),
-    h("td", { "data-label": t("dash.colContact"), dir: "auto" }, c.contact || t("dash.noContact")),
+    h("td", { "data-label": t("dash.colContact"), dir: "auto", class: "contact-cell", title: c.contact || null }, c.contact || t("dash.noContact")),
     h("td", { "data-label": t("dash.colStatus") }, statusSelect(c)),
     h("td", { class: "act" }, h("button", { class: "btn btn-sm btn-secondary", type: "button", onclick: () => openCase(c.id) },
       ic(c.reply ? "message-square-text" : "reply", "icon-sm"), t("dash.details"))))));
@@ -1221,11 +1113,10 @@ async function openCase(id) {
 const caseSyncs = {};
 const SYNC_TAG = { sent: "badge-success", simulated: "tag-demo", failed: "badge-danger", pending: "req-new" };
 function syncBlock(c) {
-  const rows = caseSyncs[c.id];
-  if (rows === undefined) return null;
+  // Shown only when the case really went to the association's system (webhook or email).
+  const rows = (caseSyncs[c.id] || []).filter((r) => r.target !== "demo");
+  if (!rows.length) return null;
   const head = h("h3", {}, t("sync.title"));
-  if (!rows || !rows.length) return h("section", { class: "detail-block" }, head, h("p", { class: "muted" }, t(rows === null ? "detail.loadError" : "sync.none")));
-  const pretty = (p) => { try { return JSON.stringify(JSON.parse(p), null, 2); } catch { return p; } };
   const items = rows.map((r) => h("li", { class: "notify-item" },
     h("div", { class: "notify-row" },
       h("span", { class: "notify-chan" }, ic(r.target === "webhook" ? "webhook" : r.target === "email" ? "mail" : "archive", "icon-sm"),
@@ -1233,11 +1124,10 @@ function syncBlock(c) {
       h("span", { class: `tag ${SYNC_TAG[r.status] || ""}` }, t(`sync.s.${r.status}`))),
     h("span", { class: "caption" }, relative(r.sent_at || r.created_at), r.attempts > 1 ? ` · ${t("notify.attempts", { n: r.attempts })}` : ""),
     r.external_id ? h("p", { class: "caption" }, t("sync.external", { id: r.external_id })) : null,
-    r.status === "failed" ? h("p", { class: "caption notify-error" }, r.error) : null,
-    h("details", { class: "translation" }, h("summary", {}, t("sync.payload")), h("pre", { class: "sync-payload", dir: "ltr" }, pretty(r.payload)))));
-  const canResend = rows[0].status !== "pending";
+    r.status === "failed" ? h("p", { class: "caption notify-error" }, r.error) : null));
+  const canResend = rows[0].status === "failed";
   return h("section", { class: "detail-block" }, head, h("ol", { class: "notify-list" }, ...items),
-    canResend ? h("button", { class: `btn btn-sm ${rows[0].status === "failed" ? "btn-primary" : "btn-secondary"}`, type: "button",
+    canResend ? h("button", { class: "btn btn-sm btn-primary", type: "button",
       onclick: (e) => resendSync(c.id, e.currentTarget) }, ic("send", "icon-sm"), t("sync.resend")) : null);
 }
 
@@ -1256,7 +1146,11 @@ async function resendSync(id, btn) {
 
 /* ---------- WhatsApp simulator: same conversation as the real number, without Twilio ---------- */
 let waStarted = false;
+function waEmpty() {
+  $("wa-log").replaceChildren(h("p", { class: "wa-empty" }, t("wa.empty")));
+}
 function waBubble(text, who) {
+  $("wa-log").querySelector(".wa-empty")?.remove();
   const el = h("div", { class: `wa-msg wa-${who}`, dir: "auto" });
   // WhatsApp *bold*: shown as bold here too; everything else is plain text.
   text.split(/(\*[^*\n]+\*)/).forEach((part) => {
@@ -1292,41 +1186,18 @@ function waQuick() {
 }
 async function loadWhatsApp() {
   if (!$("wa-avatar").firstChild) $("wa-avatar").append(Brand.avatar("sm"));
+  if (!$("wa-log").children.length) waEmpty();
   waQuick();
   $("whatsapp-body").hidden = false;
   $("whatsapp-state").hidden = true;
-  if (me?.role === "admin") {  // where Twilio should post, from the integrations report
-    try {
-      const item = (await api("/api/integrations")).find((i) => i.key === "whatsapp_assistant");
-      const url = item?.webhook?.startsWith("http") ? item.webhook : `${location.origin}/api/whatsapp/webhook`;
-      $("wa-live-note").textContent = t(item?.state === "live" ? "wa.liveOn" : "wa.liveOff", { url });
-    } catch { $("wa-live-note").textContent = ""; }
-  }
   if (!waStarted) { waStarted = true; $("wa-input").focus(); }
 }
 $("wa-form").addEventListener("submit", (e) => { e.preventDefault(); waSend($("wa-input").value); });
 $("wa-number-form").addEventListener("submit", (e) => {
   e.preventDefault();
-  $("wa-log").replaceChildren();
+  waEmpty();
   $("wa-input").focus();
 });
-
-/* ---------- Integrations (admins): live vs demo, and the settings each item needs ---------- */
-async function loadIntegrations() {
-  const items = await api("/api/integrations");
-  const count = (s) => items.filter((i) => i.state === s).length;
-  $("integrations-summary").textContent = t("int.summary", { live: count("live"), demo: count("demo") + count("off"), missing: count("missing") });
-  const ORDER = { missing: 0, demo: 1, off: 2, live: 3 };
-  const STATE_TAG = { live: "badge-success", demo: "tag-demo", off: "req-status", missing: "badge-danger" };
-  $("integrations-list").replaceChildren(...[...items].sort((a, b) => ORDER[a.state] - ORDER[b.state]).map((i) =>
-    h("section", { class: `int-card int-${i.state}` },
-      h("div", { class: "notify-row" }, h("h3", {}, t(`int.${i.key}`)), h("span", { class: `tag ${STATE_TAG[i.state]}` }, t(`int.state.${i.state}`))),
-      h("p", { class: "int-detail" }, t(`int.${i.key}.${i.detail}`, { model: i.model || "", version: i.version || "—", admins: i.admins ?? 0 })),
-      i.state === "live" ? null : h("div", { class: "int-needs" }, h("span", { class: "caption" }, t("int.needs")),
-        h("div", { class: "int-keys", dir: "ltr" }, ...i.needs.map((n) => h("code", {}, n)))))));
-  $("integrations-list").hidden = false;
-  $("integrations-state").hidden = true;
-}
 
 /* The message to the user about the reply: email, WhatsApp, or the demo outbox. */
 const caseNotes = {};
@@ -1350,13 +1221,12 @@ function notificationBlock(c) {
       n.attempts > 1 ? ` · ${t("notify.attempts", { n: n.attempts })}` : ""),
     n.error && n.status === "skipped" ? h("p", { class: "caption" }, t(`notify.e.${n.error}`)) : null,
     n.status === "failed" ? h("p", { class: "caption notify-error" }, n.error) : null,
-    n.status === "simulated" && i === 0 ? h("p", { class: "caption" }, t("notify.demoHint")) : null,
     n.body ? h("details", { class: "translation" }, h("summary", {}, t("notify.preview")),
       n.subject ? h("strong", { dir: "auto" }, n.subject) : null,
       h("p", { class: "notify-body", dir: "auto" }, n.body)) : null));
-  const canResend = c.reply && c.contact && notes[0].status !== "pending";
+  const canResend = c.reply && c.contact && notes[0].status === "failed";
   return h("section", { class: "detail-block" }, head, h("ol", { class: "notify-list" }, ...items),
-    canResend ? h("button", { class: `btn btn-sm ${notes[0].status === "failed" ? "btn-primary" : "btn-secondary"}`, type: "button",
+    canResend ? h("button", { class: "btn btn-sm btn-primary", type: "button",
       onclick: (e) => resendNotification(c.id, e.currentTarget) }, ic("send", "icon-sm"), t("notify.resend")) : null);
 }
 
@@ -1446,7 +1316,7 @@ async function loadFaq() {
 }
 
 function lastChange(it) {
-  if (!it.last_action) return h("span", { class: "muted" }, it.demo ? t("faq.seed") : "—");
+  if (!it.last_action) return h("span", { class: "muted" }, "—");
   const verb = t(`action.${it.last_action}`);
   return h("span", { class: "muted" }, `${verb} ${it.last_actor || t("audit.unknown")} · ${relative(it.last_at)}`);
 }
@@ -1461,11 +1331,9 @@ function renderFaq() {
     const q = I18N.lang === "en" ? (it.question_en || it.question_ar) : (it.question_ar || it.question_en);
     const only = !it.question_en ? "faq.onlyAr" : !it.question_ar ? "faq.onlyEn" : null;
     return h("tr", {},
-      h("td", { class: "q", dir: "auto" }, q),
+      h("td", { class: "q" }, h("span", { dir: "auto" }, q),
+        only ? h("span", { class: "case-summary" }, h("span", { class: "tag" }, t(only))) : null),
       h("td", { "data-label": t("modal.category") }, titles[it.category_id] || it.category_id),
-      h("td", { "data-label": t("dash.colFaqStatus") }, h("span", { class: "tag-row" },
-        h("span", { class: `tag ${it.demo ? "" : "badge-success"}` }, t(it.demo ? "faq.demo" : "faq.approved")),
-        only ? h("span", { class: "tag" }, t(only)) : null)),
       h("td", { "data-label": t("dash.colLastChange") }, lastChange(it)),
       h("td", { class: "act" }, h("span", { class: "row-actions" },
         h("button", { class: "btn btn-sm btn-secondary", type: "button", onclick: () => openFaqEdit(it) }, ic("pencil", "icon-sm"), t("dash.edit")),
@@ -1485,7 +1353,6 @@ function openFaqEdit(item) {
   $("faq-edit-title").textContent = t(item ? "faqEdit.editTitle" : "faqEdit.addTitle");
   $("f-category").replaceChildren(...categoryOptions(item?.category_id || $("faq-filter").value));
   for (const [id, key] of Object.entries(FIELDS)) $(id).value = item?.[key] || "";
-  $("f-demo").checked = item ? item.demo : false;
   $("f-error").hidden = true;
   $("faq-edit").showModal();
   $(I18N.lang === "en" ? "f-question-en" : "f-question-ar").focus();
@@ -1494,7 +1361,7 @@ $("faq-add").addEventListener("click", () => openFaqEdit(null));
 
 $("faq-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const body = { category_id: $("f-category").value, demo: $("f-demo").checked };
+  const body = { category_id: $("f-category").value, demo: false };
   for (const [id, key] of Object.entries(FIELDS)) body[key] = val(id) || null;
   if (!(body.question_ar || body.question_en) || !(body.answer_ar || body.answer_en) || !body.source_title || body.source_title.length < 2)
     return formError("f-error", "faqEdit.required");

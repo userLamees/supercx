@@ -9,7 +9,7 @@ window.Requests = (function () {
     ar: {
       "req.nav": "طلباتي",
       "req.navNew": "طلباتي، يوجد رد جديد",
-      "cat.unanswered": "سؤال غير مجاب",
+      "cat.unanswered": "سؤال",
       "req.status.new": "تم الاستلام",
       "req.status.in_progress": "قيد المعالجة",
       "req.status.replied": "تم الرد",
@@ -30,13 +30,13 @@ window.Requests = (function () {
       "confirm.saved": "حفظنا رقم الحالة ورمز المتابعة في «طلباتي» على هذا الجهاز.",
       "confirm.notSaved": "تعذّر حفظ الطلب على هذا الجهاز، فاحتفظ بالرقم والرمز الآن.",
       "confirm.next": "الخطوة التالية",
-      "confirm.estimate": "موعد الرد تقديري للعرض، بانتظار اعتماد الجمعية.",
       "confirm.myRequests": "طلباتي",
       "confirm.another": "رفع طلب آخر",
       "req.title": "طلباتي",
       "req.sub": "طلباتك المرسلة من هذا الجهاز وردود الفريق عليها.",
       "req.loading": "جارٍ تحميل طلباتك…",
-      "req.empty": "لا توجد طلبات محفوظة على هذا الجهاز. ستظهر هنا طلباتك عند إرسالها، أو تابع طلبًا برقمه ورمز متابعته.",
+      "req.emptyTitle": "لا توجد طلبات بعد",
+      "req.empty": "تظهر هنا طلباتك المرسلة من هذا الجهاز وردود الفريق عليها. ولمتابعة طلب من جهاز آخر، استخدم «تابع طلبك» أدناه.",
       "req.storageOff": "المتصفح لا يسمح بالحفظ على هذا الجهاز، لذلك لن تظهر طلباتك هنا. استخدم «تابع طلبك» برقم الحالة ورمز المتابعة.",
       "req.new": "رد جديد",
       "req.teamReply": "رد الفريق",
@@ -61,7 +61,7 @@ window.Requests = (function () {
     en: {
       "req.nav": "My requests",
       "req.navNew": "My requests, new reply",
-      "cat.unanswered": "Unanswered question",
+      "cat.unanswered": "Question",
       "req.status.new": "Received",
       "req.status.in_progress": "In progress",
       "req.status.replied": "Replied",
@@ -82,13 +82,13 @@ window.Requests = (function () {
       "confirm.saved": "We saved the case number and tracking code in My requests on this device.",
       "confirm.notSaved": "We couldn't save this request on this device, so please keep the number and code now.",
       "confirm.next": "Next step",
-      "confirm.estimate": "The reply time is an estimate for the demo, pending the association's confirmation.",
       "confirm.myRequests": "My requests",
       "confirm.another": "Submit another request",
       "req.title": "My requests",
       "req.sub": "Requests sent from this device and the team's replies.",
       "req.loading": "Loading your requests…",
-      "req.empty": "No requests saved on this device. Your requests appear here once you send them, or you can track one with its number and tracking code.",
+      "req.emptyTitle": "No requests yet",
+      "req.empty": "Requests you send from this device and the team's replies appear here. To follow a request from another device, use Track your request below.",
       "req.storageOff": "This browser doesn't allow saving on this device, so your requests won't be listed here. Use Track your request with the case number and tracking code.",
       "req.new": "New reply",
       "req.teamReply": "Team reply",
@@ -216,8 +216,7 @@ window.Requests = (function () {
           copyBtn),
         h("p", { class: "help" }, t("confirm.codeOnce", null, l), " ", t(saved ? "confirm.saved" : "confirm.notSaved", null, l))),
       h("div", { class: "next-step" }, h("span", { class: "caption" }, t("confirm.next", null, l)),
-        h("p", {}, data.next_step[l] || data.next_step.ar),
-        h("span", { class: "caption estimate" }, t("confirm.estimate", null, l))),
+        h("p", {}, data.next_step[l] || data.next_step.ar)),
       h("div", { class: "confirm-actions" },
         h("a", { class: "btn btn-secondary", href: "#requests" }, ic("inbox", "icon-sm"), t("confirm.myRequests", null, l)),
         h("a", { class: "btn btn-text", href: "#contact" }, ic("plus", "icon-sm"), t("confirm.another", null, l))));
@@ -261,7 +260,7 @@ window.Requests = (function () {
     }
     const list = load();
     const note = !storageOk ? h("p", { class: "help" }, t("req.storageOff"))
-      : list.length === 0 ? h("p", { class: "faq-empty" }, t("req.empty")) : null;
+      : list.length === 0 ? emptyState("inbox", t("req.emptyTitle"), t("req.empty")) : null;
     body.replaceChildren(...[note, list.length ? h("ul", { class: "request-list" }, ...list.map(itemCard)) : null].filter(Boolean));
     I18N.icons();
     markSeen();  // the "new reply" tags stay until the next visit

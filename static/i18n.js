@@ -76,11 +76,23 @@
   function add(strings) { Object.assign(dict.ar, strings.ar); Object.assign(dict.en, strings.en); }
 
   add({
-    ar: { "lang.toggle": "EN", "lang.toggleAria": "Switch to English", "nav.back": "العودة للمحادثة",
-          "demo": "تجريبي", "demoData": "بيانات تجريبية" },
-    en: { "lang.toggle": "ع", "lang.toggleAria": "التبديل إلى العربية", "nav.back": "Back to chat",
-          "demo": "Demo", "demoData": "Demo data" },
+    ar: { "lang.toggle": "EN", "lang.toggleAria": "Switch to English", "nav.back": "العودة للمحادثة" },
+    en: { "lang.toggle": "ع", "lang.toggleAria": "التبديل إلى العربية", "nav.back": "Back to chat" },
   });
+
+  /* Empty state: icon in a soft circle, a title and one line (requests, FAQ search). */
+  window.emptyState = function (iconName, title, text) {
+    const box = document.createElement("div");
+    box.className = "empty-state";
+    box.innerHTML = `<span class="empty-icon">${icon(iconName)}</span>`;
+    const strong = document.createElement("strong");
+    strong.textContent = title;
+    const p = document.createElement("p");
+    p.textContent = text;
+    box.append(strong, p);
+    setTimeout(icons);
+    return box;
+  };
 
   window.I18N = { t, add, apply, setLang, icons, icon, formatDate, formatNumber, days, count, assistantName, get lang() { return lang; } };
 

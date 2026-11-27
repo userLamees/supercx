@@ -162,13 +162,6 @@ def _active_admins(session: Session) -> int:
     return len(session.exec(select(StaffUser).where(StaffUser.role == "admin", StaffUser.active == True)).all())  # noqa: E712
 
 
-@app.get("/api/integrations", dependencies=[Depends(require_admin)])
-def integrations(session: Session = Depends(get_session)) -> list[dict]:
-    """Admins: which connectors are live and which are still demo, with the settings each needs."""
-    from app.integrations import status as integration_status
-    return integration_status.report(session)
-
-
 @app.get("/api/staff/users", response_model=list[StaffOut], dependencies=[Depends(require_admin)])
 def staff_users(session: Session = Depends(get_session)) -> list[StaffOut]:
     rows = session.exec(select(StaffUser).order_by(StaffUser.created_at)).all()

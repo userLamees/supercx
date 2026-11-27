@@ -158,3 +158,12 @@ def test_pages_load_plex_arabic_and_inter():
 def test_avatar_image_is_served(client):
     r = client.get("/static/img/mishari.png")
     assert r.status_code == 200 and r.headers["content-type"] == "image/png"
+
+
+def test_no_demo_labels_in_the_interface():
+    """The product is presented as is; demo data is explained in the handover, not on screen."""
+    for path in STATIC.rglob("*"):
+        if path.suffix in {".js", ".html"}:
+            text = path.read_text(encoding="utf-8")
+            for word in ("تجريبي", "بيانات تجريبية", "Demo data", "محاكاة"):
+                assert word not in text, f"{word} in {path.name}"

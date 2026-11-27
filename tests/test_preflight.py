@@ -5,6 +5,8 @@ from app import config, preflight
 
 
 def ready(monkeypatch):
+    # The suite deliberately uses SQLite, regardless of its host environment.
+    monkeypatch.setattr(config, "ON_REPLIT", False)
     monkeypatch.setattr(config, "OTP_SECRET", "x" * 64)
     monkeypatch.setattr(config, "SUPPORT_TOKEN", "y" * 40)
     monkeypatch.setattr(config, "STAFF_ADMIN_EMAIL", "admin@example.com")
@@ -72,9 +74,16 @@ def test_public_url_comes_from_replit(monkeypatch):
 
 
 def test_replit_runs_with_proxy_headers():
-    text = open(".replit", encoding="utf-8").read()
-    assert text.count("--proxy-headers --forwarded-allow-ips") == 2  # workspace run and deployment run
-    assert "pip install -r requirements.txt" in text
+    import tomllib
+    with open(".replit", "rb") as file:
+        settings = tomllib.load(file)
+    commands = [settings["run"], " ".join(settings["deployment"]["run"])]
+    for workflow in settings.get("workflows", {}).get("workflow", []):
+        commands.extend(task["args"] for task in workflow.get("tasks", [])
+                        if task["task"] == "shell.exec")
+    for command in commands:
+        assert "--proxy-headers --forwarded-allow-ips" in command
+    assert "pip install -r requirements.txt" in " ".join(settings["deployment"]["build"])
 
 
 def test_requirements_file_is_valid():

@@ -4,6 +4,10 @@ AI membership assistant for the Saudi CX Association (CX Hackathon, Track 1).
 
 ## Run
 
+For this Replit workspace, see [replit.md](replit.md) for the port 5000
+workflow and base/optional AI dependency instructions. Semantic search requires
+`pip install -r requirements-ai.txt` before adding `OPENAI_API_KEY`.
+
 Locally (SQLite is created automatically; the FAQ seed loads on first start):
 
 ```bash

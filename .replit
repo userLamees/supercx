@@ -2,16 +2,17 @@
 # are listed in docs/REPLIT.md; `python -m app.preflight` checks them.
 # --proxy-headers: Replit's proxy forwards the visitor's address and https, so attempt limits
 # count each visitor separately and links use https.
-run = "uvicorn main:app --host 0.0.0.0 --port 5000 --proxy-headers --forwarded-allow-ips='*'"
+run = "uvicorn main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'"
 entrypoint = "main.py"
 modules = ["python-3.12", "nodejs-20", "web"]
 
 [deployment]
-run = ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 5000 --proxy-headers --forwarded-allow-ips='*'"]
-build = ["sh", "-c", "pip install -r requirements.txt"]
+run = ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
+build = ["pip", "install", "-r", "requirements.txt"]
+deploymentTarget = "autoscale"
 
 [[ports]]
-localPort = 5000
+localPort = 8000
 externalPort = 80
 
 [nix]
@@ -33,10 +34,10 @@ args = "Start application"
 name = "Start application"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python -m uvicorn main:app --host 0.0.0.0 --port 5000 --proxy-headers --forwarded-allow-ips='*'"
-waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
+args = "uvicorn main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'"
+waitForPort = 8000

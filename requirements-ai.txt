@@ -1,3 +1,0 @@
--r requirements.txt
-# Optional semantic FAQ search. Install before enabling OPENAI_API_KEY.
-langchain-chroma==1.2.0

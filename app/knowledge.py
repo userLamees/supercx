@@ -1,4 +1,11 @@
-"""Knowledge base for the AI agent: the FAQ table indexed in Chroma for semantic search.
+"""Knowledge base for the AI agent: the FAQ table indexed for semantic search.
+
+Two interchangeable vector stores (VECTOR_STORE setting):
+- "chroma": Chroma saved on disk (as in the RAG workshop), used when langchain-chroma is installed.
+- "memory": a small in-process store. Used when Chroma cannot be installed (for example on
+  Replit, where the chromadb package is blocked). The index is rebuilt from the FAQ table at
+  startup, which takes one embedding call for a few dozen entries.
+Both return cosine similarity, so RAG_MIN_SCORE means the same thing with either.
 
 - One document per FAQ item and language (Arabic and English are indexed separately).
 - The database stays the source of truth. `sync_faq_index` makes Chroma match it:
@@ -19,7 +26,7 @@ from sqlmodel import Session, select
 
 import logging
 
-from .config import AGENT_ENABLED, CHROMA_DIR, EMBEDDING_MODEL
+from .config import AGENT_ENABLED, CHROMA_DIR, EMBEDDING_MODEL, VECTOR_STORE
 from .db import FaqItem
 
 COLLECTION = "faq"
@@ -63,24 +70,73 @@ class Hit:
     score: float
 
 
+class MemoryStore:
+    """In-process vector store with the same methods the knowledge base uses from Chroma.
+    Plain cosine similarity over every entry: instant for an FAQ of a few hundred entries."""
+
+    def __init__(self, embeddings: Embeddings):
+        self.embeddings = embeddings
+        self.rows: dict[str, tuple[Document, list[float]]] = {}
+
+    def get(self, include=None) -> dict:
+        ids = list(self.rows)
+        return {"ids": ids, "metadatas": [self.rows[i][0].metadata for i in ids]}
+
+    def delete(self, ids: list[str]) -> None:
+        for doc_id in ids:
+            self.rows.pop(doc_id, None)
+
+    def add_documents(self, documents: list[Document], ids: list[str]) -> None:
+        vectors = self.embeddings.embed_documents([d.page_content for d in documents])
+        for doc_id, doc, vector in zip(ids, documents, vectors):
+            self.rows[doc_id] = (doc, vector)
+
+    def similarity_search_with_relevance_scores(self, query: str, k: int = 4, filter: dict | None = None):
+        q = self.embeddings.embed_query(query)
+        q_norm = sum(x * x for x in q) ** 0.5 or 1.0
+        scored = []
+        for doc, vector in self.rows.values():
+            if filter and any(doc.metadata.get(key) != value for key, value in filter.items()):
+                continue
+            norm = sum(x * x for x in vector) ** 0.5 or 1.0
+            scored.append((doc, sum(a * b for a, b in zip(q, vector)) / (q_norm * norm)))
+        return sorted(scored, key=lambda pair: pair[1], reverse=True)[:k]
+
+
+def chroma_available() -> bool:
+    try:
+        import langchain_chroma  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
 _store = None
 
 
-def get_store(embeddings: Embeddings | None = None, persist_directory: str | None = None):
-    """Opens (or creates) the Chroma collection. Tests pass their own embeddings and folder."""
+def get_store(embeddings: Embeddings | None = None, persist_directory: str | None = None, backend: str | None = None):
+    """Opens the index. Tests pass their own embeddings, folder and backend."""
     global _store
-    if embeddings is None and persist_directory is None and _store is not None:
+    is_default = embeddings is None and persist_directory is None and backend is None
+    if is_default and _store is not None:
         return _store
-    from langchain_chroma import Chroma
-
     if embeddings is None:
         from langchain_openai import OpenAIEmbeddings
         embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
-    store = Chroma(collection_name=COLLECTION,
-                   embedding_function=NormalizedEmbeddings(embeddings),
-                   persist_directory=persist_directory or CHROMA_DIR,
-                   collection_configuration={"hnsw": {"space": "cosine"}})
-    if persist_directory is None:
+    embeddings = NormalizedEmbeddings(embeddings)
+
+    backend = backend or VECTOR_STORE
+    if backend == "auto":
+        backend = "chroma" if chroma_available() else "memory"
+    if backend == "chroma":
+        from langchain_chroma import Chroma
+        store = Chroma(collection_name=COLLECTION, embedding_function=embeddings,
+                       persist_directory=persist_directory or CHROMA_DIR,
+                       collection_configuration={"hnsw": {"space": "cosine"}})
+    else:
+        store = MemoryStore(embeddings)
+    logging.getLogger(__name__).info("Knowledge index: %s", backend)
+    if is_default:
         _store = store
     return store
 

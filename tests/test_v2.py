@@ -199,7 +199,7 @@ def test_postgres_url_scheme_is_converted(monkeypatch):
 
 def test_no_support_token_default_in_code():
     from pathlib import Path
-    src = (Path(__file__).resolve().parent.parent / "app" / "config.py").read_text()
+    src = (Path(__file__).resolve().parent.parent / "app" / "config.py").read_text(encoding="utf-8")
     assert 'os.getenv("SUPPORT_TOKEN", "")' in src
 
 

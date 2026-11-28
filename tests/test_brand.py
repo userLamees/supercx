@@ -19,7 +19,8 @@ def run_tiers(script: str, **data):
         pytest.skip("node is not installed")
     prelude = f"const T = require({json.dumps(str(STATIC / 'tiers.js'))});\n"
     prelude += "".join(f"const {k} = {json.dumps(v, ensure_ascii=False)};\n" for k, v in data.items())
-    out = subprocess.run([NODE, "-e", prelude + script], capture_output=True, text=True, timeout=20)
+    out = subprocess.run([NODE, "-e", prelude + script], capture_output=True, text=True,
+                         encoding="utf-8", timeout=20)  # Windows defaults to cp1252
     assert out.returncode == 0, out.stderr
     return json.loads(out.stdout)
 
@@ -91,7 +92,7 @@ def test_prices_and_benefits_come_from_membership_data(tiers):
         assert card["features"] == tier["features"]["en"] and card["name"] == tier["name"]["en"]
         assert card["url"] == tier["source_url"]
     # No price is written in the frontend code.
-    code = (STATIC / "tiers.js").read_text() + (STATIC / "chat.js").read_text()
+    code = (STATIC / "tiers.js").read_text(encoding="utf-8") + (STATIC / "chat.js").read_text(encoding="utf-8")
     for tier in tiers:
         price = int(tier["price_sar"])
         assert not re.search(rf"(?<![\w.]){price}(?![\w.])", code), f"hard-coded price {price}"
@@ -140,7 +141,7 @@ def test_interface_is_light_only():
 
 
 def test_v3_tokens_are_defined():
-    tokens = (STATIC / "tokens.css").read_text()
+    tokens = (STATIC / "tokens.css").read_text(encoding="utf-8")
     for name, value in {"--c-blue": "#3040D0", "--c-blue-bright": "#5A62F5", "--c-blue-soft": "#ECEEFC",
                         "--c-indigo": "#1A2390", "--c-text": "#14152B", "--c-text-2": "#5B5E73",
                         "--c-muted": "#8A8DA3", "--c-border": "#E6E8F0", "--c-line": "#EEF0F6",

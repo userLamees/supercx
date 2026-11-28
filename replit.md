@@ -16,10 +16,12 @@ The base installation uses the project's existing rule-based assistant when
 `OPENAI_API_KEY` is absent. Membership lookup and message delivery remain in their
 existing demo modes until their providers are configured.
 
-The required `langchain-chroma==1.2.0` dependency pulls `chromadb`. Replit's
-package registry rejected downloads of `chromadb` 1.5.9 and 1.5.8 with HTTP 403
-during setup. The complete dependency install therefore remains blocked unless
-the registry allows that package. No workaround or replacement library was added.
+The FAQ search index uses Chroma when `langchain-chroma` is installed, and an in-memory
+store otherwise. Replit's package registry rejects `chromadb` (HTTP 403), so
+`langchain-chroma` is not in `requirements.txt`: on Replit the in-memory store is used and
+the index is rebuilt from the FAQ table at startup (the log shows `Knowledge index: memory`).
+Results are the same with either store. For a persistent local index, install it separately:
+`pip install langchain-chroma==1.2.0`.
 
 Staff access requires `STAFF_ADMIN_EMAIL` and `STAFF_ADMIN_PASSWORD` in Secrets
 (or the existing `SUPPORT_TOKEN` mechanism). Set `OTP_SECRET` in Secrets to

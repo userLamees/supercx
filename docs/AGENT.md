@@ -51,7 +51,14 @@ answers instead, so the chat never stops during a demo.
 
 ### Knowledge base
 
-`app/knowledge.py` indexes the FAQ table in Chroma:
+`app/knowledge.py` indexes the FAQ table for semantic search. Two stores give the same
+results (both use cosine similarity), chosen by `VECTOR_STORE`:
+
+- **Chroma** on disk, as in the RAG workshop, when `langchain-chroma` is installed (local development).
+- **In-memory**, when it is not. Replit's package registry blocks `chromadb`, so the deployed app
+  uses this one: the index is rebuilt from the FAQ table at startup (one embedding call).
+
+Either way:
 
 - One document per FAQ entry and language. Arabic and English are indexed separately, and the
   search matches across languages (an Arabic question finds the English entry and the reverse).
@@ -151,6 +158,7 @@ slightly between runs even at temperature 0.
 
 ```bash
 pip install -r requirements.txt
+pip install langchain-chroma==1.2.0   # optional: persistent Chroma index locally
 cp .env.example .env              # then set OPENAI_API_KEY and SUPPORT_TOKEN
 uvicorn main:app --reload --port 8000
 
@@ -171,7 +179,8 @@ from the FAQ table when the app starts.
 | `OPENAI_API_KEY` | none | Turns on the AI agent and voice; without it the rule-based agent answers |
 | `LLM_MODEL` | `gpt-4.1-mini` | Model for routing and answers |
 | `EMBEDDING_MODEL` | `text-embedding-3-small` | Model for the FAQ index |
-| `CHROMA_DIR` | `./chroma_db` | Index folder (rebuilt from the database if deleted) |
+| `VECTOR_STORE` | `auto` | `chroma`, `memory`, or `auto` (Chroma if installed, otherwise in-memory) |
+| `CHROMA_DIR` | `./chroma_db` | Chroma index folder (rebuilt from the database if deleted) |
 | `RAG_TOP_K` | `4` | FAQ entries retrieved per question |
 | `RAG_MIN_SCORE` | `0.30` | Weaker matches are ignored (chosen by evaluation) |
 | `OPENAI_STT_MODEL` | `gpt-4o-mini-transcribe` | Speech to text |

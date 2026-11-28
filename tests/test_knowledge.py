@@ -34,10 +34,12 @@ class WordEmbeddings(Embeddings):
         return self._vector(text)
 
 
-@pytest.fixture()
-def store(client, tmp_path):
-    """A fresh index in a temporary folder, synced with the seeded FAQ."""
-    index = get_store(WordEmbeddings(), persist_directory=str(tmp_path / "chroma"))
+@pytest.fixture(params=["chroma", "memory"])
+def store(client, tmp_path, request):
+    """A fresh index synced with the seeded FAQ. Every test runs on both backends."""
+    if request.param == "chroma":
+        pytest.importorskip("langchain_chroma")
+    index = get_store(WordEmbeddings(), persist_directory=str(tmp_path / "chroma"), backend=request.param)
     with Session(engine) as session:
         sync_faq_index(session, store=index)
     return index
@@ -113,3 +115,9 @@ def test_edited_and_deleted_items_follow_the_database(store):
 def test_language_filter(store):
     hits = search("membership fees", min_score=0, lang="en", store=store)
     assert hits and all(h.lang == "en" for h in hits)
+
+
+def test_auto_backend_falls_back_to_memory_without_chroma(monkeypatch):
+    from app import knowledge
+    monkeypatch.setattr(knowledge, "chroma_available", lambda: False)
+    assert isinstance(get_store(WordEmbeddings(), backend="auto"), knowledge.MemoryStore)

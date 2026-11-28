@@ -174,7 +174,12 @@ def escalate(state: State) -> State:
 
 
 def retrieve(state: State) -> State:
-    from .knowledge import search
+    from .knowledge import refresh_index, search
+
+    # Replit autoscale can run several copies of the app, each with its own index. Syncing
+    # here (a DB read; only changed FAQ entries are embedded) means an edit made through one
+    # copy is answered by all of them.
+    refresh_index()
 
     # Search with the rewritten question (resolves "how much is it?") and with the user's
     # own words (the rewrite can add words that lower the score). Each FAQ entry is kept

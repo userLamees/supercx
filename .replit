@@ -41,3 +41,9 @@ outputType = "console"
 task = "shell.exec"
 args = "uvicorn main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'"
 waitForPort = 8000
+
+[userenv]
+
+[userenv.shared]
+LLM_MODEL = "gpt-4.1-mini"
+RAG_MIN_SCORE = "0.30"

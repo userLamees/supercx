@@ -91,10 +91,14 @@ Users can ask by voice and listen to any reply, using the same OpenAI key
   turns red and shows "Listening…" with a timer, so users know when to speak.
   `POST /api/speech/transcribe` (`gpt-4o-mini-transcribe`) turns it into text, which is placed
   in the message box so the user can check or fix it before sending.
+- **Silence is never sent.** The browser measures the sound level while recording; if it heard
+  less than 0.3 s of speech, it shows "I didn't hear anything" and sends nothing. Speech models
+  invent a sentence from an empty recording, so this matters: an early version with a context
+  prompt turned silence into a full question about membership fees.
 - **Unclear audio is rejected, not guessed.** The language is detected from the speech (not
-  from the interface language), a short context prompt helps with Saudi dialect, and a
-  transcript that is neither Arabic nor English (speech models can "hear" another language in
-  silence or noise) returns "couldn't understand, try again". Taps shorter than 0.8 s are ignored.
+  from the interface language), no context prompt is sent, and a transcript that is neither
+  Arabic nor English, or a phrase models typically invent from silence ("Thank you", "شكرًا"),
+  returns "couldn't understand, try again". Taps shorter than 0.8 s are ignored.
 - **Listen** under each reply calls `POST /api/speech/synthesize` (`gpt-4o-mini-tts`, voice
   `coral`) and plays the MP3. Audio is generated once per reply and replayed from memory.
 - Both buttons appear only when `GET /api/speech` reports voice is enabled and the browser can

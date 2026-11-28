@@ -52,6 +52,7 @@ I18N.add({
     "voice.listening": "أستمع إليك… {time} · اضغط ■ عند الانتهاء",
     "voice.unclear": "لم أتمكن من فهم التسجيل. تحدّث بوضوح بعد ظهور «أستمع إليك» ثم حاول مرة أخرى.",
     "voice.check": "راجع النص ثم اضغط إرسال",
+    "voice.silent": "لم أسمع شيئًا. اضغط الميكروفون وتحدّث بعد ظهور «أستمع إليك».",
     "voice.failed": "تعذّر تحويل الصوت. حاول مرة أخرى أو اكتب سؤالك.",
     "voice.denied": "لم يُسمح باستخدام الميكروفون. فعّله من إعدادات المتصفح.",
     "voice.playFailed": "تعذّر تشغيل الصوت.",
@@ -228,6 +229,7 @@ I18N.add({
     "voice.listening": "Listening… {time} · press ■ when done",
     "voice.unclear": "I couldn't understand the recording. Speak clearly once \u201cListening\u201d appears, then try again.",
     "voice.check": "Check the text, then press send",
+    "voice.silent": "I didn't hear anything. Press the mic and speak once \u201cListening\u201d appears.",
     "voice.failed": "Couldn't transcribe the recording. Try again or type your question.",
     "voice.denied": "Microphone access was blocked. Allow it in your browser settings.",
     "voice.playFailed": "Couldn't play the audio.",
@@ -810,6 +812,32 @@ let recordTimer = null;
 let clockTimer = null;
 let player = null;
 const MAX_RECORDING_MS = 60000;
+const MIN_SPEECH_MS = 300;       // at least this much sound above the threshold counts as speech
+const SPEECH_LEVEL = 0.015;      // RMS loudness; room noise is about 0.002-0.008, speech 0.03 and up
+
+// Measures how long the microphone actually heard sound while recording.
+function listenForSpeech(stream) {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return { stop: () => Infinity };  // cannot measure: let the server decide
+  const ctx = new AudioCtx();
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 2048;
+  ctx.createMediaStreamSource(stream).connect(analyser);
+  const samples = new Float32Array(analyser.fftSize);
+  let spokenMs = 0;
+  let last = performance.now();
+  const timer = setInterval(() => {
+    analyser.getFloatTimeDomainData(samples);
+    let sum = 0;
+    for (const s of samples) sum += s * s;
+    const now = performance.now();
+    if (Math.sqrt(sum / samples.length) > SPEECH_LEVEL) spokenMs += now - last;
+    last = now;
+  }, 50);
+  return {
+    stop() { clearInterval(timer); ctx.close(); return spokenMs; },
+  };
+}
 
 async function initVoice() {
   try {
@@ -851,15 +879,19 @@ async function startRecording() {
   }
   const chunks = [];
   let startedAt = 0;
+  const level = listenForSpeech(stream);
   recorder = new MediaRecorder(stream);
   recorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
   recorder.onstop = async () => {
     clearTimeout(recordTimer);
+    const spokenMs = level.stop();
     stream.getTracks().forEach((track) => track.stop());
     const type = (recorder.mimeType || "audio/webm").split(";")[0];
     recorder = null;
     setMicIcon(false);
     if (Date.now() - startedAt < 800) return;  // a tap, not a question: nothing to transcribe
+    // Silence is never sent: speech models invent a sentence from an empty recording.
+    if (spokenMs < MIN_SPEECH_MS) { add(stateCard("warn", t("voice.silent"))); return; }
     if (chunks.length) await transcribe(new Blob(chunks, { type }));
   };
   recorder.onstart = () => { startedAt = Date.now(); setMicIcon(true); };  // "Listening" appears only once audio is really captured

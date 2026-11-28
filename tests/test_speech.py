@@ -71,3 +71,11 @@ def test_synthesize_validates_input(client, voice_on):
     assert client.post("/api/speech/synthesize", json={"text": ""}).status_code == 422
     assert client.post("/api/speech/synthesize", json={"text": "x" * 1501}).status_code == 422
     assert client.post("/api/speech/synthesize", json={"text": "hi", "lang": "fr"}).status_code == 422
+
+
+def test_phrases_invented_from_silence_are_rejected():
+    assert speech.is_silence_phrase("Thank you.")
+    assert speech.is_silence_phrase("شكرًا")
+    assert speech.is_silence_phrase("  شكرا لكم!  ")
+    assert not speech.is_silence_phrase("Thank you, how can I join?")
+    assert not speech.is_silence_phrase("كيف أنضم للجمعية؟")

@@ -7,6 +7,10 @@ os.environ["DATABASE_URL"] = "sqlite:///./test_supercx.db"
 os.environ["MEMBERSHIP_API_URL"] = "http://127.0.0.1:9/unreachable"
 os.environ["SUPPORT_TOKEN"] = "test-token"
 os.environ["OPENAI_API_KEY"] = ""
+# Real staff accounts from Replit Secrets must not leak into tests: each test that needs an
+# admin creates its own. (With them set, 5 staff-account tests found an extra admin.)
+os.environ["STAFF_ADMIN_EMAIL"] = ""
+os.environ["STAFF_ADMIN_PASSWORD"] = ""
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pytest  # noqa: E402
